@@ -7,9 +7,11 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
-  font-family: Arial, sans-serif;
+  font-family: "Poppins", sans-serif;
   background-color: #f9fafb;
 }
 
