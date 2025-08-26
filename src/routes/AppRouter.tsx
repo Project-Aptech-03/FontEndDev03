@@ -15,15 +15,19 @@ import AdminLayout from "../layouts/AdminLayout";
 import Dashboard from "../admin/dashboard";
 import Users from "../admin/Users";
 import Products from "../admin/Products";
+import VerifyOtp from "../pages/Auth/VerifyOtp";
+
 
 export const AppRouter = () => (
   <Routes>
     <Route element={<AuthLayout />}>
+        {/*<Route path={"/login"} element={<AuthPage />} />*/}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/verify-otp" element={<VerifyOtp />} />
     </Route>
     <Route element={<MainLayout />}>
-      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/about" element={<About />} />
