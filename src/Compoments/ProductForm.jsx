@@ -73,7 +73,6 @@ function ProductForm() {
   return (
     <form onSubmit={handleSubmit} encType="multipart/form-data">
       <h2>Tạo Sản Phẩm</h2>
-
       <div>
         <label>Tên sản phẩm:</label>
         <input
@@ -83,7 +82,6 @@ function ProductForm() {
           required
         />
       </div>
-
       <div>
         <label>Giá sản phẩm:</label>
         <input
