@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
@@ -21,6 +21,7 @@ import VerifyOtp from "../pages/Auth/VerifyOtp";
 export const AppRouter = () => (
   <Routes>
     <Route element={<AuthLayout />}>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         {/*<Route path={"/login"} element={<AuthPage />} />*/}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
