@@ -16,8 +16,9 @@ const Header: React.FC = () => {
   const menuItems = [
     { key: "/", label: "Home" },
     { key: "/shop", label: "Shop" },
-    { key: "/about", label: "About" },
+    { key: "/about", label: "About Us" },
     { key: "/contact", label: "Contact" },
+    { key: "/blog", label: "Blog" },
   ];
 
   return (
@@ -59,8 +60,8 @@ const Header: React.FC = () => {
       {/* Icons */}
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         <SearchOutlined style={{ fontSize: 20 }} />
-        <UserOutlined style={{ fontSize: 20 }} />
-        <HeartOutlined style={{ fontSize: 20 }} />
+        <UserOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/login")} />
+        <HeartOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/wishlist")} />
         <ShoppingCartOutlined
           style={{ fontSize: 20, cursor: "pointer" }}
           onClick={() => navigate("/cart")}
