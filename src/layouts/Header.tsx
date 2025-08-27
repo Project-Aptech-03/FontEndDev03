@@ -59,8 +59,8 @@ const Header: React.FC = () => {
       {/* Icons */}
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         <SearchOutlined style={{ fontSize: 20 }} />
-        <UserOutlined style={{ fontSize: 20 }} />
-        <HeartOutlined style={{ fontSize: 20 }} />
+        <UserOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/login")} />
+        <HeartOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/wishlist")} />
         <ShoppingCartOutlined
           style={{ fontSize: 20, cursor: "pointer" }}
           onClick={() => navigate("/cart")}

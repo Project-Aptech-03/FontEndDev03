@@ -1,7 +1,5 @@
 // src/services/api.js
 import axios from "axios";
-import {toast} from "react-toastify";
-import error = toast.error;
 
 const API_BASE_URL = "https://localhost:7275/api";
 
@@ -11,8 +9,6 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-// @ts-ignore
-
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -21,6 +17,5 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-    (error) => Promise.reject(error)
-
+  (error) => Promise.reject(error)
 );

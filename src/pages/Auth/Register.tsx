@@ -1,298 +1,423 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { AuthService } from "../../services/authService";
-import "./auth.css";
-import {LoginErrors} from "../../@type/login";
-import {INITIAL_FORM_ERRORS} from "../../constants/login.constants";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaSearch, FaUser, FaHeart, FaShoppingCart, FaEye, FaEyeSlash, FaEnvelope, FaLock, FaUser as FaUserIcon } from 'react-icons/fa';
+import './RegisterPage.css';
 
-interface RegisterForm {
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    address: string;
-    dateOfBirth: string;
-    email: string;
-    password: string;
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  agreeToTerms: boolean;
 }
 
-const Register: React.FC = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState<RegisterForm>({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
-        address: "",
-        dateOfBirth: "",
-        email: "",
-        password: "",
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState<LoginErrors>(INITIAL_FORM_ERRORS);
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  agreeToTerms?: string;
+}
 
+const RegisterPage = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreeToTerms: false
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
 
-    // @ts-ignore
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
-        try {
-            const res = await AuthService.register(formData);
+    // First Name validation
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    } else if (formData.firstName.length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters';
+    }
 
-            if (res.success) {
-                toast.success("OTP đã gửi tới email, vui lòng xác minh!");
-                navigate("/verify-otp", { state: { email: formData.email } });
-            } else {
-                toast.error(res.error?.message || "Đăng ký thất bại");
-            }
-        } catch (error) {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Last Name validation
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    } else if (formData.lastName.length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters';
+    }
 
-    return (
-        <div className="auth-page">
-            <div className="auth-container">
-                <div className="auth-card">
-                    <div className="auth-header">
-                        <div className="logo">
-                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                                <circle cx="20" cy="20" r="20" fill="#4361EE"/>
-                                <path d="M26 16L18 24L14 20" stroke="white" strokeWidth="2" strokeLinecap="round"
-                                      strokeLinejoin="round"/>
-                            </svg>
-                            <span>LuxuryStay</span>
-                        </div>
-                        <h2>Đăng Ký Tài Khoản</h2>
-                        <p>Điền đầy đủ thông tin bên dưới để tạo tài khoản mới</p>
-                    </div>
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
 
-                    <form className="auth-form" onSubmit={handleSubmit}>
-                        {errors.general && (
-                            <div className="error-message general-error">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path
-                                        d="M8 6V9M8 11H8.01M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z"
-                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                                </svg>
-                                {errors.general}
-                            </div>
-                        )}
-                        <div className="form-row">
-                        <div className="form-group">
-                                <label htmlFor="firstName">Họ</label>
-                                <div className="input-container">
-                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M10 10C12.3012 10 14.1667 8.13451 14.1667 5.83333C14.1667 3.53215 12.3012 1.66667 10 1.66667C7.69881 1.66667 5.83333 3.53215 5.83333 5.83333C5.83333 8.13451 7.69881 10 10 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M17.5 18.3333C17.5 14.6667 14.1425 11.6667 10 11.6667C5.8575 11.6667 2.5 14.6667 2.5 18.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập họ của bạn"
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="lastName">Tên</label>
-                                <div className="input-container">
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập tên của bạn"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+    }
 
-                        <div className="form-group">
-                            <label htmlFor="phoneNumber">Số điện thoại</label>
-                            <div className="input-container">
-                                <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path d="M14.1667 1.66667H5.83333C4.91286 1.66667 4.16667 2.41286 4.16667 3.33333V16.6667C4.16667 17.5871 4.91286 18.3333 5.83333 18.3333H14.1667C15.0871 18.3333 15.8333 17.5871 15.8333 16.6667V3.33333C15.8333 2.41286 15.0871 1.66667 14.1667 1.66667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M10 15H10.0083" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <input
-                                    type="tel"
-                                    id="phoneNumber"
-                                    name="phoneNumber"
-                                    value={formData.phoneNumber}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Nhập số điện thoại"
-                                />
-                            </div>
-                        </div>
+    // Confirm Password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
 
-                        <div className="form-group">
-                            <label htmlFor="address">Địa chỉ</label>
-                            <div className="input-container">
-                                <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path d="M17.5 8.33333C17.5 14.1667 10 19.1667 10 19.1667C10 19.1667 2.5 14.1667 2.5 8.33333C2.5 6.3442 3.29018 4.43655 4.6967 3.03003C6.10322 1.62351 8.01088 0.833328 10 0.833328C11.9891 0.833328 13.8968 1.62351 15.3033 3.03003C16.7098 4.43655 17.5 6.3442 17.5 8.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M10 10.8333C11.3807 10.8333 12.5 9.71404 12.5 8.33333C12.5 6.95262 11.3807 5.83333 10 5.83333C8.61929 5.83333 7.5 6.95262 7.5 8.33333C7.5 9.71404 8.61929 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    id="address"
-                                    name="address"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Nhập địa chỉ"
-                                />
-                            </div>
-                        </div>
+    // Terms agreement validation
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    }
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="dateOfBirth">Ngày sinh</label>
-                                <div className="input-container">
-                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M15.8333 3.33333H4.16667C3.24619 3.33333 2.5 4.07952 2.5 5V16.6667C2.5 17.5871 3.24619 18.3333 4.16667 18.3333H15.8333C16.7538 18.3333 17.5 17.5871 17.5 16.6667V5C17.5 4.07952 16.7538 3.33333 15.8333 3.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M2.5 8.33333H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M13.3333 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M6.66667 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <input
-                                        type="date"
-                                        id="dateOfBirth"
-                                        name="dateOfBirth"
-                                        value={formData.dateOfBirth}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="email">Email</label>
-                                <div className="input-container">
-                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M2.5 6.66669L9.0755 11.0504C9.63533 11.4236 10.3647 11.4236 10.9245 11.0504L17.5 6.66669M4.16667 15.8334H15.8333C16.7538 15.8334 17.5 15.0872 17.5 14.1667V5.83335C17.5 4.91288 16.7538 4.16669 15.8333 4.16669H4.16667C3.24619 4.16669 2.5 4.91288 2.5 5.83335V14.1667C2.5 15.0872 3.24619 15.8334 4.16667 15.8334Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập email"
-                                    />
-                                </div>
-                            </div>
-                        </div>
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
-                        <div className="form-group">
-                            <label htmlFor="password">Mật khẩu</label>
-                            <div className="input-container">
-                                <svg
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 20 20"
-                                    fill="none"
-                                    className="input-icon"
-                                >
-                                    <path
-                                        d="M15.8333 9.16669H4.16667C3.24619 9.16669 2.5 9.91288 2.5 10.8334V15.8334C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8334V10.8334C17.5 9.91288 16.7538 9.16669 15.8333 9.16669Z"
-                                        stroke="#FFFFFF"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M5.83331 9.16669V5.83335C5.83331 4.72828 6.2723 3.66848 7.0537 2.88708C7.8351 2.10568 8.8949 1.66669 9.99998 1.66669C11.1051 1.66669 12.1649 2.10568 12.9463 2.88708C13.7277 3.66848 14.1666 4.72828 14.1666 5.83335V9.16669"
-                                        stroke="#FFFF"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
 
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    id="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className={errors.password ? "error" : ""}
-                                    placeholder="Nhập mật khẩu"
-                                />
+    setLoading(true);
 
-                                {/* Icon con mắt để toggle */}
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? (
-                                        // Con mắt mở
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                  d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274
-          4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                    ) : (
-                                        // Con mắt gạch (ẩn mật khẩu)
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
-           0-8.268-2.943-9.542-7a9.97 9.97 0
-           012.1-3.592M6.223 6.223A9.969 9.969
-           0 0112 5c4.478 0 8.268 2.943 9.542
-           7a10.025 10.025 0 01-4.132 5.411M15
-           12a3 3 0 11-6 0 3 3 0 016 0zM3
-           3l18 18"/>
-                                        </svg>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Store user data (in real app, this would be sent to backend)
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        registeredAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      alert('Registration successful! Welcome to MOON.');
+      navigate('/');
+    } catch (error) {
+      alert('Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <button
-                            type="submit"
-                            className={`auth-button ${isLoading ? "loading" : ""}`}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <div className="spinner"></div>
-                                    Đang đăng ký...
-                                </>
-                            ) : (
-                                "Đăng Ký"
-                            )}
-                        </button>
-                    </form>
+  const handleSocialRegister = (provider: string) => {
+    alert(`${provider} registration coming soon!`);
+  };
 
-                    <div className="link">
-                        Đã có tài khoản? <a href="/login">Đăng nhập ngay</a>
-                    </div>
-                </div>
+  return (
+    <div className="container">
+      {/* Header/Navbar */}
+      <header className="header">
+        <div className="navbar">
+          {/* Logo */}
+          <div className="logo">
+            <div className="logoIcon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(45 12 12)" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(90 12 12)" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(135 12 12)" />
+              </svg>
             </div>
+            <span className="logoText">MOON.</span>
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="nav">
+            <Link to="/" className="navLink">Home</Link>
+            <Link to="/shop" className="navLink">Shop</Link>
+            <Link to="/about" className="navLink">About</Link>
+            <Link to="/contact" className="navLink">Contact</Link>
+          </nav>
+
+          {/* Utility Icons */}
+          <div className="utilities">
+            <button className="iconButton">
+              <FaSearch />
+            </button>
+            <Link to="/login" className="iconButton">
+              <FaUser />
+            </Link>
+            <Link to="/wishlist" className="iconButton">
+              <FaHeart />
+            </Link>
+            <Link to="/cart" className="iconButton" style={{ position: 'relative' }}>
+              <FaShoppingCart />
+            </Link>
+          </div>
         </div>
-    );
+      </header>
+
+      {/* Main Content */}
+      <main className="main">
+        <div className="registerContainer">
+          {/* Left Side - Branding */}
+          <div className="brandingSection">
+            <div className="brandingContent">
+              <div className="logoLarge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(45 12 12)" />
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(90 12 12)" />
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(135 12 12)" />
+                </svg>
+              </div>
+              <h1 className="brandingTitle">Welcome to MOON</h1>
+              <p className="brandingSubtitle">Join our community of book lovers</p>
+              
+              <div className="featuresList">
+                <div className="feature">
+                  <div className="featureIcon">📚</div>
+                  <div className="featureText">
+                    <h3>Discover Amazing Books</h3>
+                    <p>Access to thousands of carefully curated books</p>
+                  </div>
+                </div>
+                <div className="feature">
+                  <div className="featureIcon">🎯</div>
+                  <div className="featureText">
+                    <h3>Personalized Recommendations</h3>
+                    <p>Get book suggestions based on your interests</p>
+                  </div>
+                </div>
+                <div className="feature">
+                  <div className="featureIcon">💝</div>
+                  <div className="featureText">
+                    <h3>Wishlist & Favorites</h3>
+                    <p>Save and organize your favorite books</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Registration Form */}
+          <div className="formSection">
+            <div className="formContainer">
+              <div className="formHeader">
+                <h2 className="formTitle">Create Account</h2>
+                <p className="formSubtitle">Join MOON today and start your reading journey</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="registerForm">
+                {/* Name Fields */}
+                <div className="nameFields">
+                  <div className="formGroup">
+                    <label htmlFor="firstName" className="formLabel">First Name</label>
+                    <div className="inputWrapper">
+                      <FaUserIcon className="inputIcon" />
+                      <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className={`formInput ${errors.firstName ? 'error' : ''}`}
+                        placeholder="Enter your first name"
+                      />
+                    </div>
+                    {errors.firstName && <span className="errorMessage">{errors.firstName}</span>}
+                  </div>
+
+                  <div className="formGroup">
+                    <label htmlFor="lastName" className="formLabel">Last Name</label>
+                    <div className="inputWrapper">
+                      <FaUserIcon className="inputIcon" />
+                      <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className={`formInput ${errors.lastName ? 'error' : ''}`}
+                        placeholder="Enter your last name"
+                      />
+                    </div>
+                    {errors.lastName && <span className="errorMessage">{errors.lastName}</span>}
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div className="formGroup">
+                  <label htmlFor="email" className="formLabel">Email Address</label>
+                  <div className="inputWrapper">
+                    <FaEnvelope className="inputIcon" />
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`formInput ${errors.email ? 'error' : ''}`}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                  {errors.email && <span className="errorMessage">{errors.email}</span>}
+                </div>
+
+                {/* Password Field */}
+                <div className="formGroup">
+                  <label htmlFor="password" className="formLabel">Password</label>
+                  <div className="inputWrapper">
+                    <FaLock className="inputIcon" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`formInput ${errors.password ? 'error' : ''}`}
+                      placeholder="Create a strong password"
+                    />
+                    <button
+                      type="button"
+                      className="passwordToggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                  {errors.password && <span className="errorMessage">{errors.password}</span>}
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className="formGroup">
+                  <label htmlFor="confirmPassword" className="formLabel">Confirm Password</label>
+                  <div className="inputWrapper">
+                    <FaLock className="inputIcon" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className={`formInput ${errors.confirmPassword ? 'error' : ''}`}
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      className="passwordToggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <span className="errorMessage">{errors.confirmPassword}</span>}
+                </div>
+
+                {/* Terms Agreement */}
+                <div className="formGroup">
+                  <div className="checkboxWrapper">
+                    <input
+                      type="checkbox"
+                      id="agreeToTerms"
+                      name="agreeToTerms"
+                      checked={formData.agreeToTerms}
+                      onChange={handleInputChange}
+                      className="checkbox"
+                    />
+                    <label htmlFor="agreeToTerms" className="checkboxLabel">
+                      I agree to the{' '}
+                      <a href="#" className="termsLink">Terms of Service</a>
+                      {' '}and{' '}
+                      <a href="#" className="termsLink">Privacy Policy</a>
+                    </label>
+                  </div>
+                  {errors.agreeToTerms && <span className="errorMessage">{errors.agreeToTerms}</span>}
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className={`submitButton ${loading ? 'loading' : ''}`}
+                  disabled={loading}
+                >
+                  {loading ? 'Creating Account...' : 'Create Account'}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="divider">
+                <span className="dividerText">or continue with</span>
+              </div>
+
+              {/* Social Registration */}
+              <div className="socialButtons">
+                <button
+                  type="button"
+                  className="socialButton google"
+                  onClick={() => handleSocialRegister('Google')}
+                >
+                  <svg className="socialIcon" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Google
+                </button>
+                <button
+                  type="button"
+                  className="socialButton facebook"
+                  onClick={() => handleSocialRegister('Facebook')}
+                >
+                  <svg className="socialIcon" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  Facebook
+                </button>
+              </div>
+
+              {/* Login Link */}
+              <div className="loginLink">
+                <p>
+                  Already have an account?{' '}
+                  <Link to="/login" className="loginLinkText">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 };
 
-export default Register;
+export default RegisterPage;

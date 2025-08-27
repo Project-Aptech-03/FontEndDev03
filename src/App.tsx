@@ -1,4 +1,3 @@
-// @ts-ignore
 import React, { useState, useEffect } from "react";
 
 import { ProductService } from "./services/productService.js";
@@ -9,7 +8,6 @@ function App() {
   const [products, setProducts] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // @ts-ignore
   const fetchProducts = async () => {
     try {
       const response = await ProductService.getAll();
@@ -22,6 +20,7 @@ function App() {
   useEffect(() => {
     fetchProducts();
 
+    // Kiểm tra xem người dùng đã đăng nhập hay chưa
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
