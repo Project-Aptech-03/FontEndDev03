@@ -89,12 +89,18 @@ const Register: React.FC = () => {
                             </div>
                         )}
                         <div className="form-row">
-                        <div className="form-group">
+                            <div className="form-group">
                                 <label htmlFor="firstName">Họ</label>
                                 <div className="input-container">
                                     <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M10 10C12.3012 10 14.1667 8.13451 14.1667 5.83333C14.1667 3.53215 12.3012 1.66667 10 1.66667C7.69881 1.66667 5.83333 3.53215 5.83333 5.83333C5.83333 8.13451 7.69881 10 10 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M17.5 18.3333C17.5 14.6667 14.1425 11.6667 10 11.6667C5.8575 11.6667 2.5 14.6667 2.5 18.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                        <path
+                                            d="M10 10C12.3012 10 14.1667 8.13451 14.1667 5.83333C14.1667 3.53215 12.3012 1.66667 10 1.66667C7.69881 1.66667 5.83333 3.53215 5.83333 5.83333C5.83333 8.13451 7.69881 10 10 10Z"
+                                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                            strokeLinejoin="round"/>
+                                        <path
+                                            d="M17.5 18.3333C17.5 14.6667 14.1425 11.6667 10 11.6667C5.8575 11.6667 2.5 14.6667 2.5 18.3333"
+                                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                            strokeLinejoin="round"/>
                                     </svg>
                                     <input
                                         type="text"
@@ -110,6 +116,16 @@ const Register: React.FC = () => {
                             <div className="form-group">
                                 <label htmlFor="lastName">Tên</label>
                                 <div className="input-container">
+                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <path
+                                            d="M10 10C12.3012 10 14.1667 8.13451 14.1667 5.83333C14.1667 3.53215 12.3012 1.66667 10 1.66667C7.69881 1.66667 5.83333 3.53215 5.83333 5.83333C5.83333 8.13451 7.69881 10 10 10Z"
+                                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                            strokeLinejoin="round"/>
+                                        <path
+                                            d="M17.5 18.3333C17.5 14.6667 14.1425 11.6667 10 11.6667C5.8575 11.6667 2.5 14.6667 2.5 18.3333"
+                                            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                            strokeLinejoin="round"/>
+                                    </svg>
                                     <input
                                         type="text"
                                         id="lastName"
@@ -127,8 +143,12 @@ const Register: React.FC = () => {
                             <label htmlFor="phoneNumber">Số điện thoại</label>
                             <div className="input-container">
                                 <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path d="M14.1667 1.66667H5.83333C4.91286 1.66667 4.16667 2.41286 4.16667 3.33333V16.6667C4.16667 17.5871 4.91286 18.3333 5.83333 18.3333H14.1667C15.0871 18.3333 15.8333 17.5871 15.8333 16.6667V3.33333C15.8333 2.41286 15.0871 1.66667 14.1667 1.66667Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M10 15H10.0083" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path
+                                        d="M14.1667 1.66667H5.83333C4.91286 1.66667 4.16667 2.41286 4.16667 3.33333V16.6667C4.16667 17.5871 4.91286 18.3333 5.83333 18.3333H14.1667C15.0871 18.3333 15.8333 17.5871 15.8333 16.6667V3.33333C15.8333 2.41286 15.0871 1.66667 14.1667 1.66667Z"
+                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                        strokeLinejoin="round"/>
+                                    <path d="M10 15H10.0083" stroke="currentColor" strokeWidth="1.5"
+                                          strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                                 <input
                                     type="tel"
@@ -141,13 +161,38 @@ const Register: React.FC = () => {
                                 />
                             </div>
                         </div>
-
+                        <div className="form-group">
+                            <label htmlFor="email">Email</label>
+                            <div className="input-container">
+                                <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path
+                                        d="M2.5 6.66669L9.0755 11.0504C9.63533 11.4236 10.3647 11.4236 10.9245 11.0504L17.5 6.66669M4.16667 15.8334H15.8333C16.7538 15.8334 17.5 15.0872 17.5 14.1667V5.83335C17.5 4.91288 16.7538 4.16669 15.8333 4.16669H4.16667C3.24619 4.16669 2.5 4.91288 2.5 5.83335V14.1667C2.5 15.0872 3.24619 15.8334 4.16667 15.8334Z"
+                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                        strokeLinejoin="round"/>
+                                </svg>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Nhập email"
+                                />
+                            </div>
+                        </div>
                         <div className="form-group">
                             <label htmlFor="address">Địa chỉ</label>
                             <div className="input-container">
                                 <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path d="M17.5 8.33333C17.5 14.1667 10 19.1667 10 19.1667C10 19.1667 2.5 14.1667 2.5 8.33333C2.5 6.3442 3.29018 4.43655 4.6967 3.03003C6.10322 1.62351 8.01088 0.833328 10 0.833328C11.9891 0.833328 13.8968 1.62351 15.3033 3.03003C16.7098 4.43655 17.5 6.3442 17.5 8.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M10 10.8333C11.3807 10.8333 12.5 9.71404 12.5 8.33333C12.5 6.95262 11.3807 5.83333 10 5.83333C8.61929 5.83333 7.5 6.95262 7.5 8.33333C7.5 9.71404 8.61929 10.8333 10 10.8333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path
+                                        d="M17.5 8.33333C17.5 14.1667 10 19.1667 10 19.1667C10 19.1667 2.5 14.1667 2.5 8.33333C2.5 6.3442 3.29018 4.43655 4.6967 3.03003C6.10322 1.62351 8.01088 0.833328 10 0.833328C11.9891 0.833328 13.8968 1.62351 15.3033 3.03003C16.7098 4.43655 17.5 6.3442 17.5 8.33333Z"
+                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                        strokeLinejoin="round"/>
+                                    <path
+                                        d="M10 10.8333C11.3807 10.8333 12.5 9.71404 12.5 8.33333C12.5 6.95262 11.3807 5.83333 10 5.83333C8.61929 5.83333 7.5 6.95262 7.5 8.33333C7.5 9.71404 8.61929 10.8333 10 10.8333Z"
+                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                        strokeLinejoin="round"/>
                                 </svg>
                                 <input
                                     type="text"
@@ -160,48 +205,34 @@ const Register: React.FC = () => {
                                 />
                             </div>
                         </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="dateOfBirth">Ngày sinh</label>
-                                <div className="input-container">
-                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M15.8333 3.33333H4.16667C3.24619 3.33333 2.5 4.07952 2.5 5V16.6667C2.5 17.5871 3.24619 18.3333 4.16667 18.3333H15.8333C16.7538 18.3333 17.5 17.5871 17.5 16.6667V5C17.5 4.07952 16.7538 3.33333 15.8333 3.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M2.5 8.33333H17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M13.3333 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                        <path d="M6.66667 1.66667V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <input
-                                        type="date"
-                                        id="dateOfBirth"
-                                        name="dateOfBirth"
-                                        value={formData.dateOfBirth}
-                                        onChange={handleChange}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="email">Email</label>
-                                <div className="input-container">
-                                    <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path d="M2.5 6.66669L9.0755 11.0504C9.63533 11.4236 10.3647 11.4236 10.9245 11.0504L17.5 6.66669M4.16667 15.8334H15.8333C16.7538 15.8334 17.5 15.0872 17.5 14.1667V5.83335C17.5 4.91288 16.7538 4.16669 15.8333 4.16669H4.16667C3.24619 4.16669 2.5 4.91288 2.5 5.83335V14.1667C2.5 15.0872 3.24619 15.8334 4.16667 15.8334Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Nhập email"
-                                    />
-                                </div>
+                        <div className="form-group">
+                            <label htmlFor="dateOfBirth">Ngày sinh</label>
+                            <div className="input-container">
+                                <svg className="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                    <path
+                                        d="M15.8333 3.33333H4.16667C3.24619 3.33333 2.5 4.07952 2.5 5V16.6667C2.5 17.5871 3.24619 18.3333 4.16667 18.3333H15.8333C16.7538 18.3333 17.5 17.5871 17.5 16.6667V5C17.5 4.07952 16.7538 3.33333 15.8333 3.33333Z"
+                                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                                        strokeLinejoin="round"/>
+                                    <path d="M2.5 8.33333H17.5" stroke="currentColor" strokeWidth="1.5"
+                                          strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M13.3333 1.66667V5" stroke="currentColor" strokeWidth="1.5"
+                                          strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M6.66667 1.66667V5" stroke="currentColor" strokeWidth="1.5"
+                                          strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <input
+                                    type="date"
+                                    id="dateOfBirth"
+                                    name="dateOfBirth"
+                                    value={formData.dateOfBirth}
+                                    onChange={handleChange}
+                                    required
+                                />
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="password">Mật khẩu</label>
+                            <label color="white" htmlFor="password">Mật khẩu</label>
                             <div className="input-container">
                                 <svg
                                     width="20"
@@ -212,15 +243,15 @@ const Register: React.FC = () => {
                                 >
                                     <path
                                         d="M15.8333 9.16669H4.16667C3.24619 9.16669 2.5 9.91288 2.5 10.8334V15.8334C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8334V10.8334C17.5 9.91288 16.7538 9.16669 15.8333 9.16669Z"
-                                        stroke="#FFFFFF"
                                         strokeWidth="1.5"
                                         strokeLinecap="round"
+                                        stroke="currentColor"
                                         strokeLinejoin="round"
                                     />
                                     <path
                                         d="M5.83331 9.16669V5.83335C5.83331 4.72828 6.2723 3.66848 7.0537 2.88708C7.8351 2.10568 8.8949 1.66669 9.99998 1.66669C11.1051 1.66669 12.1649 2.10568 12.9463 2.88708C13.7277 3.66848 14.1666 4.72828 14.1666 5.83335V9.16669"
-                                        stroke="#FFFF"
                                         strokeWidth="1.5"
+                                        stroke="currentColor"
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                     />
@@ -236,7 +267,6 @@ const Register: React.FC = () => {
                                     placeholder="Nhập mật khẩu"
                                 />
 
-                                {/* Icon con mắt để toggle */}
                                 <button
                                     type="button"
                                     className="toggle-password"
