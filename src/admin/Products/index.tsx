@@ -20,11 +20,14 @@ const Products = () => {
       id: 1,
       productCode: "PRD001",
       categoryId: 1,
+      categoryName: "Books",
       manufacturerId: 1,
+      manufacturerName: "NXB Tre Publishing",
       productName: "Programming Book",
       price: 120,
       stockQuantity: 50,
       description: "React programming guide",
+      image: "https://via.placeholder.com/60",
       isActive: true,
     },
   ]);
@@ -45,14 +48,34 @@ const Products = () => {
 
   const handleOk = () => {
     form.validateFields().then((values) => {
+      const categoryName = values.categoryId === 1 ? "Books" : "Stationery";
+      const manufacturerName =
+        values.manufacturerId === 1 ? "NXB Tre Publishing" : "NXB Kim Dong";
+
+      const image = values.image || "https://via.placeholder.com/60";
+
       if (editingProduct) {
         setProducts((prev) =>
           prev.map((p) =>
-            p.id === editingProduct.id ? { ...p, ...values } : p
+            p.id === editingProduct.id
+              ? {
+                  ...p,
+                  ...values,
+                  categoryName,
+                  manufacturerName,
+                  image,
+                }
+              : p
           )
         );
       } else {
-        const newProduct = { ...values, id: Date.now() };
+        const newProduct = {
+          ...values,
+          id: Date.now(),
+          categoryName,
+          manufacturerName,
+          image,
+        };
         setProducts((prev) => [...prev, newProduct]);
       }
       setIsModalVisible(false);
@@ -65,8 +88,26 @@ const Products = () => {
   };
 
   const columns = [
+    {
+      title: "Image",
+      dataIndex: "image",
+      key: "image",
+      render: (src) => (
+        <img
+          src={src}
+          alt="product"
+          style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
+        />
+      ),
+    },
     { title: "Product Code", dataIndex: "productCode", key: "productCode" },
     { title: "Product Name", dataIndex: "productName", key: "productName" },
+    { title: "Category", dataIndex: "categoryName", key: "categoryName" },
+    {
+      title: "Manufacturer",
+      dataIndex: "manufacturerName",
+      key: "manufacturerName",
+    },
     {
       title: "Price",
       dataIndex: "price",
@@ -164,6 +205,10 @@ const Products = () => {
               <Select.Option value={1}>NXB Tre Publishing</Select.Option>
               <Select.Option value={2}>NXB Kim Dong</Select.Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item name="image" label="Image URL">
+            <Input placeholder="Enter image URL" />
           </Form.Item>
 
           <Form.Item name="description" label="Description">
