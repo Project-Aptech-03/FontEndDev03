@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
@@ -16,17 +16,20 @@ import Dashboard from "../admin/dashboard";
 import Users from "../admin/Users";
 import Products from "../admin/Products";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
-
+import Manufacturers from "../admin/Manufacturers";
+import Stocks from "../admin/Stocks";
 
 export const AppRouter = () => (
   <Routes>
     <Route element={<AuthLayout />}>
-        {/*<Route path={"/login"} element={<AuthPage />} />*/}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/*<Route path={"/login"} element={<AuthPage />} 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
     </Route>
     <Route element={<MainLayout />}>
+      <Route path="/" element={<Home />} />
       <Route path="/home" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/checkout" element={<Checkout />} />
@@ -34,12 +37,14 @@ export const AppRouter = () => (
       <Route path="/contact" element={<Contact />} />
       <Route path="/detail-product" element={<DetailProduct />} />
       <Route path="/cart" element={<Cart />} />
-      <Route path="*" element={<NotFound />} />
     </Route>
     <Route path="/admin" element={<AdminLayout />}>
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="users" element={<Users />} />
       <Route path="products" element={<Products />} />
+      <Route path="manufacturers" element={<Manufacturers />} />
+      <Route path="stocks" element={<Stocks />} />
     </Route>
+    <Route path="*" element={<NotFound />} />
   </Routes>
 );

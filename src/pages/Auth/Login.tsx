@@ -93,7 +93,7 @@ const Login: React.FC = () => {
               </div>
 
               <h2>Chào mừng bạn trở lại !</h2>
-              <p>"Sách không chỉ giúp ta hiểu thêm về thế giới, mà còn giúp ta hiểu rõ hơn về chính mình."</p>
+              <p>"Sách không chỉ giúp ta hiểu thêm về thế giới, sách giúp ta hiểu rõ hơn về chính mình."</p>
             </div>
             <form className="auth-form" onSubmit={handleSubmit}>
               {errors.general && (
@@ -112,7 +112,8 @@ const Login: React.FC = () => {
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="input-icon">
                     <path
                         d="M2.5 6.66669L9.0755 11.0504C9.63533 11.4236 10.3647 11.4236 10.9245 11.0504L17.5 6.66669M4.16667 15.8334H15.8333C16.7538 15.8334 17.5 15.0872 17.5 14.1667V5.83335C17.5 4.91288 16.7538 4.16669 15.8333 4.16669H4.16667C3.24619 4.16669 2.5 4.91288 2.5 5.83335V14.1667C2.5 15.0872 3.24619 15.8334 4.16667 15.8334Z"
-                        stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        stroke="currentColor"
+                        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <input
                       type="email"
@@ -140,14 +141,14 @@ const Login: React.FC = () => {
                   >
                     <path
                         d="M15.8333 9.16669H4.16667C3.24619 9.16669 2.5 9.91288 2.5 10.8334V15.8334C2.5 16.7538 3.24619 17.5 4.16667 17.5H15.8333C16.7538 17.5 17.5 16.7538 17.5 15.8334V10.8334C17.5 9.91288 16.7538 9.16669 15.8333 9.16669Z"
-                        stroke="#FFFFFF"
                         strokeWidth="1.5"
                         strokeLinecap="round"
+                        stroke="currentColor"
                         strokeLinejoin="round"
                     />
                     <path
                         d="M5.83331 9.16669V5.83335C5.83331 4.72828 6.2723 3.66848 7.0537 2.88708C7.8351 2.10568 8.8949 1.66669 9.99998 1.66669C11.1051 1.66669 12.1649 2.10568 12.9463 2.88708C13.7277 3.66848 14.1666 4.72828 14.1666 5.83335V9.16669"
-                        stroke="#FFFF"
+                        stroke="currentColor"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
