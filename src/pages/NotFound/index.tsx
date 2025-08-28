@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 import { FaHome, FaSearch, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import './NotFoundPage.css';

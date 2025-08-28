@@ -1,5 +1,5 @@
 // src/pages/login/login.constants.ts
-import { LoginErrors, LoginForm } from "../@type/login";
+import {LoginErrors, LoginForm, RegisterErrors} from "../@type/login";
 
 export const INITIAL_FORM_DATA: LoginForm = {
     email: "",
@@ -11,3 +11,15 @@ export const INITIAL_FORM_ERRORS: LoginErrors = {
     password: "",
     general: "",
 };
+export const INITIAL_REGISTER_ERRORS: RegisterErrors = {
+    email: "",
+    password: "",
+    general: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    address: "",
+    dateOfBirth: "",
+    confirmPassword: "",
+}
+// Trong file login.ts

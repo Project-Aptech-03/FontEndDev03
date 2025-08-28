@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Route, Routes } from "react-router-dom";
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
@@ -18,12 +18,15 @@ import Dashboard from "../admin/dashboard";
 import Users from "../admin/Users";
 import Products from "../admin/Products";
 import WishlistPage from "../pages/wishlist";
+import Stocks from "../admin/Stocks";
+import Manufacturers from "../admin/Manufacturers";
 
 export const AppRouter = () => (
   <Routes>
     <Route element={<AuthLayout />}>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+        <Route path="verify-otp" element={<>VerifyOtp</>} />
     </Route>
     <Route element={<MainLayout />}>
       <Route path="/" element={<Home />} />
@@ -38,9 +41,12 @@ export const AppRouter = () => (
       <Route path="*" element={<NotFound />} />
     </Route>
     <Route path="/admin" element={<AdminLayout />}>
-      <Route path="dashboard" element={<Dashboard />} />
-      <Route path="users" element={<Users />} />
-      <Route path="products" element={<Products />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="products" element={<Products />} />
+          <Route path="manufacturers" element={<Manufacturers />} />
+          <Route path="stocks" element={<Stocks />} />
     </Route>
+    <Route path="*" element={<NotFound />} />
   </Routes>
 );

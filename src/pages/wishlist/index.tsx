@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaTrash, FaStar, FaHeart } from 'react-icons/fa';
 import './WishlistPage.css';
+import {useEffect, useState} from "react";
 
 interface WishlistItem {
   id: number;
