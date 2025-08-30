@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthService } from "../../services/authService";
-import { toast } from "react-toastify";
-import "./VerifyOtp.css";
+
+import "./auth.css";
+import {message} from "antd";
 
 interface LocationState {
     email?: string;
@@ -22,7 +23,7 @@ const VerifyOtp: React.FC = () => {
         e.preventDefault();
 
         if (!otp) {
-            toast.error("Vui lòng nhập mã OTP");
+            message.error("Vui lòng nhập mã OTP");
             return;
         }
 
@@ -32,19 +33,19 @@ const VerifyOtp: React.FC = () => {
             const res = await AuthService.verifyOtp({ email, otp });
 
             if (res.success) {
-                toast.success("Xác minh OTP thành công!");
+                message.success("Xác minh OTP thành công!");
                 navigate("/login");
             } else {
-                toast.error(res.error?.message || "OTP không hợp lệ");
+                message.error(res.error?.message || "OTP không hợp lệ");
             }
         } catch (error) {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+            message.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
             setIsLoading(false);
         }
     };
 
-    // @ts-ignore
+// @ts-ignore
     const handleResend = async () => {
         setIsResending(true);
 
@@ -52,12 +53,12 @@ const VerifyOtp: React.FC = () => {
             const res = await AuthService.resendOtp({ email });
 
             if (res.success) {
-                toast.info("OTP mới đã được gửi đến email của bạn.");
+                message.info("OTP mới đã được gửi đến email của bạn.");
             } else {
-                toast.error(res.error?.message || "Không gửi lại OTP được.");
+                message.error(res.error?.message || "Không gửi lại OTP được.");
             }
         } catch (error) {
-            toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+            message.error("Có lỗi xảy ra. Vui lòng thử lại.");
         } finally {
             setIsResending(false);
         }

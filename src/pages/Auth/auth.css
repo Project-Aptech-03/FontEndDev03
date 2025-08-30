@@ -105,21 +105,37 @@
     color: white !important;
     margin-bottom: 8px;
 }
-
 .input-container {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-
 .input-icon {
     position: absolute;
-    left: 12px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 1;
-    color: #64748B;
+    color: #555;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 10px 40px; /* padding để chừa chỗ cho icon trái/phải */
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 18px;
 }
 
 input[type="date"] {

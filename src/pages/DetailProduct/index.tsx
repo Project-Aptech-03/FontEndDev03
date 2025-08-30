@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { FaStar, FaHeart, FaShoppingCart, FaShare, FaArrowLeft, FaTruck, FaShieldAlt, FaUndo, FaEye, FaEyeSlash } from 'react-icons/fa';
 import './ProductDetailPage.css';
+import {useEffect, useState} from "react";
 
 interface Review {
   id: number;
@@ -153,8 +154,8 @@ During World War II, the novel experienced an abrupt surge in popularity when th
       setLoading(false);
     }, 1000);
 
-    // Check if product is in wishlist
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    // Check if product is in Wishlist
+    const wishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     setIsInWishlist(wishlist.some((item: Product) => item.id === parseInt(id || '1')));
   }, [id]);
 
@@ -166,7 +167,7 @@ During World War II, the novel experienced an abrupt surge in popularity when th
   const handleWishlistToggle = () => {
     if (!product) return;
     
-    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    const wishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     let updatedWishlist;
     
     if (isInWishlist) {
@@ -175,7 +176,7 @@ During World War II, the novel experienced an abrupt surge in popularity when th
       updatedWishlist = [...wishlist, product];
     }
     
-    localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+    localStorage.setItem('Wishlist', JSON.stringify(updatedWishlist));
     setIsInWishlist(!isInWishlist);
   };
 

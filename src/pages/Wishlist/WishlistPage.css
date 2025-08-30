@@ -598,7 +598,7 @@
   }
 }
 
-/* Animation for wishlist items */
+/* Animation for Wishlist items */
 .wishlistItem {
   animation: fadeInUp 0.5s ease-out;
 }

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
 import { Link } from 'react-router-dom';
 import { FaStar, FaHeart, FaShoppingCart } from 'react-icons/fa';
 import './Home.css';
+import {useEffect, useState} from "react";
 
 
 interface Book {
@@ -204,8 +205,8 @@ const HomePage = () => {
   ];
 
   useEffect(() => {
-    // Load wishlist from localStorage
-    const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    // Load Wishlist from localStorage
+    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     setWishlist(savedWishlist);
   }, []);
 
@@ -226,7 +227,7 @@ const HomePage = () => {
       }
       
       // Save to localStorage
-      localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+      localStorage.setItem('Wishlist', JSON.stringify(updatedWishlist));
       
       return updatedWishlist;
     });
@@ -253,7 +254,7 @@ const HomePage = () => {
         <button 
           className={`wishlistBtn ${isInWishlist(book.id) ? 'active' : ''}`}
           onClick={() => handleWishlistToggle(book)}
-          title={isInWishlist(book.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+          title={isInWishlist(book.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
         >
           <FaHeart />
         </button>

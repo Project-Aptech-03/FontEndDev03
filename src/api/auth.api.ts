@@ -5,6 +5,24 @@ interface LoginData {
     email: string;
     password: string;
 }
+interface LoginResponse {
+    success: boolean;
+    message: string;
+    data: {
+        success: boolean;
+        userId: string;
+        email: string;
+        fullName: string;
+        role: string;
+        token: {
+            token: string;
+            expiresAt: string;
+            expiresIn: number;
+        };
+    };
+    errors: any;
+    statusCode: number;
+}
 
 interface RegisterData {
     firstName: string;
@@ -15,15 +33,12 @@ interface RegisterData {
     password: string;
     dateOfBirth: string;
 }
-
-// Login API
-export const loginApi = async (data: LoginData) => {
+export const loginApi = async (data: LoginData): Promise<{ success: boolean; result?: LoginResponse; error?: any }> => {
     try {
-        const response = await apiClient.post("/auth/login", data);
+        const response = await apiClient.post<LoginResponse>("/auth/login", data);
 
-        // Lưu token vào localStorage để các API khác tự động dùng
-        if (response.data?.token) {
-            localStorage.setItem("accessToken", response.data.token);
+        if (response.data?.data?.token?.token) {
+            localStorage.setItem("accessToken", response.data.data.token.token);
         }
 
         return { success: true, result: response.data };
@@ -34,6 +49,7 @@ export const loginApi = async (data: LoginData) => {
         };
     }
 };
+
 
 // Register API
 export const registerApi = async (data: RegisterData) => {

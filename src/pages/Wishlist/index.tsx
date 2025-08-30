@@ -25,9 +25,9 @@ const WishlistPage = () => {
 
   useEffect(() => {
     console.log('WishlistPage useEffect running...'); // Debug log
-    // Load wishlist data from localStorage
-    const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    console.log('Loaded wishlist:', savedWishlist); // Debug log
+    // Load Wishlist data from localStorage
+    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
+    console.log('Loaded Wishlist:', savedWishlist); // Debug log
     setWishlistItems(savedWishlist);
     setLoading(false);
   }, []);
@@ -35,12 +35,12 @@ const WishlistPage = () => {
   const removeFromWishlist = (itemId: number) => {
     const updatedItems = wishlistItems.filter(item => item.id !== itemId);
     setWishlistItems(updatedItems);
-    localStorage.setItem('wishlist', JSON.stringify(updatedItems));
+    localStorage.setItem('Wishlist', JSON.stringify(updatedItems));
   };
 
   const clearWishlist = () => {
     setWishlistItems([]);
-    localStorage.removeItem('wishlist');
+    localStorage.removeItem('Wishlist');
   };
 
   const addToCart = (item: WishlistItem) => {
@@ -79,14 +79,14 @@ const WishlistPage = () => {
 
   const moveAllToCart = () => {
     if (wishlistItems.length === 0) {
-      alert('Your wishlist is empty!');
+      alert('Your Wishlist is empty!');
       return;
     }
 
     // Get existing cart from localStorage
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
     
-    // Add all wishlist items to cart
+    // Add all Wishlist items to cart
     wishlistItems.forEach(item => {
       const existingItem = existingCart.find((cartItem: any) => cartItem.id === item.id);
       
@@ -112,9 +112,9 @@ const WishlistPage = () => {
     // Trigger cart counter update
     window.dispatchEvent(new Event('cartUpdated'));
     
-    // Clear wishlist
+    // Clear Wishlist
     setWishlistItems([]);
-    localStorage.removeItem('wishlist');
+    localStorage.removeItem('Wishlist');
     
     alert('All items moved to cart!');
   };

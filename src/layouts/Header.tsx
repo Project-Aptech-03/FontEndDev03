@@ -1,74 +1,113 @@
-import React from "react";
-import { Menu, Layout } from "antd";
+import { Menu, Layout, Dropdown } from "antd";
 import {
-  SearchOutlined,
-  UserOutlined,
-  HeartOutlined,
-  ShoppingCartOutlined,
+    SearchOutlined,
+    UserOutlined,
+    HeartOutlined,
+    ShoppingCartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../api/AuthContext";
 
 const { Header: AntHeader } = Layout;
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { isLoggedIn, logout } = useAuth();
 
-  const menuItems = [
-    { key: "/", label: "Home" },
-    { key: "/shop", label: "Shop" },
-    { key: "/about", label: "About Us" },
-    { key: "/contact", label: "Contact" },
-    { key: "/blog", label: "Blog" },
-  ];
+    const handleLogout = () => {
+        logout();
+        navigate("/login");
+    };
 
-  return (
-    <AntHeader
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        backgroundColor: "#fff",
-        padding: "0 40px",
-        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-      }}
-    >
-      {/* Logo */}
-      <div
-        style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
-        onClick={() => navigate("/")}
-      >
-        <img
-          src="https://via.placeholder.com/40"
-          alt="Logo"
-          style={{ marginRight: 8 }}
-        />
-        <span style={{ fontSize: 20, fontWeight: 700 }}>MOON.</span>
-      </div>
+    const menuItems = [
+        { key: "/", label: "Home" },
+        { key: "/shop", label: "Shop" },
+        { key: "/about", label: "About Us" },
+        { key: "/contact", label: "Contact" },
+        { key: "/blog", label: "Blog" },
+    ];
 
-      {/* Menu */}
-      <Menu
-        mode="horizontal"
-        selectedKeys={[location.pathname]}
-        items={menuItems}
-        onClick={(e) => navigate(e.key)}
-        style={{ flex: 1, justifyContent: "center", borderBottom: "none" }}
-      />
+    const userMenuItems = isLoggedIn
+        ? [
+            {
+                key: "profile",
+                label: "Profile",
+                onClick: () => navigate("/profile"),
+            },
+            {
+                key: "logout",
+                label: "Logout",
+                onClick: handleLogout,
+            },
+        ]
+        : [
+            {
+                key: "login",
+                label: "Login",
+                onClick: () => navigate("/login"),
+            },
+            {
+                key: "register",
+                label: "Register",
+                onClick: () => navigate("/register"),
+            },
+        ];
 
-      {/* Icons */}
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        <SearchOutlined style={{ fontSize: 20 }} />
-        <UserOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/login")} />
-        <HeartOutlined style={{ fontSize: 20, cursor: "pointer" }} onClick={() => navigate("/wishlist")} />
-        <ShoppingCartOutlined
-          style={{ fontSize: 20, cursor: "pointer" }}
-          onClick={() => navigate("/cart")}
-        />
-      </div>
-    </AntHeader>
-  );
+    return (
+        <AntHeader
+            style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: "#fff",
+                padding: "0 40px",
+                boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                position: "sticky",
+                top: 0,
+                zIndex: 1000,
+            }}
+        >
+            {/* Logo */}
+            <div
+                style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+                onClick={() => navigate("/")}
+            >
+                <img
+                    src="https://via.placeholder.com/40"
+                    alt="Logo"
+                    style={{ marginRight: 8 }}
+                />
+                <span style={{ fontSize: 20, fontWeight: 700 }}>MOON.</span>
+            </div>
+
+            {/* Menu */}
+            <Menu
+                mode="horizontal"
+                selectedKeys={[location.pathname]}
+                items={menuItems}
+                onClick={(e) => navigate(e.key)}
+                style={{ flex: 1, justifyContent: "center", borderBottom: "none" }}
+            />
+
+            {/* Icons */}
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <SearchOutlined style={{ fontSize: 20 }} />
+
+                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={["click"]}>
+                    <UserOutlined style={{ fontSize: 20, cursor: "pointer" }} />
+                </Dropdown>
+
+                <HeartOutlined
+                    style={{ fontSize: 20, cursor: "pointer" }}
+                    onClick={() => navigate("/wishlist")}
+                />
+                <ShoppingCartOutlined
+                    style={{ fontSize: 20, cursor: "pointer" }}
+                    onClick={() => navigate("/cart")}
+                />
+            </div>
+        </AntHeader>
+    );
 };
 
 export default Header;

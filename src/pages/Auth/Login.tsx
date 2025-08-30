@@ -1,22 +1,32 @@
-import { useState } from "react";
+import { useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { loginApi } from "../../api/auth.api";
 import "./auth.css";
 import {INITIAL_FORM_DATA, INITIAL_FORM_ERRORS} from "../../constants/login.constants";
 import {LoginErrors, LoginForm} from "../../@type/login";
+import { Modal } from "antd";
+import {useAuth} from "../../api/AuthContext"; // Import Ant Design Modal
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginForm>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<LoginErrors>(INITIAL_FORM_ERRORS);
-  const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+  const [modalMessage, setModalMessage] = useState("");
+  const { login } = useAuth();
+
+
+  const showModal = (message: string) => {
+    setModalMessage(message);
+    setIsModalVisible(true);
+  };
 
   const validateForm = (): boolean => {
     let isValid = true;
     const newErrors: LoginErrors = { email: "", password: "", general: "" };
+
     if (!formData.email) {
       newErrors.email = "Email không được để trống";
       isValid = false;
@@ -24,6 +34,7 @@ const Login: React.FC = () => {
       newErrors.email = "Email không hợp lệ";
       isValid = false;
     }
+
     if (!formData.password) {
       newErrors.password = "Mật khẩu không được để trống";
       isValid = false;
@@ -31,15 +42,18 @@ const Login: React.FC = () => {
       newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
       isValid = false;
     }
+
     setErrors(newErrors);
     return isValid;
   };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
     if (errors[name as keyof LoginErrors]) {
       setErrors((prev) => ({
         ...prev,
@@ -47,37 +61,35 @@ const Login: React.FC = () => {
       }));
     }
   };
-  // @ts-ignore
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setIsLoading(true);
+
     try {
       const res = await loginApi(formData);
       if (res.success) {
         if (rememberMe) {
           localStorage.setItem("rememberMe", "true");
         }
-        toast.success("Đăng nhập thành công!");
-        navigate("/home");
+        const token = res.result.data.token.token;
+        login(token);
+
+        showModal("Đăng nhập thành công! Đang chuyển trang...");
+        setTimeout(() => {
+          setIsModalVisible(false);
+          navigate("/home");
+        }, 2000);
       } else {
-        setErrors((prev) => ({
-          ...prev,
-          general: res.error?.message || "Đăng nhập thất bại",
-        }));
-        toast.error(res.error?.message || "Đăng nhập thất bại!");
+        showModal(res.error?.message || "Đăng nhập thất bại!");
       }
     } catch (error: any) {
       console.error("Lỗi khi login:", error);
-      setErrors((prev) => ({
-        ...prev,
-        general: "Có lỗi xảy ra. Vui lòng thử lại.",
-      }));
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-    } finally {
-      setIsLoading(false);
+      showModal("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
+
+
   return (
       <div className="auth-page">
         <div className="auth-container">
@@ -96,16 +108,6 @@ const Login: React.FC = () => {
               <p>"Sách không chỉ giúp ta hiểu thêm về thế giới, sách giúp ta hiểu rõ hơn về chính mình."</p>
             </div>
             <form className="auth-form" onSubmit={handleSubmit} noValidate>
-              {errors.general && (
-                  <div className="error-message general-error">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path
-                          d="M8 6V9M8 11H8.01M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z"
-                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    {errors.general}
-                  </div>
-              )}
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <div className="input-container">
@@ -170,7 +172,6 @@ const Login: React.FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                        // Con mắt mở
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                              viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -180,7 +181,6 @@ const Login: React.FC = () => {
           4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>
                         </svg>
                     ) : (
-                        // Con mắt gạch (ẩn mật khẩu)
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -218,17 +218,10 @@ const Login: React.FC = () => {
               </div>
               <button
                   type="submit"
-                  className={`auth-button ${isLoading ? "loading" : ""}`}
-                  disabled={isLoading}
+                  className= "auth-button"
               >
-                {isLoading ? (
-                    <>
-                      <div className="spinner"></div>
-                      Đang đăng nhập...
-                    </>
-                ) : (
-                    "Đăng nhập"
-                )}
+                Đăng nhập
+
               </button>
             </form>
             <div className="auth-divider">
@@ -277,6 +270,17 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Ant Design Modal for error messages */}
+        <Modal
+            title="Thông báo"
+            open={isModalVisible}
+            onOk={() => setIsModalVisible(false)}
+            onCancel={() => setIsModalVisible(false)}
+            cancelButtonProps={{ style: { display: "none" } }}
+        >
+          <p>{modalMessage}</p>
+        </Modal>
       </div>
   );
 };

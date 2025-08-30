@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { AuthService } from "../../services/authService";
 import "./auth.css";
 import { RegisterErrors } from "../../@type/login";
 import { INITIAL_REGISTER_ERRORS} from "../../constants/login.constants";
+import { message, Modal } from "antd";
 
 interface RegisterForm {
     firstName: string;
@@ -34,6 +34,14 @@ const Register: React.FC = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<RegisterErrors>(INITIAL_REGISTER_ERRORS);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+    const [modalMessage, setModalMessage] = useState(""); // State for modal message
+
+    // Function to show error modal
+    const showErrorModal = (errorMessage: string) => {
+        setModalMessage(errorMessage);
+        setIsModalVisible(true);
+    };
 
     useEffect(() => {
         const newErrors = validate();
@@ -139,18 +147,18 @@ const Register: React.FC = () => {
                 const res = await AuthService.register(formData);
 
                 if (res.success) {
-                    toast.success("OTP đã gửi tới email, vui lòng xác minh!");
+                    message.success("OTP đã gửi tới email, vui lòng xác minh!");
                     navigate("/verify-otp", { state: { email: formData.email } });
                 } else {
-                    toast.error(res.error?.message || "Đăng ký thất bại");
+                    showErrorModal(res.error?.message || "Đăng ký thất bại");
                 }
             } catch (error: any) {
-                toast.error(error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+                showErrorModal(error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.");
             } finally {
                 setIsLoading(false);
             }
         } else {
-            toast.error("Vui lòng kiểm tra lại thông tin đã nhập");
+            message.error("Vui lòng kiểm tra lại thông tin đã nhập");
         }
     };
 
@@ -454,22 +462,6 @@ const Register: React.FC = () => {
                                     className={isFieldValid("password") ? "error" : ""}
                                     placeholder="Nhập mật khẩu"
                                 />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 012.1-3.592M6.223 6.223A9.969 9.969 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18" />
-                                        </svg>
-                                    )}
-                                </button>
                             </div>
                             {isFieldValid("password") && (
                                 <span className="error-message">{errors.password}</span>
@@ -504,23 +496,8 @@ const Register: React.FC = () => {
                                     onBlur={handleBlur}
                                     className={isFieldValid("confirmPassword") ? "error" : ""}
                                     placeholder="Xác nhận mật khẩu"
+
                                 />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                >
-                                    {showConfirmPassword ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 012.1-3.592M6.223 6.223A9.969 9.969 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18" />
-                                        </svg>
-                                    )}
-                                </button>
                             </div>
                             {isFieldValid("confirmPassword") && (
                                 <span className="error-message">{errors.confirmPassword}</span>
@@ -529,17 +506,9 @@ const Register: React.FC = () => {
 
                         <button
                             type="submit"
-                            className={`auth-button ${isLoading ? "loading" : ""}`}
-                            disabled={isLoading}
+                            className="auth-button"
                         >
-                            {isLoading ? (
-                                <>
-                                    <div className="spinner"></div>
-                                    Đang đăng ký...
-                                </>
-                            ) : (
-                                "Đăng Ký"
-                            )}
+                            Đăng Ký
                         </button>
                     </form>
 
@@ -548,6 +517,17 @@ const Register: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Ant Design Modal for API error messages */}
+            <Modal
+                title="Lỗi"
+                open={isModalVisible}
+                onOk={() => setIsModalVisible(false)}
+                onCancel={() => setIsModalVisible(false)}
+                cancelButtonProps={{ style: { display: 'none' } }}
+            >
+                <p>{modalMessage}</p>
+            </Modal>
         </div>
     );
 };

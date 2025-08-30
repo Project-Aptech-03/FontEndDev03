@@ -168,8 +168,8 @@ const BookStore = () => {
       setLoading(false);
     }, 1000);
     
-    // Load wishlist from localStorage
-    const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    // Load Wishlist from localStorage
+    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     setWishlist(savedWishlist);
   }, []);
 
@@ -190,7 +190,7 @@ const BookStore = () => {
       }
       
       // Save to localStorage
-      localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+      localStorage.setItem('Wishlist', JSON.stringify(updatedWishlist));
       
       return updatedWishlist;
     });
@@ -410,7 +410,7 @@ const BookStore = () => {
                   <button 
                     className={`wishlistBtn ${isInWishlist(book.id) ? 'active' : ''}`}
                     onClick={() => handleWishlistToggle(book)}
-                    title={isInWishlist(book.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    title={isInWishlist(book.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
                   >
                     <FaHeart />
                   </button>

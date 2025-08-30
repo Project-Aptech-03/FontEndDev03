@@ -9,10 +9,19 @@ type Sort = {
   property: string;
 };
 export interface PageResponse<T> {
-  content: T[];
+  data: T[];
   totalPages: number;
   totalElements: number;
   page: number;
   size: number;
   sorts: Sort[];
 }
+
+export interface UserPageResponse<T> {
+  items: T[];
+  totalCount: number;
+  pageIndex: number;
+  pageSize: number;
+  totalPages: number;
+}
+
