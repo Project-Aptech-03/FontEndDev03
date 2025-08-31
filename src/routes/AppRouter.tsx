@@ -21,7 +21,8 @@ import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
-import { AuthProvider } from "../api/AuthContext";
+import { AuthProvider } from "./AuthContext";
+import EditProfile from "../pages/Profile/EditProfile/EditProfile";
 
 export const AppRouter = () => (
     <AuthProvider>
@@ -33,7 +34,7 @@ export const AppRouter = () => (
             </Route>
 
             <Route element={<MainLayout />}>
-                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/about" element={<About />} />
@@ -43,16 +44,19 @@ export const AppRouter = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
+            {/*<Route element={<AdminRoute />}>*/}
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="manufacturers" element={<Manufacturers />} />
+                    <Route path="stocks" element={<Stocks />} />
+                </Route>
+            {/*</Route>*/}
 
-            <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="users" element={<Users />} />
-                <Route path="products" element={<Products />} />
-                <Route path="manufacturers" element={<Manufacturers />} />
-                <Route path="stocks" element={<Stocks />} />
-            </Route>
 
             <Route path="*" element={<NotFound />} />
         </Routes>

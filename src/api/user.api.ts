@@ -1,47 +1,44 @@
-import { Users } from "../@type/Users";
+// services/userApi.ts
+
 import apiClient from "../services/api";
-import {ApiResponse, PageResponse, UserPageResponse} from "../@type/apiResponse";
+import {ApiResponse, PagedResult} from "../@type/apiResponse";
+import {UsersResponseDto} from "../@type/UserResponseDto";
 
-
-export const getUsers = async (
-    page: number,
-    size: number
-): Promise<PageResponse<Users>> => {
-    const res = await apiClient.get<ApiResponse<UserPageResponse<Users>>>("/user", {
-        params: { pageIndex: page, pageSize: size },
-    });
-
-    const pageData = res.data.result; // API wrapper trả về { code, message, result }
-
-    return {
-        ...pageData,
-        items: pageData.items.map((u: any) => ({
-            id: u.id,
-            firstName: u.firstName || "",
-            lastName: u.lastName || "",
-            email: u.email,
-            phoneNumber: u.phoneNumber,
-            address: u.address,
-            avataUrl: u.avataUrl,
-            dateOfBirth: u.dateOfBirth,
-            fullName: u.fullName,
-        })),
-    };
+export const getAllUsers = async (pageIndex = 1, pageSize = 10) => {
+    const res = await apiClient.get<ApiResponse<PagedResult<UsersResponseDto>>>(
+        "/User",
+        { params: { pageIndex, pageSize } }
+    );
+    return res.data;
 };
 
-export const createUser = async (user: Users): Promise<Users> => {
-    const res = await apiClient.post<ApiResponse<Users>>("/user", user);
-    return res.data.result;
+export const getUserById = async (id: string) => {
+    const res = await apiClient.get<UsersResponseDto>(`/User/${id}`);
+    return res.data;
 };
 
-export const updateUser = async (
-    id: number,
-    user: Partial<Users>
-): Promise<Users> => {
-    const res = await apiClient.put<ApiResponse<Users>>(`/user/${id}`, user);
-    return res.data.result;
+// Tạo mới user
+export const createUser = async (data: Partial<UsersResponseDto>) => {
+    const res = await apiClient.post<ApiResponse<UsersResponseDto>>(
+        "/User",
+        data
+    );
+    if (!res.data.success) {
+        throw new Error(res.data.message || "Tạo user thất bại");
+    }
+    return res.data;
 };
 
-export const deleteUser = async (id: number): Promise<void> => {
-    await apiClient.delete<ApiResponse<null>>(`/user/${id}`);
+export const updateUser = async (id: string, data: Partial<UsersResponseDto>) => {
+    const res = await apiClient.put<ApiResponse<UsersResponseDto>>(
+        `/User/${id}`,
+        data
+    );
+    return res.data;
+};
+
+// Xóa user
+export const deleteUser = async (id: string) => {
+    const res = await apiClient.delete<ApiResponse<null>>(`/User/${id}`);
+    return res.data;
 };

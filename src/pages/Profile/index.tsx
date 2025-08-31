@@ -1,18 +1,45 @@
-import { Card, Avatar, Tabs, Button, Descriptions } from "antd";
-import {
-    UserOutlined,
-    SettingOutlined,
-    ShoppingOutlined,
-    LogoutOutlined,
-} from "@ant-design/icons";
+import { useEffect, useState } from "react";
+import { Card, Avatar, message } from "antd";
+import { UserOutlined } from "@ant-design/icons";
+import { UsersResponseDto } from "../../@type/UserResponseDto";
+import { getProfile } from "../../api/profile.api";
+import { useNavigate } from "react-router-dom";
 
-const { TabPane } = Tabs;
+import ProfileHeader from "./ProfileHeader";
+import ProfileTabs from "./ProfileTabs";
+import ProfileActions from "./ProfileActions";
 
 const Profile: React.FC = () => {
+    const [user, setUser] = useState<UsersResponseDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
+
     const handleLogout = (): void => {
         localStorage.removeItem("accessToken");
-        window.location.href = "/login"; // hoặc dùng navigate("/login") nếu bạn xài react-router
+        window.location.href = "/login";
     };
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await getProfile();
+                if (res.success && res.data) {
+                    setUser(res.data);
+                } else {
+                    message.error(res.message || "Lỗi khi tải thông tin user");
+                }
+            } catch (error) {
+                message.error("Đã có lỗi xảy ra khi gọi API");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    if (loading) return <p>Đang tải thông tin...</p>;
+    if (!user) return <p>Không tìm thấy thông tin user.</p>;
 
     return (
         <div
@@ -45,86 +72,14 @@ const Profile: React.FC = () => {
                     }}
                 />
 
-                {/* Thông tin user */}
-                <div style={{ padding: "0 24px", marginTop: -50 }}>
-                    <Avatar
-                        size={100}
-                        src="https://i.pravatar.cc/150?img=12"
-                        icon={<UserOutlined />}
-                        style={{
-                            border: "4px solid white",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        }}
-                    />
-                    <h2 style={{ marginTop: 12 }}>Nguyễn Văn A</h2>
-                    <p style={{ color: "#888" }}>Fullstack Developer - Hà Nội, Việt Nam</p>
-                </div>
+                {/* Header */}
+                <ProfileHeader user={user} />
 
                 {/* Tabs */}
-                <div style={{ padding: "24px" }}>
-                    <Tabs defaultActiveKey="1">
-                        <TabPane
-                            tab={
-                                <span>
-                  <UserOutlined /> Thông tin cá nhân
-                </span>
-                            }
-                            key="1"
-                        >
-                            <Descriptions bordered column={1} size="middle">
-                                <Descriptions.Item label="Họ và tên">
-                                    Nguyễn Văn A
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Email">
-                                    nguyenvana@example.com
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Số điện thoại">
-                                    0123456789
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Địa chỉ">
-                                    Hà Nội, Việt Nam
-                                </Descriptions.Item>
-                                <Descriptions.Item label="Ngày sinh">
-                                    01/01/1995
-                                </Descriptions.Item>
-                            </Descriptions>
-                        </TabPane>
+                <ProfileTabs user={user} />
 
-                        <TabPane
-                            tab={
-                                <span>
-                  <ShoppingOutlined /> Đơn hàng
-                </span>
-                            }
-                            key="2"
-                        >
-                            <p>Bạn chưa có đơn hàng nào.</p>
-                        </TabPane>
-
-                        <TabPane
-                            tab={
-                                <span>
-                  <SettingOutlined /> Cài đặt
-                </span>
-                            }
-                            key="3"
-                        >
-                            <p>Chức năng cài đặt đang phát triển...</p>
-                        </TabPane>
-                    </Tabs>
-
-                    {/* Nút Logout */}
-                    <div style={{ textAlign: "right", marginTop: 24 }}>
-                        <Button
-                            type="primary"
-                            danger
-                            icon={<LogoutOutlined />}
-                            onClick={handleLogout}
-                        >
-                            Đăng xuất
-                        </Button>
-                    </div>
-                </div>
+                {/* Actions */}
+                <ProfileActions navigate={navigate} handleLogout={handleLogout} />
             </Card>
         </div>
     );

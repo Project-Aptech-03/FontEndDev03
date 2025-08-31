@@ -5,7 +5,7 @@ import "./auth.css";
 import {INITIAL_FORM_DATA, INITIAL_FORM_ERRORS} from "../../constants/login.constants";
 import {LoginErrors, LoginForm} from "../../@type/login";
 import { Modal } from "antd";
-import {useAuth} from "../../api/AuthContext"; // Import Ant Design Modal
+import {useAuth} from "../../routes/AuthContext"; // Import Ant Design Modal
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginForm>(INITIAL_FORM_DATA);
@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const { login } = useAuth();
 
@@ -72,13 +72,21 @@ const Login: React.FC = () => {
         if (rememberMe) {
           localStorage.setItem("rememberMe", "true");
         }
-        const token = res.result.data.token.token;
-        login(token);
-
+        const token = res.result?.data.token.token;
+        const role = res.result?.data.role;
+        if (token != null) {
+          login(token);
+        }
         showModal("Đăng nhập thành công! Đang chuyển trang...");
         setTimeout(() => {
           setIsModalVisible(false);
-          navigate("/home");
+
+          if (role === "Admin") {
+            showModal("Chào mừng Admin! Đang chuyển đến trang quản trị...");
+            navigate("/admin/dashboard");
+          } else {
+            navigate("/home");
+          }
         }, 2000);
       } else {
         showModal(res.error?.message || "Đăng nhập thất bại!");
@@ -88,7 +96,6 @@ const Login: React.FC = () => {
       showModal("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
-
 
   return (
       <div className="auth-page">
@@ -270,8 +277,6 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Ant Design Modal for error messages */}
         <Modal
             title="Thông báo"
             open={isModalVisible}
