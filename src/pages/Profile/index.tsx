@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import ProfileHeader from "./ProfileHeader";
 import ProfileTabs from "./ProfileTabs";
 import ProfileActions from "./ProfileActions";
+import {ApiResponse} from "../../@type/apiResponse";
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState<UsersResponseDto | null>(null);
@@ -28,8 +29,13 @@ const Profile: React.FC = () => {
                 } else {
                     message.error(res.message || "Lỗi khi tải thông tin user");
                 }
-            } catch (error) {
-                message.error("Đã có lỗi xảy ra khi gọi API");
+            } catch (err: any) {
+                const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
+                if (apiError?.errors) {
+                    Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+                } else {
+                    message.error(apiError?.message || "Lỗi hệ thống không xác định");
+                }
             } finally {
                 setLoading(false);
             }
@@ -61,7 +67,6 @@ const Profile: React.FC = () => {
                 }}
                 bodyStyle={{ padding: 0 }}
             >
-                {/* Cover ảnh bìa */}
                 <div
                     style={{
                         height: 200,

@@ -3,8 +3,8 @@ import {User} from "../@type/UserResponseDto";
 
 interface AuthContextType {
     isLoggedIn: boolean;
-    user: User | null;  // thêm user
-    login: (token: string, user: User) => void; // truyền cả token + user
+    user: User | null;
+    login: (token: string, user: User) => void;
     logout: () => void;
 }
 
@@ -17,11 +17,12 @@ export const useAuth = () => {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-        !!localStorage.getItem("accessToken")
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() =>
+        !!localStorage.getItem("accessToken") || !!sessionStorage.getItem("accessToken")
     );
+
     const [user, setUser] = useState<User | null>(() => {
-        const savedUser = localStorage.getItem("user");
+        const savedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
         if (!savedUser || savedUser === "undefined") return null;
         try {
             return JSON.parse(savedUser) as User;
@@ -31,14 +32,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
 
-    const login = (token: string, user: User) => {
-        localStorage.setItem("accessToken", token);
-        localStorage.setItem("user", JSON.stringify(user));
+
+    const login = (token: string, user: User, rememberMe: boolean = true) => {
+        if (rememberMe) {
+            localStorage.setItem("accessToken", token);
+            localStorage.setItem("user", JSON.stringify(user));
+        } else {
+            sessionStorage.setItem("accessToken", token);
+            sessionStorage.setItem("user", JSON.stringify(user));
+        }
+
         setIsLoggedIn(true);
         setUser(user);
     };
-    
-    
+
+
 
     const logout = () => {
         localStorage.removeItem("accessToken");

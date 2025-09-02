@@ -1,6 +1,7 @@
 import apiClient from "../services/api";
 import {ApiResponse} from "../@type/apiResponse";
 import {UsersResponseDto} from "../@type/UserResponseDto";
+import {UploadResponse} from "../@type/upload";
 
 export const getProfile = async () => {
     const res = await apiClient.get<ApiResponse<UsersResponseDto>>("user/profile");
@@ -20,4 +21,21 @@ export const changePassword = async (currentPassword: string, newPassword: strin
     });
     return res.data;
 };
+
+
+export const uploadAvatar = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folderName", "avatars");
+
+    const res = await apiClient.post("/upload/single?folderName=avatars", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return res.data; // { url: ... }
+};
+
+
 

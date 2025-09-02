@@ -1,9 +1,9 @@
 import {Modal, Form, Input, DatePicker, Select, Divider, message, Row, Col} from 'antd';
 import { UserAddOutlined, EditOutlined } from '@ant-design/icons';
-import { UsersResponseDto } from "../../../@type/apiResponse";
 import { createUser, updateUser } from "../../../api/user.api";
 import dayjs from 'dayjs';
 import {useEffect, useState} from "react";
+import {UsersResponseDto} from "../../../@type/UserResponseDto";
 
 interface UserFormProps {
     visible: boolean;
