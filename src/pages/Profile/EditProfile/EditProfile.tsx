@@ -7,7 +7,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import {useNavigate} from "react-router-dom";
 
 const EditProfile: React.FC = () => {
-    const { form, loading, submitting, handleFinish, setSubmitting } = useProfile();
+    const { form, loading, submitting, handleFinish, setSubmitting, currentUser } = useProfile(); // currentUser là UsersResponseDto
     const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
     const navigate = useNavigate();
     const { passwordForm, handlePasswordUpdate } = useChangePassword(
@@ -38,16 +38,18 @@ const EditProfile: React.FC = () => {
                     boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
                 }}
             >
-                <ProfileForm
-                    form={form}
-                    submitting={submitting}
-                    onFinish={handleFinish}
-                    openChangePassword={() => setPasswordModalOpen(true)}
-                    onBack={() => navigate(-1)}
+                {currentUser && (
+                    <ProfileForm
+                        form={form}
+                        submitting={submitting}
+                        onFinish={handleFinish}
+                        openChangePassword={() => setPasswordModalOpen(true)}
+                        onBack={() => navigate(-1)}
+                        user={currentUser}
+                    />
+                )}
 
-                />
             </Card>
-
             <ChangePasswordModal
                 visible={isPasswordModalOpen}
                 onCancel={() => setPasswordModalOpen(false)}

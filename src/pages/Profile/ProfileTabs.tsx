@@ -26,6 +26,7 @@ const ProfileTabs: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
                         <Descriptions.Item label="Ngày sinh">
                             {user.dateOfBirth ? dayjs(user.dateOfBirth).format("YYYY-MM-DD") : "-"}
                         </Descriptions.Item>
+                        <Descriptions.Item label="Địa chỉ">{user.address || "-"}</Descriptions.Item>
                         <Descriptions.Item label="Role">{user.role || "-"}</Descriptions.Item>
                     </Descriptions>
                 </TabPane>

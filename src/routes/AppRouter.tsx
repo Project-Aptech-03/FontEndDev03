@@ -23,6 +23,8 @@ import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
 import { AuthProvider } from "./AuthContext";
 import EditProfile from "../pages/Profile/EditProfile/EditProfile";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
 
 export const AppRouter = () => (
     <AuthProvider>
@@ -31,6 +33,8 @@ export const AppRouter = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/verify-otp" element={<VerifyOtp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             <Route element={<MainLayout />}>

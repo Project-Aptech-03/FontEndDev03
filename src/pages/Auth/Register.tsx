@@ -5,7 +5,7 @@ import "./auth.css";
 import { RegisterErrors } from "../../@type/login";
 import { INITIAL_REGISTER_ERRORS} from "../../constants/login.constants";
 import { message, Modal } from "antd";
-
+import {ApiResponse} from "../../@type/apiResponse";
 interface RegisterForm {
     firstName: string;
     lastName: string;
@@ -29,13 +29,14 @@ const Register: React.FC = () => {
         password: "",
         confirmPassword: "",
     });
-    const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [, setIsLoading] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword ] = useState(false);
     const [errors, setErrors] = useState<RegisterErrors>(INITIAL_REGISTER_ERRORS);
     const [touched, setTouched] = useState<Record<string, boolean>>({});
-    const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
-    const [modalMessage, setModalMessage] = useState(""); // State for modal message
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+
 
     // Function to show error modal
     const showErrorModal = (errorMessage: string) => {
@@ -125,11 +126,9 @@ const Register: React.FC = () => {
         });
     };
 
-    // @ts-ignore
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Mark all fields as touched to show all errors
         const allTouched = Object.keys(formData).reduce((acc, key) => {
             acc[key] = true;
             return acc;
@@ -152,8 +151,13 @@ const Register: React.FC = () => {
                 } else {
                     showErrorModal(res.error?.message || "Đăng ký thất bại");
                 }
-            } catch (error: any) {
-                showErrorModal(error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.");
+            } catch (err: any) {
+                const apiError = err?.response?.data as ApiResponse<string>;
+                if (apiError?.errors) {
+                    Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+                } else {
+                    message.error(apiError?.message || "Lỗi hệ thống không xác định");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -162,9 +166,10 @@ const Register: React.FC = () => {
         }
     };
 
-    const isFieldValid = (fieldName: string) => {
+    const isFieldValid = (fieldName: keyof RegisterErrors) => {
         return touched[fieldName] && errors[fieldName];
     };
+
 
     return (
         <div className="auth-page">
@@ -462,6 +467,34 @@ const Register: React.FC = () => {
                                     className={isFieldValid("password") ? "error" : ""}
                                     placeholder="Nhập mật khẩu"
                                 />
+                                <button
+                                    type="button"
+                                    className="toggle-password"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274
+          4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
+           0-8.268-2.943-9.542-7a9.97 9.97 0
+           012.1-3.592M6.223 6.223A9.969 9.969
+           0 0112 5c4.478 0 8.268 2.943 9.542
+           7a10.025 10.025 0 01-4.132 5.411M15
+           12a3 3 0 11-6 0 3 3 0 016 0zM3
+           3l18 18"/>
+                                        </svg>
+                                    )}
+                                </button>
                             </div>
                             {isFieldValid("password") && (
                                 <span className="error-message">{errors.password}</span>
@@ -498,6 +531,34 @@ const Register: React.FC = () => {
                                     placeholder="Xác nhận mật khẩu"
 
                                 />
+                                <button
+                                    type="button"
+                                    className="toggle-password"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    {showPassword ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+                                             viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274
+          4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
+           0-8.268-2.943-9.542-7a9.97 9.97 0
+           012.1-3.592M6.223 6.223A9.969 9.969
+           0 0112 5c4.478 0 8.268 2.943 9.542
+           7a10.025 10.025 0 01-4.132 5.411M15
+           12a3 3 0 11-6 0 3 3 0 016 0zM3
+           3l18 18"/>
+                                        </svg>
+                                    )}
+                                </button>
                             </div>
                             {isFieldValid("confirmPassword") && (
                                 <span className="error-message">{errors.confirmPassword}</span>
@@ -524,7 +585,7 @@ const Register: React.FC = () => {
                 open={isModalVisible}
                 onOk={() => setIsModalVisible(false)}
                 onCancel={() => setIsModalVisible(false)}
-                cancelButtonProps={{ style: { display: 'none' } }}
+                cancelButtonProps={{style: {display: 'none'}}}
             >
                 <p>{modalMessage}</p>
             </Modal>

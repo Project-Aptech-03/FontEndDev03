@@ -1,5 +1,4 @@
-// ProfileForm.tsx
-import { Form, Input, Button, DatePicker, Upload, Row, Col, Alert } from "antd";
+import {Form, Input, Button, DatePicker, Upload, Row, Col, Alert, message, FormInstance} from "antd";
 import {
     UploadOutlined,
     UserOutlined,
@@ -8,36 +7,84 @@ import {
     CalendarOutlined,
     ArrowLeftOutlined
 } from "@ant-design/icons";
-import { UpdateProfileDto } from "../../../@type/UserResponseDto";
+import {UpdateProfileDto, UsersResponseDto} from "../../../@type/UserResponseDto";
 import "./ProfileForm.css";
-import {useState} from "react";
+import { useState } from "react";
+import {uploadAvatar} from "../../../api/profile.api";
+import {updateUser} from "../../../api/user.api";
+import {ApiResponse} from "../../../@type/apiResponse";
+import dayjs from "dayjs";
 
 interface Props {
-    form: any;
+    form: FormInstance<UpdateProfileDto>;
     submitting: boolean;
     onFinish: (values: UpdateProfileDto) => void;
     openChangePassword: () => void;
     onBack?: () => void;
+    user: UsersResponseDto;
+
 }
 
-const ProfileForm: React.FC<Props> = ({ form, submitting, onFinish, openChangePassword, onBack }) => {
+const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, onBack, user}) => {
     const [hasChanges, setHasChanges] = useState(false);
+    const [avatarFile, setAvatarFile] = useState<any>(null);
 
     const handleValuesChange = () => {
         setHasChanges(true);
     };
 
-    return (
+    const handleFinish = async (values: UpdateProfileDto) => {
+        setHasChanges(false);
+        let avatarUrl = values.avatarUrl;
 
+        try {
+            if (avatarFile) {
+                const res = await uploadAvatar(avatarFile.originFileObj);
+                if (res?.url) {
+                    avatarUrl = res.url;
+                    message.success("Upload avatar thành công!");
+                } else {
+                    message.error("Upload avatar thất bại, server không trả về URL");
+                    return;
+                }
+            }
+            const payload: UpdateProfileDto = {
+                ...values,
+                avatarUrl: avatarUrl,
+            };
+
+            await updateUser(user.id, payload);
+            message.success("Cập nhật thông tin thành công!");
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }
+        }
+    };
+
+
+
+    return (
         <Form
             form={form}
             layout="vertical"
-            onFinish={onFinish}
-            requiredMark="optional"
+            onFinish={handleFinish}
             onValuesChange={handleValuesChange}
             scrollToFirstError
+            initialValues={{
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: user.phoneNumber,
+                address: user.address,
+                dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+                avatarUrl: user.avatarUrl,
+            }}
         >
-            {hasChanges && (
+
+        {hasChanges && (
                 <Alert
                     message="Bạn có thay đổi chưa được lưu"
                     type="info"
@@ -121,9 +168,7 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, onFinish, openChangePa
 
             <Form.Item
                 label="Ảnh đại diện"
-                name="avataUrl"
-                valuePropName="fileList"
-                getValueFromEvent={(e) => e.fileList}
+                name="avatarUrl"
                 extra="Chỉ hỗ trợ định dạng JPG, PNG. Kích thước tối đa 2MB."
             >
                 <Upload
@@ -132,6 +177,7 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, onFinish, openChangePa
                     maxCount={1}
                     beforeUpload={() => false}
                     accept="image/jpeg,image/png"
+                    onChange={(info) => setAvatarFile(info.fileList[0] || null)}
                 >
                     <div>
                         <UploadOutlined />
@@ -140,12 +186,13 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, onFinish, openChangePa
                 </Upload>
             </Form.Item>
 
+
             <Form.Item className="action-buttons">
                 <Row justify="space-between" align="middle" style={{ width: "100%" }}>
                     <Col>
                         <Button
                             type="link"
-                            icon={<ArrowLeftOutlined/>}
+                            icon={<ArrowLeftOutlined />}
                             onClick={onBack}
                             style={{ marginBottom: 16 }}
                         >
@@ -172,9 +219,7 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, onFinish, openChangePa
                     </Col>
                 </Row>
             </Form.Item>
-
         </Form>
-
     );
 };
 
