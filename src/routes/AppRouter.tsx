@@ -19,8 +19,11 @@ import Dashboard from "../pages/admin/Dashboard";
 import Products from "../pages/admin/Products";
 import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
+import Orders from "../pages/admin/Orders";
+import Coupons from "../pages/admin/Coupons";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
+import MyOrders from "../pages/MyOrders";
 import { AuthProvider } from "../api/AuthContext";
 
 export const AppRouter = () => (
@@ -42,8 +45,8 @@ export const AppRouter = () => (
                 <Route path="/detail-product/:id" element={<DetailProduct />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
+                <Route path="/myorders" element={<MyOrders />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="*" element={<NotFound />} />
             </Route>
 
             <Route path="/admin" element={<AdminLayout />}>
@@ -52,6 +55,8 @@ export const AppRouter = () => (
                 <Route path="products" element={<Products />} />
                 <Route path="manufacturers" element={<Manufacturers />} />
                 <Route path="stocks" element={<Stocks />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="coupons" element={<Coupons />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
