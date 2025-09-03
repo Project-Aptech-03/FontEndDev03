@@ -105,6 +105,10 @@
     color: white !important;
     margin-bottom: 8px;
 }
+.reset-form .ant-form-item-explain-error {
+    text-align: left !important;
+}
+
 .input-container {
     position: relative;
     display: flex;

@@ -24,42 +24,25 @@ interface LoginResponse {
     statusCode: number;
 }
 
-interface RegisterData {
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    address: string;
+interface ResetPasswordDto {
     email: string;
-    password: string;
-    dateOfBirth: string;
+    token: string;
+    newPassword: string;
+    confirmPassword: string;
 }
+
 export const loginApi = async (data: LoginData): Promise<{ success: boolean; result?: LoginResponse; error?: any }> => {
-    try {
         const response = await apiClient.post<LoginResponse>("/auth/login", data);
-
-        if (response.data?.data?.token?.token) {
-            localStorage.setItem("accessToken", response.data.data.token.token);
-        }
-
         return { success: true, result: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data || { message: "Lỗi không xác định" },
-        };
-    }
 };
 
+export const forgotPasswordApi = async (email: string) => {
+    const response = await apiClient.post("/auth/forgot-password", { email });
+    return response.data;
+}
 
-// Register API
-export const registerApi = async (data: RegisterData) => {
-    try {
-        const response = await apiClient.post("/auth/register", data);
-        return { success: true, result: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data || { message: "Lỗi không xác định" },
-        };
-    }
+export const resetPasswordApi = async (data: ResetPasswordDto) => {
+    const response = await apiClient.post("/auth/reset-password", data);
+    return response.data;
 };
+

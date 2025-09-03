@@ -23,7 +23,6 @@ import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
-import MyOrders from "../pages/MyOrders";
 import { AuthProvider } from "../api/AuthContext";
 
 export const AppRouter = () => (
@@ -33,10 +32,12 @@ export const AppRouter = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/verify-otp" element={<VerifyOtp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
             <Route element={<MainLayout />}>
-                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/about" element={<About />} />
@@ -47,6 +48,7 @@ export const AppRouter = () => (
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/myorders" element={<MyOrders />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
             </Route>
 
             <Route path="/admin" element={<AdminLayout />}>
@@ -55,8 +57,6 @@ export const AppRouter = () => (
                 <Route path="products" element={<Products />} />
                 <Route path="manufacturers" element={<Manufacturers />} />
                 <Route path="stocks" element={<Stocks />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="coupons" element={<Coupons />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
