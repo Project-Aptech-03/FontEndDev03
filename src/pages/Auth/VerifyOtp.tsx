@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AuthService } from "../../services/authService";
 import { Button, Card, Form, Input, Typography, message } from "antd";
 import {ApiResponse} from "../../@type/apiResponse";
-
+import "./auth.css";
 const { Title, Text } = Typography;
 
 interface LocationState {
@@ -72,91 +72,63 @@ const VerifyOtp: React.FC = () => {
     };
 
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "linear-gradient(135deg, #f0f5ff, #e6f7ff)",
-                padding: "16px",
-            }}
-        >
-            <Card
-                style={{
-                    width: "100%",
-                    maxWidth: 420,
-                    borderRadius: 12,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                }}
-            >
-                <div style={{ textAlign: "center", marginBottom: 24 }}>
-                    <Title level={3} style={{ marginBottom: 8 }}>
-                        Xác Minh OTP
-                    </Title>
-                    <Text type="secondary">
-                        Vui lòng nhập mã OTP đã được gửi tới email{" "}
-                        <Text strong>{email || "của bạn"}</Text>
-                    </Text>
+        <div className="auth-page">
+            <div className="auth-container">
+                <div className="auth-card">
+                    <div className="auth-header">
+                        <div className="auth-header">
+                            <h2> Xác Minh OTP</h2>
+                        </div>
+                                <Text type="secondary" style={{ fontSize: 16, color: "#fff" }}>
+                                    Vui lòng nhập mã OTP đã được gửi tới email {" "}
+                                    <Text style={{ fontSize: 16, color: "#3338A0" }} strong>{email || "của bạn"}</Text>
+                                </Text>
+                            </div>
+
+                            <Form layout="vertical" onFinish={handleVerify}>
+                                <Form.Item
+                                    label={<span style={{ color: "white" }}>Mã OTP</span>}
+                                    name="otp"
+                                    rules={[{required: true, message: "Vui lòng nhập mã OTP"}]}
+                                >
+                                    <Input
+                                        value={otp}
+                                        onChange={(e) =>
+                                            setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                                        }
+                                        maxLength={6}
+                                        placeholder="Nhập mã OTP 6 chữ số"
+                                        size="large"
+                                    />
+                                </Form.Item>
+
+                                <Form.Item>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        block
+                                        size="large"
+                                        loading={isLoading}
+                                    >
+                                        Xác Minh
+                                    </Button>
+                                </Form.Item>
+
+                                <Form.Item>
+                                    <Button
+                                        block
+                                        size="large"
+                                        onClick={handleResend}
+                                        loading={isResending}
+                                    >
+                                        Gửi lại OTP
+                                    </Button>
+                                </Form.Item>
+                            </Form>
                 </div>
-
-                <Form layout="vertical" onFinish={handleVerify}>
-                    <Form.Item
-                        label="Mã OTP"
-                        name="otp"
-                        rules={[{ required: true, message: "Vui lòng nhập mã OTP" }]}
-                    >
-                        <Input
-                            value={otp}
-                            onChange={(e) =>
-                                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                            }
-                            maxLength={6}
-                            placeholder="Nhập mã OTP 6 chữ số"
-                            size="large"
-                        />
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            block
-                            size="large"
-                            loading={isLoading}
-                        >
-                            Xác Minh
-                        </Button>
-                    </Form.Item>
-
-                    <Form.Item>
-                        <Button
-                            block
-                            size="large"
-                            onClick={handleResend}
-                            loading={isResending}
-                        >
-                            Gửi lại OTP
-                        </Button>
-                    </Form.Item>
-                </Form>
-
-                <div style={{ textAlign: "center", marginTop: 16 }}>
-                    <Text type="secondary">
-                        Không nhận được mã?{" "}
-                        <Button
-                            type="link"
-                            onClick={handleResend}
-                            disabled={isLoading || isResending}
-                            style={{ padding: 0 }}
-                        >
-                            Gửi lại
-                        </Button>
-                    </Text>
-                </div>
-            </Card>
+            </div>
         </div>
-    );
-};
+                    );
+                    };
 
-export default VerifyOtp;
+                    export default VerifyOtp;
