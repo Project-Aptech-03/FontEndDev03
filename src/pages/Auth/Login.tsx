@@ -4,8 +4,9 @@ import { loginApi } from "../../api/auth.api";
 import "./auth.css";
 import {INITIAL_FORM_DATA, INITIAL_FORM_ERRORS} from "../../constants/login.constants";
 import {LoginErrors, LoginForm} from "../../@type/login";
-import { Modal } from "antd";
-import {useAuth} from "../../api/AuthContext"; // Import Ant Design Modal
+import {message, Modal, Typography} from "antd";
+import {useAuth} from "../../routes/AuthContext";
+import {ApiResponse} from "../../@type/apiResponse";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginForm>(INITIAL_FORM_DATA);
@@ -13,10 +14,10 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const { login } = useAuth();
-
+  const { Link } = Typography;
 
   const showModal = (message: string) => {
     setModalMessage(message);
@@ -72,23 +73,48 @@ const Login: React.FC = () => {
         if (rememberMe) {
           localStorage.setItem("rememberMe", "true");
         }
-        const token = res.result.data.token.token;
-        login(token);
+        const token = res.result?.data.token.token;
+        const role = res.result?.data.role;
+        const userName = res.result?.data.fullName;
+        if (token != null) {
+          if (rememberMe) {
+            localStorage.setItem("token", token);
+          } else {
+            sessionStorage.setItem("token", token);
+          }
+          login(token);
+        }
 
-        showModal("Đăng nhập thành công! Đang chuyển trang...");
-        setTimeout(() => {
-          setIsModalVisible(false);
-          navigate("/home");
-        }, 2000);
-      } else {
-        showModal(res.error?.message || "Đăng nhập thất bại!");
+        if (res.success) {
+          const messageText =
+              role === "Admin"
+                  ? "Đăng nhập thành công! Chào mừng Admin: "+
+                  (userName ? ` ${userName}` : "") +"!"
+                  : "Đăng nhập thành công! Chào mừng" +
+                  (userName ? ` ${userName}` : "") +
+                  "!";
+
+          showModal(messageText);
+
+          setTimeout(() => {
+            setIsModalVisible(false);
+            navigate(role === "Admin" ? "/admin/dashboard" : "/home");
+          }, 2000);
+
+        } else {
+          showModal(res.error?.message || "Đăng nhập thất bại!");
+          setTimeout(() => setIsModalVisible(false), 2000);
+        }
       }
-    } catch (error: any) {
-      console.error("Lỗi khi login:", error);
-      showModal("Có lỗi xảy ra. Vui lòng thử lại.");
+      } catch (err: any) {
+    const apiError = err?.response?.data as ApiResponse<string>;
+    if (apiError?.errors) {
+      Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+    } else {
+      message.error(apiError?.message || "Lỗi hệ thống không xác định");
     }
-  };
-
+  }
+};
 
   return (
       <div className="auth-page">
@@ -212,9 +238,11 @@ const Login: React.FC = () => {
                   </div>
                   <span>Ghi nhớ đăng nhập</span>
                 </label>
-                <a href="#forgot" className="forgot-password">
+                <Link
+                    onClick={() => navigate("/forgot-password")}
+                >
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
               <button
                   type="submit"
@@ -270,8 +298,6 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Ant Design Modal for error messages */}
         <Modal
             title="Thông báo"
             open={isModalVisible}

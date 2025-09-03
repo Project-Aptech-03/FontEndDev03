@@ -33,8 +33,6 @@ const apiClient: AxiosInstance = axios.create({
         "Content-Type": "application/json",
     },
 });
-
-// Thêm interceptor để tự động gắn token vào header
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("accessToken");

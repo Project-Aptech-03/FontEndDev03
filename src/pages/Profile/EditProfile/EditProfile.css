@@ -1,0 +1,44 @@
+/* EditProfile.css */
+.edit-profile-container {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+.profile-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #262626;
+}
+/* ProfileForm.css */
+.action-buttons {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.save-button {
+    min-width: 120px;
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .action-buttons .ant-btn {
+        margin-left: 0 !important;
+    }
+}

@@ -1,12 +1,13 @@
-import { Menu, Layout, Dropdown } from "antd";
+import {Menu, Layout, Dropdown} from "antd";
 import {
     SearchOutlined,
     UserOutlined,
     HeartOutlined,
-    ShoppingCartOutlined,
+    ShoppingCartOutlined, LogoutOutlined, LoginOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../api/AuthContext";
+import { useAuth } from "../routes/AuthContext";
+import React from "react";
 
 const { Header: AntHeader } = Layout;
 
@@ -28,32 +29,36 @@ const Header: React.FC = () => {
         { key: "/faq", label: "FAQ" },
     ];
 
+    // Menu user với icon
     const userMenuItems = isLoggedIn
         ? [
             {
                 key: "profile",
+                icon: <UserOutlined />,
                 label: "Profile",
                 onClick: () => navigate("/profile"),
             },
             {
                 key: "logout",
-                label: "Logout",
+                icon: <LogoutOutlined style={{ color: "red" }} />,
+                label: <span style={{ color: "red" }}>Đăng xuất</span>,
                 onClick: handleLogout,
             },
         ]
         : [
             {
                 key: "login",
+                icon: <LoginOutlined />,
                 label: "Login",
                 onClick: () => navigate("/login"),
             },
             {
                 key: "register",
+                icon: <UserOutlined />,
                 label: "Register",
                 onClick: () => navigate("/register"),
             },
         ];
-
     return (
         <AntHeader
             style={{

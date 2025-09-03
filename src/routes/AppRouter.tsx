@@ -88,6 +88,10 @@ import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
+import { AuthProvider } from "./AuthContext";
+import EditProfile from "../pages/Profile/EditProfile/EditProfile";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
 import { AuthProvider } from "../api/AuthContext";
 
 import FAQPage from "../pages/Faq";
@@ -97,6 +101,15 @@ import FaqAdmin from "../pages/admin/FaqAdmin";
 // import FaqAdmin from "../pages/admin/FaqAdmin";
 
 export const AppRouter = () => (
+    <AuthProvider>
+        <Routes>
+            <Route element={<AuthLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/verify-otp" element={<VerifyOtp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
   <AuthProvider>
     <Routes>
       <Route element={<AuthLayout />}>
@@ -104,6 +117,30 @@ export const AppRouter = () => (
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
       </Route>
+
+            <Route element={<MainLayout />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/detail-product/:id" element={<DetailProduct />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/wishlist" element={<WishlistPage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="profile/edit" element={<EditProfile />} />
+                <Route path="*" element={<NotFound />} />
+            </Route>
+            {/*<Route element={<AdminRoute />}>*/}
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="manufacturers" element={<Manufacturers />} />
+                    <Route path="stocks" element={<Stocks />} />
+                </Route>
+            {/*</Route>*/}
 
     <Route element={<MainLayout />}>
       <Route path="/" element={<Home />} />
