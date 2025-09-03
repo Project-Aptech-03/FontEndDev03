@@ -23,7 +23,17 @@ import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
-import { AuthProvider } from "../api/AuthContext";
+import { AuthProvider } from "./AuthContext";
+import EditProfile from "../pages/Profile/EditProfile/EditProfile";
+import ForgotPassword from "../pages/Auth/ForgotPassword";
+import ResetPassword from "../pages/Auth/ResetPassword";
+
+
+import FAQPage from "../pages/Faq";
+import FaqAdmin from "../pages/admin/FaqAdmin";
+import MyOrders from "../pages/MyOrders";
+
+// import FaqAdmin from "../pages/admin/FaqAdmin";
 
 export const AppRouter = () => (
     <AuthProvider>
@@ -48,17 +58,22 @@ export const AppRouter = () => (
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/myorders" element={<MyOrders />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/faqs" element={<FAQPage />} />
+                <Route path="/profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
-
-            <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="users" element={<Users />} />
-                <Route path="products" element={<Products />} />
-                <Route path="manufacturers" element={<Manufacturers />} />
-                <Route path="stocks" element={<Stocks />} />
-            </Route>
-
+            {/*<Route element={<AdminRoute />}>*/}
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="manufacturers" element={<Manufacturers />} />
+                    <Route path="stocks" element={<Stocks />} />
+                    <Route path="faqs" element={<FaqAdmin />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="coupons" element={<Coupons />} />
+                </Route>
+            {/*</Route>*/}
             <Route path="*" element={<NotFound />} />
         </Routes>
     </AuthProvider>
