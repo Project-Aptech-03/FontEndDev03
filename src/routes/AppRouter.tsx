@@ -55,6 +55,7 @@ export const AppRouter = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="faqs" element={<FAQPage />} />
                 <Route path="profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
@@ -65,6 +66,7 @@ export const AppRouter = () => (
                     <Route path="products" element={<Products />} />
                     <Route path="manufacturers" element={<Manufacturers />} />
                     <Route path="stocks" element={<Stocks />} />
+                    <Route path="faqs" element={<FaqAdmin />} />
                 </Route>
             {/*</Route>*/}
 
@@ -73,3 +75,4 @@ export const AppRouter = () => (
         </Routes>
     </AuthProvider>
 );
+
