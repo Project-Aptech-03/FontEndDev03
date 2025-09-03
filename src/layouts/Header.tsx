@@ -25,6 +25,7 @@ const Header: React.FC = () => {
         { key: "/about", label: "About Us" },
         { key: "/contact", label: "Contact" },
         { key: "/blog", label: "Blog" },
+        { key: "/faq", label: "FAQ" },
     ];
 
     const userMenuItems = isLoggedIn

@@ -28,46 +28,46 @@ function App() {
     }
   }, []);
 
-  const handleLogin = async (form) => {
-    const response = await AuthService.login(form);
-    if (response.success) {
-      setIsAuthenticated(true);
-      // Lưu token nếu API trả về
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-      }
-    }
-    return response;
-  };
+  // const handleLogin = async (form) => {
+  //   const response = await AuthService.login(form);
+  //   if (response.success) {
+  //     setIsAuthenticated(true);
+  //     // Lưu token nếu API trả về
+  //     if (response.data.token) {
+  //       localStorage.setItem("token", response.data.token);
+  //     }
+  //   }
+  //   return response;
+  // };
 
-  const handleRegister = async (form) => {
-    try {
-      const response = await AuthService.register(form);
-      return response;
-    } catch (error) {
-      console.error("Registration failed:", error);
-      return error.response;
-    }
-  };
+  // const handleRegister = async (form) => {
+  //   try {
+  //     const response = await AuthService.register(form);
+  //     return response;
+  //   } catch (error) {
+  //     console.error("Registration failed:", error);
+  //     return error.response;
+  //   }
+  // };
 
-  const handleVerifyOtp = async (form) => {
-    const response = await AuthService.verifyOtp(form);
-    if (response.success) {
-      setIsAuthenticated(true);
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
-      }
-    }
-    return response;
-  };
+  // const handleVerifyOtp = async (form) => {
+  //   const response = await AuthService.verifyOtp(form);
+  //   if (response.success) {
+  //     setIsAuthenticated(true);
+  //     if (response.data?.token) {
+  //       localStorage.setItem("token", response.data.token);
+  //     }
+  //   }
+  //   return response;
+  // };
 
-  const handleResendOtp = async (email) => {
-    const response = await AuthService.resendOtp(email);
-    if (response.success) {
-      localStorage.setItem("pendingEmail", email);
-    }
-    return response;
-  };
+  // const handleResendOtp = async (email) => {
+  //   const response = await AuthService.resendOtp(email);
+  //   if (response.success) {
+  //     localStorage.setItem("pendingEmail", email);
+  //   }
+  //   return response;
+  // };
 
   // CRUD methods
   // const handleCreateProduct = async (prod) => {
@@ -90,9 +90,7 @@ function App() {
   // };
 
   return (
-    <div className="App">
-      <AppRouter />
-    </div>
+    <AppRouter />
   );
 }
 
