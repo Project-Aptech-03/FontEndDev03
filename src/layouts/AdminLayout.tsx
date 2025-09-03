@@ -37,6 +37,8 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/manufacturers")) return "4";
     if (path.includes("/admin/stocks")) return "5";
     if (path.includes("/admin/faqs")) return "6";
+    if (path.includes("/admin/orders")) return "7";
+    if (path.includes("/admin/coupons")) return "8";
     return "1";
   };
 
@@ -70,6 +72,16 @@ const AdminLayout: React.FC = () => {
       key: "6",
       icon: <QuestionCircleOutlined />,
       label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
+    },
+    {
+      key: "7",
+      icon: <ProductOutlined />,
+      label: <Link to="/admin/orders">Quản lý Orders</Link>,
+    },
+    {
+      key: "8",
+      icon: <ProductOutlined />,
+      label: <Link to="/admin/coupons">Quản lý Coupons</Link>,
     },
   ];
 
@@ -139,12 +151,6 @@ const AdminLayout: React.FC = () => {
           items={menuItems}
           style={{ borderRight: 0, marginTop: 16 }}
         />
-        <Menu.Item key="4">
-            <Link to="/admin/orders">Orders</Link>
-          </Menu.Item>
-          <Menu.Item key="5">
-            <Link to="/admin/coupons">Coupons</Link>
-          </Menu.Item>
       </Sider>
       
       <Layout>
