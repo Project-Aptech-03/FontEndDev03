@@ -26,6 +26,13 @@ import EditProfile from "../pages/Profile/EditProfile/EditProfile";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 
+
+import FAQPage from "../pages/Faq";
+import FaqAdmin from "../pages/admin/FaqAdmin";
+
+
+// import FaqAdmin from "../pages/admin/FaqAdmin";
+
 export const AppRouter = () => (
     <AuthProvider>
         <Routes>
