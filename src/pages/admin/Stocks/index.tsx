@@ -1,196 +1,83 @@
+import React, { useState } from "react";
 
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Space,
-  message,
-} from "antd";
-import {useState} from "react";
+interface FAQItem {
+  id: number;
+  question: string;
+  answer: string;
+}
 
-const { Option } = Select;
-
-const Stocks = () => {
-  const [data, setData] = useState([
-    {
-      id: 1,
-      productName: "iPhone 14",
-      quantity: 10,
-      previousStock: 50,
-      newStock: 60,
-      referenceType: "Import",
-      unitCost: 2000,
-      reason: "Stock replenishment",
-      createdBy: "admin",
-      createdDate: "2025-08-27",
-    },
-    {
-      id: 2,
-      productName: "Samsung S23",
-      quantity: -5,
-      previousStock: 30,
-      newStock: 25,
-      referenceType: "Export",
-      unitCost: 1800,
-      reason: "Customer order",
-      createdBy: "admin",
-      createdDate: "2025-08-27",
-    },
+const AdminFAQ: React.FC = () => {
+  const [faqs, setFaqs] = useState<FAQItem[]>([
+    { id: 1, question: "Làm thế nào để đặt hàng?", answer: "Bạn có thể đặt hàng trực tiếp trên website bằng cách thêm sản phẩm vào giỏ và tiến hành thanh toán." },
+    { id: 2, question: "Thời gian giao hàng bao lâu?", answer: "Thời gian giao hàng từ 2-5 ngày tùy khu vực." },
   ]);
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
+  const [newFAQ, setNewFAQ] = useState<FAQItem>({ id: 0, question: "", answer: "" });
 
-  const columns = [
-    {
-      title: "Product",
-      dataIndex: "productName",
-      key: "productName",
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-      render: (qty) => (qty > 0 ? `+${qty}` : qty),
-    },
-    {
-      title: "Previous Stock",
-      dataIndex: "previousStock",
-      key: "previousStock",
-    },
-    {
-      title: "New Stock",
-      dataIndex: "newStock",
-      key: "newStock",
-    },
-    {
-      title: "Reference Type",
-      dataIndex: "referenceType",
-      key: "referenceType",
-    },
-    {
-      title: "Unit Cost",
-      dataIndex: "unitCost",
-      key: "unitCost",
-      render: (cost) => `$${cost.toLocaleString()}`,
-    },
-    {
-      title: "Reason",
-      dataIndex: "reason",
-      key: "reason",
-    },
-    {
-      title: "Created By",
-      dataIndex: "createdBy",
-      key: "createdBy",
-    },
-    {
-      title: "Created Date",
-      dataIndex: "createdDate",
-      key: "createdDate",
-    },
-  ];
-
-  const handleAdd = () => {
-    form.resetFields();
-    setIsModalVisible(true);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewFAQ((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      const {
-        productName,
-        quantity,
-        previousStock,
-        referenceType,
-        unitCost,
-        reason,
-      } = values;
-      const newStock = previousStock + quantity;
-      const newRecord = {
-        id: data.length + 1,
-        productName,
-        quantity,
-        previousStock,
-        newStock,
-        referenceType,
-        unitCost,
-        reason,
-        createdBy: "admin",
-        createdDate: new Date().toISOString().split("T")[0],
-      };
-      setData([...data, newRecord]);
-      message.success("Stock movement added successfully!");
-      setIsModalVisible(false);
-    });
+  const handleAddFAQ = () => {
+    if (!newFAQ.question || !newFAQ.answer) return;
+    setFaqs((prev) => [
+      ...prev,
+      { ...newFAQ, id: prev.length + 1 }
+    ]);
+    setNewFAQ({ id: 0, question: "", answer: "" });
+  };
+
+  const handleDeleteFAQ = (id: number) => {
+    setFaqs((prev) => prev.filter((faq) => faq.id !== id));
   };
 
   return (
-    <div>
-      <Button type="primary" onClick={handleAdd} style={{ marginBottom: 16 }}>
-        + Add Stock Movement
-      </Button>
-      <Table columns={columns} dataSource={data} rowKey="id" />
+    <div className="admin-faq">
+      <h1>⚙️ Quản lý FAQ</h1>
 
-      <Modal
-        title="Add Stock Movement"
-        open={isModalVisible}
-        onOk={handleOk}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="productName"
-            label="Product"
-            rules={[{ required: true, message: "Please enter product name" }]}
-          >
-            <Input placeholder="Enter product name" />
-          </Form.Item>
-          <Form.Item
-            name="quantity"
-            label="Quantity (positive for import, negative for export)"
-            rules={[{ required: true, message: "Please enter quantity" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="previousStock"
-            label="Previous Stock"
-            rules={[{ required: true, message: "Please enter previous stock" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="referenceType"
-            label="Reference Type"
-            rules={[
-              { required: true, message: "Please select reference type" },
-            ]}
-          >
-            <Select placeholder="Select type">
-              <Option value="Import">Import</Option>
-              <Option value="Export">Export</Option>
-              <Option value="Adjustment">Adjustment</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="unitCost"
-            label="Unit Cost"
-            rules={[{ required: true, message: "Please enter unit cost" }]}
-          >
-            <InputNumber style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="reason" label="Reason">
-            <Input placeholder="Enter reason (optional)" />
-          </Form.Item>
-        </Form>
-      </Modal>
+      <div className="faq-form">
+        <input
+          type="text"
+          name="question"
+          placeholder="Nhập câu hỏi"
+          value={newFAQ.question}
+          onChange={handleChange}
+        />
+        <textarea
+          name="answer"
+          placeholder="Nhập câu trả lời"
+          value={newFAQ.answer}
+          onChange={handleChange}
+          rows={3}
+        />
+        <button onClick={handleAddFAQ}>Thêm FAQ</button>
+      </div>
+
+      <table className="faq-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Câu hỏi</th>
+            <th>Trả lời</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {faqs.map((faq) => (
+            <tr key={faq.id}>
+              <td>{faq.id}</td>
+              <td>{faq.question}</td>
+              <td>{faq.answer}</td>
+              <td>
+                <button onClick={() => handleDeleteFAQ(faq.id)}>Xóa</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default Stocks;
+export default AdminFAQ;

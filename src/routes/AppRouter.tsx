@@ -1,3 +1,70 @@
+// import { Route, Routes } from "react-router-dom";
+// import Home from "../pages/Home";
+// import Register from "../pages/Auth/Register";
+// import Login from "../pages/Auth/Login";
+// import Contact from "../pages/Contact";
+// import About from "../pages/About";
+// import Checkout from "../pages/Checkout";
+// import Shop from "../pages/Shop";
+// import DetailProduct from "../pages/DetailProduct";
+// import Cart from "../pages/Cart";
+// import NotFound from "../pages/NotFound";
+// import Blog from "../pages/Blog";
+// import AuthLayout from "../layouts/AuthLayout";
+// import MainLayout from "../layouts/MainLayout";
+// import AdminLayout from "../layouts/AdminLayout";
+// import WishlistPage from "../pages/Wishlist";
+// import Users from "../pages/admin/Users";
+// import Dashboard from "../pages/admin/Dashboard";
+// import Products from "../pages/admin/Products";
+// import Manufacturers from "../pages/admin/Manufacturers";
+// import Stocks from "../pages/admin/Stocks";
+// import Profile from "../pages/Profile";
+// import VerifyOtp from "../pages/Auth/VerifyOtp";
+// import { AuthProvider } from "../api/AuthContext";
+
+// import feedback from "../pages/Feedback";
+// import { Feedback } from "@mui/icons-material";
+
+// export const AppRouter = () => (
+//     <AuthProvider>
+//         <Routes>
+//             <Route element={<AuthLayout />}>
+//                 <Route path="/login" element={<Login />} />
+//                 <Route path="/register" element={<Register />} />
+//                 <Route path="/verify-otp" element={<VerifyOtp />} />
+//             </Route>
+
+//             <Route element={<MainLayout />}>
+//                 <Route path="/" element={<Home />} />
+//                 <Route path="/shop" element={<Shop />} />
+//                 <Route path="/checkout" element={<Checkout />} />
+//                 <Route path="/about" element={<About />} />
+//                 <Route path="/contact" element={<Contact />} />
+//                 <Route path="/blog" element={<Blog />} />
+//                 <Route path="/feedback" element={<Feedback />} />
+//                 <Route path="/detail-product/:id" element={<DetailProduct />} />
+//                 <Route path="/cart" element={<Cart />} />
+//                 <Route path="/wishlist" element={<WishlistPage />} />
+//                 <Route path="/profile" element={<Profile />} />
+//                 <Route path="*" element={<NotFound />} />
+//             </Route>
+
+//             <Route path="/admin" element={<AdminLayout />}>
+//                 <Route path="dashboard" element={<Dashboard />} />
+//                 <Route path="users" element={<Users />} />
+//                 <Route path="products" element={<Products />} />
+//                 <Route path="manufacturers" element={<Manufacturers />} />
+//                 <Route path="stocks" element={<Stocks />} />
+                
+//             </Route>
+
+//             <Route path="*" element={<NotFound />} />
+//         </Routes>
+//     </AuthProvider>
+// );
+
+
 import { Route, Routes } from "react-router-dom";
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
@@ -25,6 +92,13 @@ import { AuthProvider } from "./AuthContext";
 import EditProfile from "../pages/Profile/EditProfile/EditProfile";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import { AuthProvider } from "../api/AuthContext";
+
+import FAQPage from "../pages/Faq";
+import FaqAdmin from "../pages/admin/FaqAdmin";
+
+
+// import FaqAdmin from "../pages/admin/FaqAdmin";
 
 export const AppRouter = () => (
     <AuthProvider>
@@ -36,6 +110,13 @@ export const AppRouter = () => (
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
+  <AuthProvider>
+    <Routes>
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+      </Route>
 
             <Route element={<MainLayout />}>
                 <Route path="/home" element={<Home />} />
@@ -61,8 +142,33 @@ export const AppRouter = () => (
                 </Route>
             {/*</Route>*/}
 
+    <Route element={<MainLayout />}>
+      <Route path="/" element={<Home />} />
+      <Route path="/shop" element={<Shop />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/blog" element={<Blog />} />
 
-            <Route path="*" element={<NotFound />} />
-        </Routes>
-    </AuthProvider>
+      <Route path="/faq" element={<FAQPage />} />
+      <Route path="/detail-product/:id" element={<DetailProduct />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/wishlist" element={<WishlistPage />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="*" element={<NotFound />} />
+    </Route>
+        {/* //============ADMIN=========== */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="users" element={<Users />} />
+        <Route path="products" element={<Products />} />
+        <Route path="manufacturers" element={<Manufacturers />} />
+        <Route path="stocks" element={<Stocks />} />
+        <Route path="faqs" element={<FaqAdmin />} /> {/* Thêm route quản lý FAQ */}
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </AuthProvider>
 );
+
