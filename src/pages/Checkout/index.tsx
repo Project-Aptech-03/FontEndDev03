@@ -32,17 +32,20 @@ interface CardDetails {
 }
 
 const CheckoutPage = () => {
+  // Default store location (example: District 1, Ho Chi Minh City)
+  const storeLocation = { latitude: 10.7769, longitude: 106.7009 };
+
   const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-    firstName: 'Samatha',
-    lastName: 'Clarken',
-    company: 'Moon',
-    country: 'United States',
-    address: 'Address',
-    city: 'City',
-    state: 'State',
-    zipCode: 'Zip code',
-    phone: '(123) 456-7890',
-    email: 'example@youremail.com'
+    firstName: 'John',
+    lastName: 'Doe',
+    company: '',
+    country: 'Vietnam',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    phone: '',
+    email: 'john.doe@example.com'
   });
 
   const [orderNotes, setOrderNotes] = useState('');
@@ -81,6 +84,41 @@ const CheckoutPage = () => {
     }
   ];
 
+  // Geocoding using OpenStreetMap Nominatim API (free)
+  const getCoordinatesFromAddress = async (address: string): Promise<{ latitude: number; longitude: number }> => {
+    try {
+      const searchQuery = `${address}, Ho Chi Minh City, Vietnam`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1&countrycodes=vn`
+      );
+      
+      const data = await response.json();
+      if (data.length > 0) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        };
+      }
+    } catch (error) {
+      console.warn('Geocoding failed:', error);
+    }
+    
+    // Default to store location if geocoding fails
+    return { latitude: 10.7769, longitude: 106.7009 };
+  };
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return Math.round(distance * 100) / 100; // Round to 2 decimal places
+  };
+
   useEffect(() => {
     // Load cart data from localStorage or use mock data
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -103,11 +141,11 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = () => {
     // Validate required fields
-    const requiredFields: (keyof BillingDetails)[] = ['firstName', 'lastName', 'country', 'address', 'city', 'state', 'zipCode', 'phone'];
+    const requiredFields: (keyof BillingDetails)[] = ['firstName', 'lastName', 'email', 'phone'];
     const missingFields = requiredFields.filter(field => !billingDetails[field]);
     
     if (missingFields.length > 0) {
-      alert('Please fill in all required fields');
+      alert('Please fill in all required personal information');
       return;
     }
 
@@ -126,9 +164,9 @@ const CheckoutPage = () => {
     // Here you would typically send the order to your backend
   };
 
-  // Calculate totals
+  // Calculate totals (shipping is calculated in Cart page)
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 35.00;
+  const shipping = 0; // Shipping already calculated in Cart
   const total = subtotal + shipping;
 
   return (
@@ -153,127 +191,54 @@ const CheckoutPage = () => {
 
             <form className="form">
               {/* Personal Information */}
-              <div className="formRow">
-                <div className="formField">
-                  <label className="fieldLabel">First Name *</label>
-                  <input
-                    type="text"
-                    value={billingDetails.firstName}
-                    onChange={(e) => handleBillingChange('firstName', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your first name"
-                  />
+              <div className="personalSection">
+                <h3 className="sectionTitle">PERSONAL INFORMATION</h3>
+                
+                <div className="formRow">
+                  <div className="formField">
+                    <label className="fieldLabel">First Name *</label>
+                    <input
+                      type="text"
+                      value={billingDetails.firstName}
+                      onChange={(e) => handleBillingChange('firstName', e.target.value)}
+                      className="inputField"
+                      placeholder="Enter your first name"
+                    />
+                  </div>
+                  <div className="formField">
+                    <label className="fieldLabel">Last Name *</label>
+                    <input
+                      type="text"
+                      value={billingDetails.lastName}
+                      onChange={(e) => handleBillingChange('lastName', e.target.value)}
+                      className="inputField"
+                      placeholder="Enter your last name"
+                    />
+                  </div>
                 </div>
-                <div className="formField">
-                  <label className="fieldLabel">Last Name *</label>
-                  <input
-                    type="text"
-                    value={billingDetails.lastName}
-                    onChange={(e) => handleBillingChange('lastName', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your last name"
-                  />
+
+                <div className="formRow">
+                  <div className="formField">
+                    <label className="fieldLabel">Email Address *</label>
+                    <input
+                      type="email"
+                      value={billingDetails.email}
+                      onChange={(e) => handleBillingChange('email', e.target.value)}
+                      className="inputField"
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                  <div className="formField">
+                    <label className="fieldLabel">Phone Number *</label>
+                    <input
+                      type="tel"
+                      value={billingDetails.phone}
+                      onChange={(e) => handleBillingChange('phone', e.target.value)}
+                      className="inputField"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="formRow">
-                <div className="formField">
-                  <label className="fieldLabel">Email Address *</label>
-                  <input
-                    type="email"
-                    value={billingDetails.email}
-                    onChange={(e) => handleBillingChange('email', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your email address"
-                  />
-                </div>
-                <div className="formField">
-                  <label className="fieldLabel">Phone *</label>
-                  <input
-                    type="tel"
-                    value={billingDetails.phone}
-                    onChange={(e) => handleBillingChange('phone', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
-
-              <div className="formField">
-                <label className="fieldLabel">Company Name (Optional)</label>
-                <input
-                  type="text"
-                  value={billingDetails.company}
-                  onChange={(e) => handleBillingChange('company', e.target.value)}
-                  className="inputField"
-                  placeholder="Enter company name (optional)"
-                />
-              </div>
-
-              <div className="formField">
-                <label className="fieldLabel">Country/Region *</label>
-                <select
-                  value={billingDetails.country}
-                  onChange={(e) => handleBillingChange('country', e.target.value)}
-                  className="inputField"
-                >
-                  <option value="">Select your country</option>
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Japan">Japan</option>
-                  <option value="South Korea">South Korea</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="Vietnam">Vietnam</option>
-                </select>
-              </div>
-
-              <div className="formField">
-                <label className="fieldLabel">Street Address/City *</label>
-                <input
-                  type="text"
-                  value={billingDetails.address}
-                  onChange={(e) => handleBillingChange('address', e.target.value)}
-                  className="inputField"
-                  placeholder="Enter your street address and city"
-                />
-              </div>
-
-              <div className="formRow">
-                <div className="formField">
-                  <label className="fieldLabel">Town *</label>
-                  <input
-                    type="text"
-                    value={billingDetails.city}
-                    onChange={(e) => handleBillingChange('city', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your town"
-                  />
-                </div>
-                <div className="formField">
-                  <label className="fieldLabel">State *</label>
-                  <input
-                    type="text"
-                    value={billingDetails.state}
-                    onChange={(e) => handleBillingChange('state', e.target.value)}
-                    className="inputField"
-                    placeholder="Enter your state"
-                  />
-                </div>
-              </div>
-
-              <div className="formField">
-                <label className="fieldLabel">ZIP Code *</label>
-                <input
-                  type="text"
-                  value={billingDetails.zipCode}
-                  onChange={(e) => handleBillingChange('zipCode', e.target.value)}
-                  className="inputField"
-                  placeholder="Enter your ZIP code"
-                />
               </div>
 
               <div className="formField">
@@ -312,6 +277,17 @@ const CheckoutPage = () => {
                       onChange={(e) => setPaymentMethod(e.target.value)}
                     />
                     <span className="paymentLabel">PayPal</span>
+                  </label>
+                  
+                  <label className="paymentMethod">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={paymentMethod === 'cod'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                    />
+                    <span className="paymentLabel">Cash on Delivery (COD)</span>
                   </label>
                 </div>
 
@@ -400,7 +376,7 @@ const CheckoutPage = () => {
               </div>
               <div className="totalRow">
                 <span className="totalLabel">Shipping</span>
-                <span className="totalValue">${shipping.toFixed(2)}</span>
+                <span className="totalValue">Calculated in Cart</span>
               </div>
               <div className="totalRow final">
                 <span className="totalLabel">Total</span>

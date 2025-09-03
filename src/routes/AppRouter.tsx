@@ -19,6 +19,8 @@ import Dashboard from "../pages/admin/Dashboard";
 import Products from "../pages/admin/Products";
 import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
+import Orders from "../pages/admin/Orders";
+import Coupons from "../pages/admin/Coupons";
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
 import { AuthProvider } from "./AuthContext";
@@ -29,7 +31,7 @@ import ResetPassword from "../pages/Auth/ResetPassword";
 
 import FAQPage from "../pages/Faq";
 import FaqAdmin from "../pages/admin/FaqAdmin";
-
+import MyOrders from "../pages/MyOrders";
 
 // import FaqAdmin from "../pages/admin/FaqAdmin";
 
@@ -45,6 +47,7 @@ export const AppRouter = () => (
             </Route>
 
             <Route element={<MainLayout />}>
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/checkout" element={<Checkout />} />
@@ -54,6 +57,7 @@ export const AppRouter = () => (
                 <Route path="/detail-product/:id" element={<DetailProduct />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
+                <Route path="/myorders" element={<MyOrders />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/faqs" element={<FAQPage />} />
                 <Route path="/profile/edit" element={<EditProfile />} />
@@ -67,6 +71,8 @@ export const AppRouter = () => (
                     <Route path="manufacturers" element={<Manufacturers />} />
                     <Route path="stocks" element={<Stocks />} />
                     <Route path="faqs" element={<FaqAdmin />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="coupons" element={<Coupons />} />
                 </Route>
             {/*</Route>*/}
             <Route path="*" element={<NotFound />} />

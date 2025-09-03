@@ -1,100 +1,137 @@
   import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaTrash, FaMinus, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaImage } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { cartApi } from '../../api/cart.api';
+import { couponApi } from '../../api/coupon.api';
+import { CartItem as ApiCartItem } from '../../@type/cart';
 import './CartPage.css';
-
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  subtotal: number;
-}
 
 const CartPage = () => {
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<ApiCartItem[]>([]);
   const [couponCode, setCouponCode] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+    discountType: 'percentage' | 'fixed';
+  } | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
-  // Mock cart data
-  const mockCartItems: CartItem[] = [
-    {
-      id: 1,
-      name: "PORCELAIN DINNER PLATE (27CM)",
-      price: 59,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop",
-      subtotal: 118
-    },
-    {
-      id: 2,
-      name: "OPHELIA MATTE NATURAL VASE",
-      price: 168,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop",
-      subtotal: 168
-    },
-    {
-      id: 3,
-      name: "PORCELAIN DINNER PLATE",
-      price: 70,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop",
-      subtotal: 70
+  // Fetch cart data from API
+  const fetchCartData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await cartApi.getCart();
+      
+      if (response.success && response.data) {
+        setCartItems(response.data);
+      } else {
+        setError(response.message || 'Failed to fetch cart data');
+        toast.error(response.message || 'Failed to fetch cart data');
+      }
+    } catch (error: any) {
+      console.error('Error fetching cart:', error);
+      setError('Failed to load cart. Please try again.');
+      toast.error('Failed to load cart. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    // Load cart data from localStorage
-    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    if (savedCart.length === 0) {
-      // If no saved cart, use mock data
-      setCartItems(mockCartItems);
-      localStorage.setItem('cart', JSON.stringify(mockCartItems));
-    } else {
-      setCartItems(savedCart);
-    }
-    setLoading(false);
+    fetchCartData();
   }, []);
 
-  const updateQuantity = (itemId: number, newQuantity: number) => {
+  const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     
-    const updatedItems = cartItems.map(item => 
-      item.id === itemId 
-        ? { ...item, quantity: newQuantity, subtotal: item.price * newQuantity }
-        : item
-    );
-    
-    setCartItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-    window.dispatchEvent(new Event('cartUpdated'));
-  };
-
-  const removeItem = (itemId: number) => {
-    const updatedItems = cartItems.filter(item => item.id !== itemId);
-    setCartItems(updatedItems);
-    localStorage.setItem('cart', JSON.stringify(updatedItems));
-    window.dispatchEvent(new Event('cartUpdated'));
-  };
-
-  const clearCart = () => {
-    setCartItems([]);
-    localStorage.removeItem('cart');
-    window.dispatchEvent(new Event('cartUpdated'));
-  };
-
-  const applyCoupon = () => {
-    if (couponCode.trim()) {
-      alert(`Coupon code "${couponCode}" applied!`);
-      setCouponCode('');
+    try {
+      const response = await cartApi.updateCartItem(itemId, newQuantity);
+      if (response.success) {
+        setCartItems(response.data);
+        toast.success('Cart updated successfully');
+      } else {
+        toast.error(response.message || 'Failed to update cart');
+      }
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('Failed to update cart. Please try again.');
     }
   };
 
-  const updateCart = () => {
-    alert('Cart updated successfully!');
+  const removeItem = async (itemId: number) => {
+    try {
+      const response = await cartApi.removeFromCart(itemId);
+      if (response.success) {
+        setCartItems(response.data);
+        toast.success('Item removed from cart');
+      } else {
+        toast.error(response.message || 'Failed to remove item');
+      }
+    } catch (error) {
+      console.error('Error removing item:', error);
+      toast.error('Failed to remove item. Please try again.');
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      // Since there's no clear cart endpoint, remove items one by one
+      for (const item of cartItems) {
+        await cartApi.removeFromCart(item.id);
+      }
+      setCartItems([]);
+      toast.success('Cart cleared successfully');
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      toast.error('Failed to clear cart. Please try again.');
+    }
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    if (subtotal <= 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setApplyingCoupon(true);
+    try {
+      const response = await couponApi.applyCoupon({
+        couponCode: couponCode.trim(),
+        orderAmount: subtotal
+      });
+
+      if (response.success) {
+        setAppliedCoupon({
+          code: response.data.couponCode,
+          discountAmount: response.data.discountAmount,
+          discountType: response.data.discountType
+        });
+        setCouponCode('');
+        toast.success(`Coupon "${response.data.couponCode}" applied successfully!`);
+      } else {
+        toast.error(response.message || 'Failed to apply coupon');
+      }
+    } catch (error: any) {
+      console.error('Error applying coupon:', error);
+      toast.error('Failed to apply coupon. Please try again.');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    toast.success('Coupon removed');
   };
 
   const proceedToCheckout = () => {
@@ -102,15 +139,45 @@ const CartPage = () => {
   };
 
   // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   const shipping = subtotal > 0 ? 35 : 0;
-  const total = subtotal + shipping;
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const total = subtotal + shipping - discount;
 
   if (loading) {
     return (
       <div className="loading">
         <div className="spinner"></div>
         <p>Loading cart...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="cartPage">
+        <div className="pageHeader">
+          <h1 className="pageTitle">Shopping Cart</h1>
+          <div className="breadcrumb">
+            <Link to="/" className="breadcrumbLink">Home</Link>
+            <span className="breadcrumbSeparator">/</span>
+            <span className="breadcrumbCurrent">Cart</span>
+          </div>
+        </div>
+        <main className="cartContent">
+          <div className="error-container">
+            <div className="error-message">
+              <h2>Error Loading Cart</h2>
+              <p>{error}</p>
+              <button 
+                className="retry-btn"
+                onClick={fetchCartData}
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -157,68 +224,127 @@ const CartPage = () => {
                 <div className="cartList">
                   {cartItems.map(item => (
                     <div key={item.id} className="cartItem">
+                      {/* Product Image */}
                       <div className="itemImage">
-                        <img src={item.image} alt={item.name} />
+                        {item.product.photos && item.product.photos.length > 0 ? (
+                          <img 
+                            src={item.product.photos[0]} 
+                            alt={item.product.productName}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const nextEl = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (nextEl) nextEl.style.display = 'flex';
+                            }}
+                          />
+                        ) : (
+                          <div className="noImagePlaceholder">
+                            <FaImage />
+                            <span>No Image</span>
+                          </div>
+                        )}
+                        {item.product.photos && item.product.photos.length > 0 && (
+                          <div className="noImagePlaceholder" style={{ display: 'none' }}>
+                            <FaImage />
+                            <span>No Image</span>
+                          </div>
+                        )}
                       </div>
                       
+                      {/* Product Details */}
                       <div className="itemDetails">
-                        <h3 className="itemName">{item.name}</h3>
-                        <p className="itemPrice">${item.price}</p>
+                        <h3 className="itemName">{item.product.productName}</h3>
+                        <div className="itemMeta">
+                          <p className="itemAuthor">
+                            <span className="label">Author:</span> {item.product.author || 'Unknown'}
+                          </p>
+                          <p className="itemCategory">
+                            <span className="label">Category:</span> {item.product.category?.categoryName || 'General'}
+                          </p>
+                        </div>
+                        <div className="itemPrice">
+                          <span className="priceLabel">Unit Price:</span>
+                          <span className="priceValue">{item.unitPrice.toLocaleString('vi-VN')} VND</span>
+                        </div>
                       </div>
                       
+                      {/* Quantity Controls */}
                       <div className="itemQuantity">
-                        <button 
-                          className="quantityBtn"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        >
-                          <FaMinus />
-                        </button>
-                        <span className="quantityValue">{item.quantity}</span>
-                        <button 
-                          className="quantityBtn"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        >
-                          <FaPlus />
-                        </button>
+                        <div className="quantityLabel">Quantity</div>
+                        <div className="quantityControls">
+                          <button 
+                            className="quantityBtn decrease"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                          >
+                            <FaMinus />
+                          </button>
+                          <span className="quantityValue">{item.quantity}</span>
+                          <button 
+                            className="quantityBtn increase"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          >
+                            <FaPlus />
+                          </button>
+                        </div>
                       </div>
                       
+                      {/* Subtotal */}
                       <div className="itemSubtotal">
-                        <span className="subtotalValue">${item.subtotal.toFixed(2)}</span>
+                        <div className="subtotalLabel">Subtotal</div>
+                        <div className="subtotalValue">{item.totalPrice.toLocaleString('vi-VN')} VND</div>
                       </div>
                       
-                      <button 
-                        className="removeItemBtn"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <FaTrash />
-                      </button>
+                      {/* Remove Button */}
+                      <div className="itemActions">
+                        <button 
+                          className="removeItemBtn"
+                          onClick={() => removeItem(item.id)}
+                          title="Remove from cart"
+                        >
+                          <FaTrash />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
                 
                 <div className="cartActions">
                   <div className="couponSection">
-                    <input
-                      type="text"
-                      placeholder="Enter coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className="couponInput"
-                    />
-                    <button 
-                      className="applyCouponBtn"
-                      onClick={applyCoupon}
-                    >
-                      APPLY COUPON
-                    </button>
-                  </div>
-                  <div className="updateSection">
-                    <button 
-                      className="updateCartBtn"
-                      onClick={updateCart}
-                    >
-                      UPDATE CART
-                    </button>
+                    {appliedCoupon ? (
+                      <div className="appliedCoupon">
+                        <div className="couponInfo">
+                          <span className="couponCode">🎫 {appliedCoupon.code}</span>
+                          <span className="couponDiscount">
+                            -{appliedCoupon.discountAmount.toLocaleString('vi-VN')} VND
+                          </span>
+                        </div>
+                        <button 
+                          className="removeCouponBtn"
+                          onClick={removeCoupon}
+                          title="Remove coupon"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          placeholder="Enter coupon code"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          className="couponInput"
+                          disabled={applyingCoupon}
+                        />
+                        <button 
+                          className="applyCouponBtn"
+                          onClick={applyCoupon}
+                          disabled={applyingCoupon}
+                        >
+                          {applyingCoupon ? 'APPLYING...' : 'APPLY COUPON'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </>
@@ -232,15 +358,21 @@ const CartPage = () => {
               <div className="totalsContent">
                 <div className="totalRow">
                   <span className="totalLabel">Subtotal</span>
-                  <span className="totalValue">${subtotal.toFixed(2)}</span>
+                  <span className="totalValue">{subtotal.toLocaleString('vi-VN')} VND</span>
                 </div>
                 <div className="totalRow">
                   <span className="totalLabel">Shipping</span>
-                  <span className="totalValue">${shipping.toFixed(2)}</span>
+                  <span className="totalValue">{shipping.toLocaleString('vi-VN')} VND</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="totalRow discount">
+                    <span className="totalLabel">Discount ({appliedCoupon.code})</span>
+                    <span className="totalValue discount">-{discount.toLocaleString('vi-VN')} VND</span>
+                  </div>
+                )}
                 <div className="totalRow final">
                   <span className="totalLabel">Cart totals</span>
-                  <span className="totalValue">${total.toFixed(2)}</span>
+                  <span className="totalValue">{total.toLocaleString('vi-VN')} VND</span>
                 </div>
               </div>
               <button 
