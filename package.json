@@ -19,6 +19,7 @@
     "antd": "^5.27.1",
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
+    "lucide-react": "^0.542.0",
     "emailjs-com": "^3.2.0",
     "dayjs": "^1.11.18",
     "notistack": "^3.0.2",
