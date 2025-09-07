@@ -33,12 +33,13 @@ const UserForm: React.FC<UserFormProps> = ({
             setLoading(true);
 
             if (editingUser) {
-                await updateUser(editingUser.id, payload);
-                message.success("Cập nhật người dùng thành công!");
-            } else {
-                await createUser(payload);
-                message.success("Thêm người dùng thành công!");
-            }
+    await updateUser(editingUser.id, payload);
+    message.success("Cập nhật người dùng thành công!");
+} else {
+    await createUser(payload);
+    message.success("Tài khoản đã được tạo. Vui lòng kiểm tra email để xác thực!");
+}
+
 
             onSuccess();
         } catch (err: any) {
@@ -128,20 +129,15 @@ const UserForm: React.FC<UserFormProps> = ({
                     </Col>
                 </Row>
 
+                {!editingUser && (
                 <Form.Item
                     name="email"
                     label="Email"
-                    rules={[
-                        { required: true, message: "Please enter email!" },
-                        { type: "email", message: "Invalid email!" },
-                    ]}
+                    rules={[{ required: true, message: "Please enter email!" }]}
                 >
-                    <Input
-                        placeholder="Enter email..."
-                        size="large"
-                        prefix={<span style={{ color: "#bfbfbf" }}>@</span>}
-                    />
+                    <Input placeholder="Enter email..." size="large" />
                 </Form.Item>
+                )}
 
                 <Form.Item
                     name="phoneNumber"
@@ -189,6 +185,7 @@ const UserForm: React.FC<UserFormProps> = ({
                         options={[
                             { label: "Admin", value: "admin" },
                             { label: "User", value: "user" },
+                            { label: "Employee", value: "employee" },
                         ]}
                     />
                 </Form.Item>

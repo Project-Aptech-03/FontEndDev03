@@ -30,7 +30,7 @@ interface Product {
   rating: number;
   reviewCount: number;
   category: string;
-  genre: string;
+  manufacturer: string;
   description: string;
   longDescription: string;
   inStock: boolean;
@@ -69,7 +69,7 @@ const ProductDetailPage = () => {
     rating: 4.5,
     reviewCount: 128,
     category: "Fiction",
-    genre: "Classic Literature",
+    manufacturer: "Classic Literature",
     description: "A literary classic exploring themes of decadence, idealism, and the American Dream. Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby and Gatsby's obsession to reunite with his former lover, Daisy Buchanan.",
     longDescription: `The Great Gatsby is a 1925 novel by American writer F. Scott Fitzgerald. Set in the Jazz Age on Long Island, near New York City, the novel depicts first-person narrator Nick Carraway's interactions with mysterious millionaire Jay Gatsby and Gatsby's obsession to reunite with his former lover, Daisy Buchanan.
 
@@ -148,19 +148,18 @@ During World War II, the novel experienced an abrupt surge in popularity when th
   };
 
   useEffect(() => {
-    // Simulate API call
+
     setTimeout(() => {
       setProduct(mockProduct);
       setLoading(false);
     }, 1000);
 
-    // Check if product is in Wishlist
     const wishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     setIsInWishlist(wishlist.some((item: Product) => item.id === parseInt(id || '1')));
   }, [id]);
 
   const handleAddToCart = () => {
-    // Add to cart logic here
+
     console.log('Added to cart:', { ...product, quantity });
   };
 
@@ -252,7 +251,6 @@ During World War II, the novel experienced an abrupt surge in popularity when th
           </div>
         </div>
 
-        {/* Product Info */}
         <div className="productInfo">
           <div className="productHeader">
             <h1 className="productTitle">{product.title}</h1>

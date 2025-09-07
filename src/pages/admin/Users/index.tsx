@@ -4,8 +4,9 @@ import { UserAddOutlined } from '@ant-design/icons';
 import UserTable from './UserTable';
 import UserForm from './UserForm';
 import {deleteUser, getAllUsers} from "../../../api/user.api";
-import { filterUsers } from "../../../util/userFunciton";
-import { UsersResponseDto } from "../../../@type/apiResponse";
+import { filterUsers } from "../../../utils/userFunciton";
+import { UsersResponseDto } from "../../../@type/UserResponseDto";
+
 import { showSuccessNotification} from "./userNotifications";
 
 const { Title, Text } = Typography;
@@ -65,7 +66,7 @@ const UserManagement: React.FC = () => {
     setEditingUser(record);
     setModalVisible(true);
   };
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       setLoading(true);
       await deleteUser(id);

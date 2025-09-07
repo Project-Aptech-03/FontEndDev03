@@ -23,12 +23,13 @@ export default function ProductCard({
       cover={
         <div className="aspect-square bg-gray-50 flex items-center justify-center p-8">
           <Image
-            src={imageUrl || "/placeholder.svg"}
-            alt={title}
-            width={300}
-            height={300}
-            className="object-contain"
+              src={imageUrl || "/placeholder.svg"}
+              width={300}
+              height={300}
+              style={{ objectFit: "contain" }}
+              preview={false}
           />
+
         </div>
       }
       bordered={false}
@@ -59,3 +60,4 @@ export default function ProductCard({
     </Card>
   );
 }
+

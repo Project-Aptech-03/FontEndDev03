@@ -352,8 +352,8 @@
   flex-wrap: wrap;
 }
 
-.bookCategory,
-.bookGenre {
+.bookCategory,    
+.bookManufacturer {
   background: #f0f0f0;
   color: #666;
   padding: 4px 8px;

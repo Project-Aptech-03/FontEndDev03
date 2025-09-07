@@ -101,7 +101,6 @@ const CartPage = () => {
     navigate('/checkout');
   };
 
-  // Calculate totals
   const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
   const shipping = subtotal > 0 ? 35 : 0;
   const total = subtotal + shipping;
@@ -117,15 +116,6 @@ const CartPage = () => {
 
   return (
     <div className="cartPage">
-      {/* Page Header */}
-      <div className="pageHeader">
-        <h1 className="pageTitle">Shopping Cart</h1>
-        <div className="breadcrumb">
-          <Link to="/" className="breadcrumbLink">Home</Link>
-          <span className="breadcrumbSeparator">/</span>
-          <span className="breadcrumbCurrent">Cart</span>
-        </div>
-      </div>
 
       <main className="cartContent">
         <div className="cartContainer">

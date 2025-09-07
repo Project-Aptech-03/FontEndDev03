@@ -14,7 +14,7 @@ interface Book {
   rating: number;
   reviewCount: number;
   category: string;
-  genre: string;
+  manufacturer: string;
   image: string;
   description: string;
   inStock: boolean;
@@ -34,7 +34,7 @@ const HomePage = () => {
       rating: 4.5,
       reviewCount: 128,
       category: "Fiction",
-      genre: "Classic Literature",
+      manufacturer: "Classic Literature",
       image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
       description: "A literary classic exploring themes of decadence, idealism, and the American Dream.",
       inStock: true
@@ -48,7 +48,7 @@ const HomePage = () => {
       rating: 4.8,
       reviewCount: 256,
       category: "Fiction",
-      genre: "Classic Literature",
+      manufacturer: "Classic Literature",
       image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
       description: "A powerful story of racial injustice and the loss of innocence in the American South.",
       inStock: true
@@ -62,7 +62,7 @@ const HomePage = () => {
       rating: 4.6,
       reviewCount: 189,
       category: "Fiction",
-      genre: "Dystopian",
+      manufacturer: "Dystopian",
       image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
       description: "A chilling vision of a totalitarian society and the power of surveillance.",
       inStock: true
@@ -79,7 +79,7 @@ const HomePage = () => {
       rating: 4.7,
       reviewCount: 203,
       category: "Fiction",
-      genre: "Romance",
+      manufacturer: "Romance",
       image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
       description: "A timeless romance exploring love, marriage, and social class in Georgian England.",
       inStock: true
@@ -93,7 +93,7 @@ const HomePage = () => {
       rating: 4.9,
       reviewCount: 312,
       category: "Fiction",
-      genre: "Fantasy",
+      manufacturer: "Fantasy",
       image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
       description: "An epic fantasy adventure following Bilbo Baggins on his journey with thirteen dwarves.",
       inStock: true
@@ -107,7 +107,7 @@ const HomePage = () => {
       rating: 4.3,
       reviewCount: 167,
       category: "Fiction",
-      genre: "Coming of Age",
+      manufacturer: "Coming of Age",
       image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
       description: "A classic coming-of-age story about teenage alienation and loss of innocence.",
       inStock: true
@@ -124,7 +124,7 @@ const HomePage = () => {
       rating: 4.4,
       reviewCount: 145,
       category: "Fiction",
-      genre: "Allegory",
+      manufacturer: "Allegory",
       image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
       description: "A powerful allegory about the dark side of human nature and civilization.",
       inStock: true
@@ -138,7 +138,7 @@ const HomePage = () => {
       rating: 4.5,
       reviewCount: 178,
       category: "Fiction",
-      genre: "Political Satire",
+      manufacturer: "Political Satire",
       image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
       description: "A satirical allegory about the Russian Revolution and the rise of Stalinism.",
       inStock: true
@@ -152,7 +152,7 @@ const HomePage = () => {
       rating: 4.6,
       reviewCount: 201,
       category: "Fiction",
-      genre: "Dystopian",
+      manufacturer: "Dystopian",
       image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
       description: "A dystopian novel about a future society controlled by technology and conditioning.",
       inStock: true
@@ -169,7 +169,7 @@ const HomePage = () => {
       rating: 4.2,
       reviewCount: 89,
       category: "Fiction",
-      genre: "Philosophical",
+      manufacturer: "Philosophical",
       image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
       description: "A magical story about following your dreams and listening to your heart.",
       inStock: true
@@ -183,7 +183,7 @@ const HomePage = () => {
       rating: 4.8,
       reviewCount: 234,
       category: "Fiction",
-      genre: "Children's Literature",
+    manufacturer: "Children's Literature",
       image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
       description: "A poetic tale about a young prince who visits various planets in space.",
       inStock: true
@@ -197,7 +197,7 @@ const HomePage = () => {
       rating: 4.4,
       reviewCount: 156,
       category: "Fiction",
-      genre: "Literary Fiction",
+      manufacturer: "Literary Fiction",
       image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
       description: "A story about an aging fisherman's struggle with a giant marlin.",
       inStock: true
@@ -284,7 +284,7 @@ const HomePage = () => {
         <p className="bookDescription">{book.description}</p>
         <div className="bookMeta">
           <span className="bookCategory">{book.category}</span>
-          <span className="bookGenre">{book.genre}</span>
+              <span className="bookManufacturer">{book.manufacturer}</span>
         </div>
       </div>
     </div>

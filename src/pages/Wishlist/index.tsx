@@ -13,9 +13,9 @@ interface WishlistItem {
   reviewCount: number;
   description: string;
   category: string;
-  genre: string;
+  manufacturer: string;  
   image: string;
-}
+} 
 
 const WishlistPage = () => {
   console.log('WishlistPage component is loading...'); // Debug log
@@ -191,7 +191,7 @@ const WishlistPage = () => {
                         <p className="itemDescription">{item.description}</p>
                         <div className="itemMeta">
                           <span className="itemCategory">{item.category}</span>
-                          <span className="itemGenre">{item.genre}</span>
+                          <span className="itemManufacturer">{item.manufacturer}</span>
                         </div>
                       </div>
                       

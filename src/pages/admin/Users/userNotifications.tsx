@@ -1,6 +1,6 @@
 import { Modal, Typography, notification } from 'antd';
 import { ExclamationCircleFilled, CheckCircleFilled } from '@ant-design/icons';
-import { UsersResponseDto } from "../../../@type/apiResponse";
+import { UsersResponseDto } from "../../../@type/UserResponseDto";
 
 const { confirm } = Modal;
 const { Text } = Typography;
@@ -27,7 +27,7 @@ export const showErrorNotification = (message: string) => {
 
 export const showDeleteConfirm = (
     user: UsersResponseDto,
-    onDelete: (id: number) => void
+    onDelete: (id: string) => void
 ) => {
     confirm({
         title: 'Xác nhận xóa người dùng',

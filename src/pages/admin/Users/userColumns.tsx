@@ -8,25 +8,30 @@ const { Text } = Typography;
 
 const userColumns = (
     onEdit: (user: UsersResponseDto) => void,
-    onDelete: (id: number) => void
+    onDelete: (id: string) => void
 ): ColumnsType<UsersResponseDto> => [
     {
-        title: 'Name',
-        key: 'fullname',
-        render: (_, record) => (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <Avatar
-                    size="large"
-                    style={{ backgroundColor: '#7265e6', marginRight: 12 }}
-                    icon={<UserAddOutlined />}
-                />
-                <div>
-                    <div style={{ fontWeight: 500 }}>{`${record.firstName} ${record.lastName}`}</div>
-                    <Text type="secondary">{record.email}</Text>
+    title: 'Name',
+    key: 'fullname',
+    render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Avatar
+                size="large"
+                style={{ backgroundColor: '#7265e6', marginRight: 12 }}
+                src={record.avatarUrl}
+            >
+                {!record.avatarUrl && <UserAddOutlined />}
+            </Avatar>
+            <div>
+                <div style={{ fontWeight: 500 }}>
+                    {`${record.firstName} ${record.lastName}`}
                 </div>
+                <Text type="secondary">{record.email}</Text>
             </div>
-        ),
-    },
+        </div>
+    ),
+},
+
     {
         title: 'Role',
         dataIndex: 'role',

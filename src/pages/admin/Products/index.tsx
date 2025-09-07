@@ -1,43 +1,31 @@
 
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Popconfirm,
-  Space,
-  Switch,
-} from "antd";
-import {useState} from "react";
+import React, { useState } from "react";
+import { Button, Form, message, Card, Typography, Space, Alert, Spin, Empty } from "antd";
+import { PlusOutlined, ReloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { useAdminProducts } from "../../../hooks/useAdminProducts";
+import ProductTable from "../../../components/Admin/ProductTable";
+import ProductModal from "../../../components/Admin/ProductModal";
+import { AdminProduct, ProductFormData } from "../../../@type/adminProduct";
 
-const { TextArea } = Input;
+const { Title, Text } = Typography;
 
 const Products = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      productCode: "PRD001",
-      categoryId: 1,
-      categoryName: "Books",
-      manufacturerId: 1,
-      manufacturerName: "NXB Tre Publishing",
-      productName: "Programming Book",
-      price: 120,
-      stockQuantity: 50,
-      description: "React programming guide",
-      image: "https://via.placeholder.com/60",
-      isActive: true,
-    },
-  ]);
-
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [form] = Form.useForm();
+  const [modalLoading, setModalLoading] = useState(false);
 
-  const showModal = (product = null) => {
+  const {
+    products,
+    loading,
+    error,
+    handleCreateProduct,
+    handleUpdateProduct,
+    handleDeleteProduct,
+    refetch,
+  } = useAdminProducts();
+
+  const showModal = (product: AdminProduct | null = null) => {
     setEditingProduct(product);
     setIsModalVisible(true);
     if (product) {
@@ -47,204 +35,201 @@ const Products = () => {
     }
   };
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      const categoryName = values.categoryId === 1 ? "Books" : "Stationery";
-      const manufacturerName =
-        values.manufacturerId === 1 ? "NXB Tre Publishing" : "NXB Kim Dong";
+  const handleOk = async (values: ProductFormData) => {
+    setModalLoading(true);
+    try {
+      const photos = values.photos ? 
+        (typeof values.photos === 'string' ? 
+          (values.photos as string).split('\n').filter((url: string) => url.trim()) : 
+          Array.isArray(values.photos) ? values.photos : []) : 
+        [];
 
-      const image = values.image || "https://via.placeholder.com/60";
+      const productData = {
+        ...values,
+        photos,
+        author: values.author || '',
+        productType: values.productType || 'book',
+        pages: values.pages || 1,
+        dimensions: values.dimensions || '',
+        weight: values.weight || 0,
+        description: values.description || '',
+      };
 
+      let result;
       if (editingProduct) {
-        setProducts((prev) =>
-          prev.map((p) =>
-            p.id === editingProduct.id
-              ? {
-                  ...p,
-                  ...values,
-                  categoryName,
-                  manufacturerName,
-                  image,
-                }
-              : p
-          )
-        );
+        result = await handleUpdateProduct(editingProduct.id, productData);
       } else {
-        const newProduct = {
-          ...values,
-          id: Date.now(),
-          categoryName,
-          manufacturerName,
-          image,
-        };
-        setProducts((prev) => [...prev, newProduct]);
+        result = await handleCreateProduct(productData);
       }
-      setIsModalVisible(false);
-      setEditingProduct(null);
-    });
+
+      if (result.success) {
+        message.success({
+          content: editingProduct ? "Product updated successfully!" : "Product created successfully!",
+          duration: 3,
+        });
+        setIsModalVisible(false);
+        setEditingProduct(null);
+        form.resetFields();
+      } else {
+        message.error({
+          content: result.error || "Operation failed. Please try again.",
+          duration: 5,
+        });
+      }
+    } catch (error) {
+      message.error({
+        content: "An unexpected error occurred. Please try again.",
+        duration: 5,
+      });
+    } finally {
+      setModalLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleDelete = async (id: number) => {
+    try {
+      const result = await handleDeleteProduct(id);
+      if (result.success) {
+        message.success({
+          content: "Product deleted successfully!",
+          duration: 3,
+        });
+      } else {
+        message.error({
+          content: result.error || "Failed to delete product. Please try again.",
+          duration: 5,
+        });
+      }
+    } catch (error) {
+      message.error({
+        content: "An unexpected error occurred. Please try again.",
+        duration: 5,
+      });
+    }
   };
 
-  const columns = [
-    {
-      title: "Image",
-      dataIndex: "image",
-      key: "image",
-      render: (src) => (
-        <img
-          src={src}
-          alt="product"
-          style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
-        />
-      ),
-    },
-    { title: "Product Code", dataIndex: "productCode", key: "productCode" },
-    { title: "Product Name", dataIndex: "productName", key: "productName" },
-    { title: "Category", dataIndex: "categoryName", key: "categoryName" },
-    {
-      title: "Manufacturer",
-      dataIndex: "manufacturerName",
-      key: "manufacturerName",
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => `$${price.toLocaleString()}`,
-    },
-    {
-      title: "Stock Quantity",
-      dataIndex: "stockQuantity",
-      key: "stockQuantity",
-    },
-    {
-      title: "Status",
-      dataIndex: "isActive",
-      key: "isActive",
-      render: (val) => (val ? "Active" : "Inactive"),
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button type="primary" onClick={() => showModal(record)}>
-            Edit
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this product?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button danger>Delete</Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const handleRefresh = () => {
+    refetch();
+    message.info("Refreshing products...");
+  };
+
+  if (error) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Card>
+          <Alert
+            message="Error Loading Products"
+            description={error}
+            type="error"
+            icon={<ExclamationCircleOutlined />}
+            showIcon
+            action={
+              <Button size="small" danger onClick={handleRefresh}>
+                Retry
+              </Button>
+            }
+          />
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: 24 }}>
-      <Button
-        type="primary"
-        onClick={() => showModal()}
-        style={{ marginBottom: 16, marginTop: 16 }}
+    <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
+      <Card 
+        style={{ 
+          borderRadius: 12, 
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          marginBottom: 24
+        }}
       >
-        + Add Product
-      </Button>
-      <Table dataSource={products} columns={columns} rowKey="id" />
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: 24
+        }}>
+          <div>
+            <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
+              Products Management
+            </Title>
+            <Text type="secondary">
+              Manage your product inventory and details
+            </Text>
+          </div>
+          <Space>
+            <Button 
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={loading}
+            >
+              Refresh
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => showModal()}
+              size="large"
+              style={{ borderRadius: 8 }}
+            >
+              Add Product
+            </Button>
+          </Space>
+        </div>
 
-      <Modal
-        title={editingProduct ? "Edit Product" : "Add Product"}
-        open={isModalVisible}
+        {loading && products.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <Spin size="large" />
+            <div style={{ marginTop: 16 }}>
+              <Text type="secondary">Loading products...</Text>
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <div>
+                <Text type="secondary" style={{ fontSize: 16 }}>
+                  No products found
+                </Text>
+                <br />
+                <Text type="secondary">
+                  Start by adding your first product
+                </Text>
+              </div>
+            }
+          >
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />}
+              onClick={() => showModal()}
+              size="large"
+            >
+              Add Your First Product
+            </Button>
+          </Empty>
+        ) : (
+          <ProductTable
+            products={products}
+            loading={loading}
+            onEdit={showModal}
+            onDelete={handleDelete}
+          />
+        )}
+      </Card>
+
+      <ProductModal
+        visible={isModalVisible}
+        editingProduct={editingProduct}
         onOk={handleOk}
-        onCancel={() => setIsModalVisible(false)}
-        okText="Save"
-        cancelText="Cancel"
-        width={600}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="productCode"
-            label="Product Code"
-            rules={[{ required: true, message: "Please enter product code" }]}
-          >
-            <Input placeholder="Enter product code" />
-          </Form.Item>
-
-          <Form.Item
-            name="productName"
-            label="Product Name"
-            rules={[{ required: true, message: "Please enter product name" }]}
-          >
-            <Input placeholder="Enter product name" />
-          </Form.Item>
-
-          <Form.Item
-            name="categoryId"
-            label="Category"
-            rules={[{ required: true, message: "Please select a category" }]}
-          >
-            <Select placeholder="Select category">
-              <Select.Option value={1}>Books</Select.Option>
-              <Select.Option value={2}>Stationery</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="manufacturerId"
-            label="Manufacturer"
-            rules={[
-              { required: true, message: "Please select a manufacturer" },
-            ]}
-          >
-            <Select placeholder="Select manufacturer">
-              <Select.Option value={1}>NXB Tre Publishing</Select.Option>
-              <Select.Option value={2}>NXB Kim Dong</Select.Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="image" label="Image URL">
-            <Input placeholder="Enter image URL" />
-          </Form.Item>
-
-          <Form.Item name="description" label="Description">
-            <TextArea rows={3} placeholder="Enter product description" />
-          </Form.Item>
-
-          <Form.Item
-            name="price"
-            label="Price"
-            rules={[{ required: true, message: "Please enter product price" }]}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Enter product price"
-              min={0}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="stockQuantity"
-            label="Stock Quantity"
-            rules={[{ required: true, message: "Please enter stock quantity" }]}
-          >
-            <InputNumber
-              style={{ width: "100%" }}
-              placeholder="Enter stock quantity"
-              min={0}
-            />
-          </Form.Item>
-
-          <Form.Item name="isActive" label="Status" valuePropName="checked">
-            <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onCancel={() => {
+          setIsModalVisible(false);
+          setEditingProduct(null);
+          form.resetFields();
+        }}
+        form={form}
+        loading={modalLoading}
+      />
     </div>
   );
 };

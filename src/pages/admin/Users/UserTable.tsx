@@ -1,5 +1,5 @@
 import { Table } from 'antd';
-import { UsersResponseDto } from "../../../@type/apiResponse";
+import { UsersResponseDto } from "../../../@type/UserResponseDto";
 import userColumns from './userColumns';
 
 interface UserTableProps {
@@ -9,7 +9,7 @@ interface UserTableProps {
     page: number;
     pageSize: number;
     onEdit: (record: UsersResponseDto) => void;
-    onDelete: (id: number) => void;
+    onDelete: (id: string) => void;
     onPageChange: (page: number, pageSize: number) => void;
 }
 
