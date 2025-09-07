@@ -13,7 +13,8 @@ import {
   HomeOutlined,
   ShopOutlined,
   TeamOutlined,
-  StockOutlined
+  StockOutlined,
+  FileTextOutlined
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -37,6 +38,7 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/manufacturers")) return "4";
     if (path.includes("/admin/stocks")) return "5";
     if (path.includes("/admin/faqs")) return "6";
+    if (path.includes("/admin/blog")) return "7";
     return "1";
   };
 
@@ -70,6 +72,11 @@ const AdminLayout: React.FC = () => {
       key: "6",
       icon: <QuestionCircleOutlined />,
       label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
+    },
+    {
+      key: "7",
+      icon: <FileTextOutlined />,
+      label: <Link to="/admin/blog">Quản lý Blog</Link>,
     },
   ];
 
