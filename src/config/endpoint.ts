@@ -22,6 +22,7 @@ export const endpoints = {
   addToCart: "/cart",
   updateCartItem: "/cart/{id}",
   removeFromCart: "/cart/{id}",
+  clearCart: "/cart/clear",
   getCoupons: "/coupons",
   getCouponById: "/coupons/{id}",
   createCoupon: "/coupons",

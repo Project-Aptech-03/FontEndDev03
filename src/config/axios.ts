@@ -19,8 +19,23 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Debug log
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, config.data);
     return config;
   },
-    (error) => Promise.reject(error)
+  (error) => Promise.reject(error)
+);
 
+// Response interceptor for debugging
+axiosInstance.interceptors.response.use(
+  (response) => {
+    // Debug log
+    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+    return response;
+  },
+  (error) => {
+    // Debug log
+    console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.data || error.message);
+    return Promise.reject(error);
+  }
 );
