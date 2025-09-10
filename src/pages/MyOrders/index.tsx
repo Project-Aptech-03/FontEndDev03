@@ -7,13 +7,12 @@ import {
   XCircle, 
   Clock,
   ShoppingBag,
-  ArrowRight,
   RotateCcw,
   Calendar,
   ThumbsUp,
   ImageOff
 } from 'lucide-react';
-import { Order, getMyOrders, cancelOrder, CancelOrderRequest } from '../../api/orders.api';
+import { Order, getMyOrders, cancelOrder, } from '../../api/orders.api';
 import './MyOrder.css';
 
 const MyOrders = () => {
