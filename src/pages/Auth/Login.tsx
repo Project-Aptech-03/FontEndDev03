@@ -1,22 +1,33 @@
-import { useState } from "react";
+import { useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { loginApi } from "../../api/auth.api";
 import "./auth.css";
 import {INITIAL_FORM_DATA, INITIAL_FORM_ERRORS} from "../../constants/login.constants";
 import {LoginErrors, LoginForm} from "../../@type/login";
+import {message, Modal, Typography} from "antd";
+import {useAuth} from "../../routes/AuthContext";
+import {ApiResponse} from "../../@type/apiResponse";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginForm>(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState<LoginErrors>(INITIAL_FORM_ERRORS);
-  const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const { login } = useAuth();
+  const { Link } = Typography;
+
+  const showModal = (message: string) => {
+    setModalMessage(message);
+    setIsModalVisible(true);
+  };
 
   const validateForm = (): boolean => {
     let isValid = true;
     const newErrors: LoginErrors = { email: "", password: "", general: "" };
+
     if (!formData.email) {
       newErrors.email = "Email không được để trống";
       isValid = false;
@@ -24,6 +35,7 @@ const Login: React.FC = () => {
       newErrors.email = "Email không hợp lệ";
       isValid = false;
     }
+
     if (!formData.password) {
       newErrors.password = "Mật khẩu không được để trống";
       isValid = false;
@@ -31,15 +43,18 @@ const Login: React.FC = () => {
       newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
       isValid = false;
     }
+
     setErrors(newErrors);
     return isValid;
   };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
     if (errors[name as keyof LoginErrors]) {
       setErrors((prev) => ({
         ...prev,
@@ -47,37 +62,60 @@ const Login: React.FC = () => {
       }));
     }
   };
-  // @ts-ignore
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setIsLoading(true);
+
     try {
       const res = await loginApi(formData);
       if (res.success) {
         if (rememberMe) {
           localStorage.setItem("rememberMe", "true");
         }
-        toast.success("Đăng nhập thành công!");
-        navigate("/home");
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          general: res.error?.message || "Đăng nhập thất bại",
-        }));
-        toast.error(res.error?.message || "Đăng nhập thất bại!");
+        const token = res.result?.data.token.token;
+        const role = res.result?.data.role;
+        const userName = res.result?.data.fullName;
+        if (token != null) {
+          if (rememberMe) {
+            localStorage.setItem("token", token);
+          } else {
+            sessionStorage.setItem("token", token);
+          }
+          login(token);
+        }
+
+        if (res.success) {
+          const messageText =
+              role === "Admin"
+                  ? "Đăng nhập thành công! Chào mừng Admin: "+
+                  (userName ? ` ${userName}` : "") +"!"
+                  : "Đăng nhập thành công! Chào mừng" +
+                  (userName ? ` ${userName}` : "") +
+                  "!";
+
+          showModal(messageText);
+
+          setTimeout(() => {
+            setIsModalVisible(false);
+            navigate(role === "Admin" ? "/admin/dashboard" : "/home");
+          }, 2000);
+
+        } else {
+          showModal(res.error?.message || "Đăng nhập thất bại!");
+          setTimeout(() => setIsModalVisible(false), 2000);
+        }
       }
-    } catch (error: any) {
-      console.error("Lỗi khi login:", error);
-      setErrors((prev) => ({
-        ...prev,
-        general: "Có lỗi xảy ra. Vui lòng thử lại.",
-      }));
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
-    } finally {
-      setIsLoading(false);
+      } catch (err: any) {
+    const apiError = err?.response?.data as ApiResponse<string>;
+    if (apiError?.errors) {
+      Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+    } else {
+      message.error(apiError?.message || "Lỗi hệ thống không xác định");
     }
-  };
+  }
+};
+
   return (
       <div className="auth-page">
         <div className="auth-container">
@@ -95,17 +133,7 @@ const Login: React.FC = () => {
               <h2>Chào mừng bạn trở lại !</h2>
               <p>"Sách không chỉ giúp ta hiểu thêm về thế giới, sách giúp ta hiểu rõ hơn về chính mình."</p>
             </div>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              {errors.general && (
-                  <div className="error-message general-error">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path
-                          d="M8 6V9M8 11H8.01M15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z"
-                          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    {errors.general}
-                  </div>
-              )}
+            <form className="auth-form" onSubmit={handleSubmit} noValidate>
               <div className="form-group">
                 <label htmlFor="email">Email</label>
                 <div className="input-container">
@@ -164,15 +192,12 @@ const Login: React.FC = () => {
                       className={errors.password ? "error" : ""}
                       placeholder="Nhập mật khẩu"
                   />
-
-                  {/* Icon con mắt để toggle */}
                   <button
                       type="button"
                       className="toggle-password"
                       onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                        // Con mắt mở
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                              viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -182,7 +207,6 @@ const Login: React.FC = () => {
           4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"/>
                         </svg>
                     ) : (
-                        // Con mắt gạch (ẩn mật khẩu)
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -214,23 +238,18 @@ const Login: React.FC = () => {
                   </div>
                   <span>Ghi nhớ đăng nhập</span>
                 </label>
-                <a href="#forgot" className="forgot-password">
+                <Link
+                    onClick={() => navigate("/forgot-password")}
+                >
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
               <button
                   type="submit"
-                  className={`auth-button ${isLoading ? "loading" : ""}`}
-                  disabled={isLoading}
+                  className= "auth-button"
               >
-                {isLoading ? (
-                    <>
-                      <div className="spinner"></div>
-                      Đang đăng nhập...
-                    </>
-                ) : (
-                    "Đăng nhập"
-                )}
+                Đăng nhập
+
               </button>
             </form>
             <div className="auth-divider">
@@ -279,6 +298,15 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
+        <Modal
+            title="Thông báo"
+            open={isModalVisible}
+            onOk={() => setIsModalVisible(false)}
+            onCancel={() => setIsModalVisible(false)}
+            cancelButtonProps={{ style: { display: "none" } }}
+        >
+          <p>{modalMessage}</p>
+        </Modal>
       </div>
   );
 };

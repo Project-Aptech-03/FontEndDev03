@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                        // Hỗ trợ async/await, Promise
+    "lib": ["DOM", "ES2020"],                  // Bổ sung API trình duyệt + Promise
+    "module": "ESNext",                        // Dùng cho Vite/React
+    "moduleResolution": "Node",
+    "allowJs": false,                          // Không cho import file .js (nếu chỉ xài TS)
+    "checkJs": false,
+    "jsx": "react-jsx",                        // React 17+ (React 18 cũng xài cái này)
+    "strict": true,                            // Bật strict mode
+    "esModuleInterop": true,                   // Import ES module mượt
+    "skipLibCheck": true,                      // Bỏ check file .d.ts để build nhanh hơn
+    "forceConsistentCasingInFileNames": true,  // Chống lỗi phân biệt hoa/thường khi import
+    "resolveJsonModule": true,                 // Cho phép import file .json
+    "isolatedModules": true,                   // Cần thiết cho Vite
+    "noEmit": true                             // Không xuất file .js khi build TS
+  },
+  "include": ["src"],                          // Code chính
+  "exclude": ["node_modules", "dist"]          // Thư mục bỏ qua
+}

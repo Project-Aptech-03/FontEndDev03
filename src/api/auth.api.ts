@@ -5,45 +5,44 @@ interface LoginData {
     email: string;
     password: string;
 }
-
-interface RegisterData {
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    address: string;
-    email: string;
-    password: string;
-    dateOfBirth: string;
+interface LoginResponse {
+    success: boolean;
+    message: string;
+    data: {
+        success: boolean;
+        userId: string;
+        email: string;
+        fullName: string;
+        role: string;
+        token: {
+            token: string;
+            expiresAt: string;
+            expiresIn: number;
+        };
+    };
+    errors: any;
+    statusCode: number;
 }
 
-// Login API
-export const loginApi = async (data: LoginData) => {
-    try {
-        const response = await apiClient.post("/auth/login", data);
+interface ResetPasswordDto {
+    email: string;
+    token: string;
+    newPassword: string;
+    confirmPassword: string;
+}
 
-        // Lưu token vào localStorage để các API khác tự động dùng
-        if (response.data?.token) {
-            localStorage.setItem("accessToken", response.data.token);
-        }
-
+export const loginApi = async (data: LoginData): Promise<{ success: boolean; result?: LoginResponse; error?: any }> => {
+        const response = await apiClient.post<LoginResponse>("/auth/login", data);
         return { success: true, result: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data || { message: "Lỗi không xác định" },
-        };
-    }
 };
 
-// Register API
-export const registerApi = async (data: RegisterData) => {
-    try {
-        const response = await apiClient.post("/auth/register", data);
-        return { success: true, result: response.data };
-    } catch (error: any) {
-        return {
-            success: false,
-            error: error.response?.data || { message: "Lỗi không xác định" },
-        };
-    }
+export const forgotPasswordApi = async (email: string) => {
+    const response = await apiClient.post("/auth/forgot-password", { email });
+    return response.data;
+}
+
+export const resetPasswordApi = async (data: ResetPasswordDto) => {
+    const response = await apiClient.post("/auth/reset-password", data);
+    return response.data;
 };
+

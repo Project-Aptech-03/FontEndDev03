@@ -1,18 +1,20 @@
-export interface ApiResponse<T> {
-  code: number;
-  message: string;
-  result: T;
-}
 
-type Sort = {
-  direction: 'asc' | 'desc';
-  property: string;
-};
-export interface PageResponse<T> {
-  content: T[];
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  pageIndex: number;
+  pageSize: number;
   totalPages: number;
-  totalElements: number;
-  page: number;
-  size: number;
-  sorts: Sort[];
+}
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: T;
+  errors?: string[] | null;
+}
+export interface AuthResponseDto {
+  token: string;
+  refreshToken: string;
 }

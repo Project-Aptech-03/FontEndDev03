@@ -1,0 +1,81 @@
+export interface Category {
+  id: number;
+  categoryCode: string;
+  categoryName: string;
+  isActive: boolean;
+  createdDate: string;
+  productCount: number;
+}
+
+export interface Manufacturer {
+  id: number;
+  manufacturerCode: string;
+  manufacturerName: string;
+  isActive: boolean;
+  createdDate: string;
+  productCount: number;
+}
+
+export interface Publisher {
+  id: number;
+  publisherName: string;
+  publisherAddress: string;
+  contactInfo: string;
+  isActive: boolean;
+  createdDate: string;
+  productCount: number;
+}
+
+export interface ProductPhoto {
+  id: number;
+  photoUrl: string;
+  isActive: boolean;
+  createdDate: string;
+}
+
+export interface AdminProduct {
+  id: number;
+  productCode: string;
+  productName: string;
+  description: string;
+  author: string;
+  productType: string;
+  pages: number | null;
+  dimensions: string;
+  weight: number;
+  price: number;
+  stockQuantity: number;
+  isActive: boolean;
+  createdDate: string;
+
+  category: Category | null;
+  manufacturer: Manufacturer | null;
+  publisher: Publisher | null;
+  photos: ProductPhoto[];
+}
+
+
+
+export interface ProductFormData {
+  productCode: string;
+  productName: string;
+  description: string;
+  author: string;
+  productType: string;
+  pages: number;
+  dimensions: string;
+  weight: number;
+  price: number;
+  stockQuantity: number;
+  isActive: boolean;
+  category?: string | null;
+  manufacturer?: string | null;
+  publisher?: string | null;
+  photos?: string[] | string;
+  // Legacy fields for backward compatibility
+  categoryId?: number;
+  manufacturerId?: number;
+  image?: string;
+}
+
+
