@@ -9,15 +9,30 @@
 .blog-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  text-align: center;
   padding: 80px 40px;
   margin: -20px -20px 60px -20px;
   border-radius: 0 0 20px 20px;
 }
 
 .blog-header-content {
-  max-width: 600px;
+  max-width: 1000px;
   margin: 0 auto;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+}
+
+.header-text {
+  flex: 1;
+  text-align: left;
+}
+
+.header-actions {
+  flex-shrink: 0;
 }
 
 .blog-title {
@@ -376,6 +391,21 @@
     padding: 60px 20px;
   }
   
+  .header-main {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+  
+  .header-text {
+    text-align: center;
+  }
+  
+  .write-blog-btn {
+    width: 100%;
+    max-width: 200px;
+  }
+  
   .featured-content {
     padding: 30px 20px;
   }
@@ -474,4 +504,167 @@
 
 .blog-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Write Blog Button */
+.write-blog-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  height: 50px;
+  padding: 0 25px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.write-blog-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.write-blog-btn:focus {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+/* Write Blog Modal */
+.write-blog-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.write-blog-modal .ant-modal-title {
+  color: white;
+  font-weight: 600;
+}
+
+.write-blog-modal .ant-modal-close {
+  color: white;
+  opacity: 0.8;
+}
+
+.write-blog-modal .ant-modal-close:hover {
+  color: white;
+  opacity: 1;
+}
+
+.write-blog-modal .ant-modal-body {
+  padding: 30px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.write-blog-modal .ant-form-item-label > label {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.write-blog-modal .ant-input,
+.write-blog-modal .ant-select-selector {
+  border-radius: 8px;
+  border: 2px solid #e1e8ed;
+  transition: all 0.3s ease;
+}
+
+.write-blog-modal .ant-input:focus,
+.write-blog-modal .ant-input-focused,
+.write-blog-modal .ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.write-blog-modal .ant-input:hover,
+.write-blog-modal .ant-select:hover .ant-select-selector {
+  border-color: #667eea;
+}
+
+.write-blog-modal .ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.write-blog-modal .ant-upload.ant-upload-select-picture-card {
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.write-blog-modal .ant-upload.ant-upload-select-picture-card:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.02);
+}
+
+/* Modal scrollbar */
+.write-blog-modal .ant-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.write-blog-modal .ant-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.write-blog-modal .ant-modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.write-blog-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Blog Preview Styles in Modal */
+.blog-preview {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 24px;
+  background: #fafafa;
+}
+
+.preview-header {
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.preview-content {
+  line-height: 1.8;
+  color: #262626;
+}
+
+.preview-content p {
+  margin-bottom: 16px;
+}
+
+/* Tabs styling for write modal */
+.write-blog-modal .ant-tabs .ant-tabs-tab {
+  padding: 12px 16px;
+  font-weight: 500;
+}
+
+.write-blog-modal .ant-tabs .ant-tabs-tab.ant-tabs-tab-active {
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px 8px 0 0;
+}
+
+.write-blog-modal .ant-tabs .ant-tabs-content-holder {
+  padding: 24px 0;
+}
+
+/* Preview responsive */
+@media (max-width: 768px) {
+  .blog-preview {
+    padding: 16px;
+    max-height: 400px;
+  }
 }

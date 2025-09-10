@@ -1,41 +1,73 @@
-import React, { useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Switch, Row, Col, Typography, Upload, message, Button } from 'antd';
+
+import {
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Switch,
+  Row,
+  Col,
+  Typography,
+  Upload,
+  message,
+  FormInstance
+} from 'antd';
 import { PlusOutlined, UploadOutlined , InfoCircleOutlined } from '@ant-design/icons';
-import { AdminProduct, ProductFormData } from '../../@type/adminProduct';
+import {Products, Category, Manufacturer, ProductFormData, Publisher} from '../../@type/products';
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
 interface ProductModalProps {
   visible: boolean;
-  editingProduct: AdminProduct | null;
+  editingProduct: Products | null;
   onOk: (values: ProductFormData) => void;
   onCancel: () => void;
-  form: any;
+  form: FormInstance;
   loading?: boolean;
+  categories: Category[];
+  manufacturers: Manufacturer[];
+  publishers: Publisher[];
+
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({
-  visible,
-  editingProduct,
-  onOk,
-  onCancel,
-  form,
-  loading = false
-}) => {
-  const [imagePreview, setImagePreview] = useState<string>('');
-
+                                                     visible,
+                                                     editingProduct,
+                                                     onOk,
+                                                     onCancel,
+                                                     form,
+                                                     loading = false,
+                                                     categories,
+                                                     manufacturers,
+                                                     publishers
+                                                   }) => {
   const handleOk = () => {
-    form.validateFields().then((values: ProductFormData) => {
-      onOk(values);
-    });
+    form
+        .validateFields()
+        .then((values: ProductFormData) => {
+          onOk(values);
+        })
+        .catch((info) => {
+          console.log("Validate Failed:", info);
+        });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value;
-    setImagePreview(url);
-    form.setFieldsValue({ image: url });
+
+  const handleValuesChange = (changedValues: any, allValues: any) => {
+    const { categoryId, manufacturerId } = allValues;
+    if (categoryId && manufacturerId) {
+      const category = categories.find(c => c.id === categoryId);
+      const manufacturer = manufacturers.find(m => m.id === manufacturerId);
+      if (category && manufacturer) {
+        form.setFieldsValue({
+          productCode: `${category.categoryCode}${manufacturer.manufacturerCode}`
+        });
+      }
+    }
   };
+
 
   const handleBeforeUpload = (file: File) => {
     const isImage = file.type.startsWith('image/');
@@ -48,7 +80,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
       message.error('Image must be smaller than 2MB!');
       return false;
     }
-    return false; // Prevent auto upload
+    return false;
   };
 
   return (
@@ -78,27 +110,27 @@ const ProductModal: React.FC<ProductModalProps> = ({
           layout="vertical" 
           size="large"
           initialValues={{ isActive: true }}
+          onValuesChange={handleValuesChange}
         >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="productCode"
-                label={
-                  <span>
-                    Product Code <Text type="danger">*</Text>
-                  </span>
-                }
-                rules={[
-                  { required: true, message: "Please enter product code" },
-                  { min: 3, message: "Product code must be at least 3 characters" }
-                ]}
-                tooltip="Unique identifier for the product"
+                  name="productCode"
+                  label={
+                    <span>
+                      Product Code <Text type="danger">*</Text>
+                    </span>
+                  }
+                  rules={[{ required: true, message: "Product code is required" }]}
+                  tooltip="Unique identifier for the product"
               >
-                <Input 
-                  placeholder="e.g., 12dsauf" 
-                  style={{ borderRadius: 6 }}
+                <Input
+                    placeholder="Auto generated"
+                    style={{ borderRadius: 6 }}
+                    disabled
                 />
               </Form.Item>
+
             </Col>
             <Col span={12}>
               <Form.Item
@@ -175,7 +207,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
@@ -240,42 +271,50 @@ const ProductModal: React.FC<ProductModalProps> = ({
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
-                name="category"
-                label="Category"
-                tooltip="Product category (optional)"
+                  name="categoryId"
+                  label="Category"
+                  rules={[{ required: true, message: 'Please select a category' }]}
               >
-                <Input 
-                  placeholder="e.g., Fiction, Non-fiction" 
-                  style={{ borderRadius: 6 }}
-                />
+                <Select placeholder="Select category">
+                  {categories.map((c) => (
+                      <Select.Option key={c.id} value={c.id}>
+                        {c.categoryName}
+                      </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
-                name="manufacturer"
-                label="Manufacturer"
-                tooltip="Product manufacturer (optional)"
+                  name="manufacturerId"
+                  label="Manufacturer"
+                  rules={[{ required: true, message: 'Please select a manufacturer' }]}
               >
-                <Input 
-                  placeholder="e.g., NXB Tre Publishing" 
-                  style={{ borderRadius: 6 }}
-                />
+                <Select placeholder="Select manufacturer">
+                  {manufacturers.map((m) => (
+                      <Select.Option key={m.id} value={m.id}>
+                        {m.manufacturerName} {/* Hiển thị tên */}
+                      </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
-                name="publisher"
-                label="Publisher"
-                tooltip="Product publisher (optional)"
+                  name="publisherId"
+                  label="Publisher"
+                  rules={[{ required: true, message: 'Please select a publisher' }]}
               >
-                <Input 
-                  placeholder="e.g., NXB Kim Dong" 
-                  style={{ borderRadius: 6 }}
-                />
+                <Select placeholder="Select publisher">
+                  {publishers.map((p) => (
+                      <Select.Option key={p.id} value={p.id}>
+                        {p.publisherName} {/* Hiển thị tên */}
+                      </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
           </Row>
@@ -322,11 +361,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </Upload>
           </Form.Item>
-
-
-
-
-
           <Form.Item
             name="description"
             label={

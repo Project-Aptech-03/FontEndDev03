@@ -12,8 +12,10 @@ import {
   MenuUnfoldOutlined,
   HomeOutlined,
   ShopOutlined,
-  TeamOutlined,
-  StockOutlined
+
+  StockOutlined,
+  FileTextOutlined
+
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -34,9 +36,10 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/dashboard")) return "1";
     if (path.includes("/admin/users")) return "2";
     if (path.includes("/admin/products")) return "3";
-    if (path.includes("/admin/manufacturers")) return "4";
+    if (path.includes("/admin/product")) return "4";
     if (path.includes("/admin/stocks")) return "5";
     if (path.includes("/admin/faqs")) return "6";
+    if (path.includes("/admin/blog")) return "7";
     return "1";
   };
 
@@ -59,7 +62,7 @@ const AdminLayout: React.FC = () => {
     {
       key: "4",
       icon: <ShopOutlined />,
-      label: <Link to="/admin/manufacturers">Quản lý Manufacturers</Link>,
+      label: <Link to="/admin/productAttributes">Product Attributies</Link>,
     },
     {
       key: "5",
@@ -70,6 +73,11 @@ const AdminLayout: React.FC = () => {
       key: "6",
       icon: <QuestionCircleOutlined />,
       label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
+    },
+    {
+      key: "7",
+      icon: <FileTextOutlined />,
+      label: <Link to="/admin/blog">Quản lý Blog</Link>,
     },
   ];
 

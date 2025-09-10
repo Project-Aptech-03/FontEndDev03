@@ -1,4 +1,5 @@
- 
+import {ProductFormData, ProductPhoto} from "./products";
+
 export interface CategoryDto {
     id: number;
     categoryCode: string;
@@ -44,5 +45,5 @@ export interface ProductsResponseDto {
     category: CategoryDto | null;
     manufacturer: ManufacturerDto | null;
     publisher: PublisherDto | null;
-    photos: string[];
+    photos: ProductPhoto[];
 }
