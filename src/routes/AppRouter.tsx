@@ -75,8 +75,6 @@ export const AppRouter = () => (
                     <Route path="users" element={<Users />} />
                     <Route path="products" element={<Products />} />
                     <Route path="productAttributes" element={<ProductAttributes/>}/>
-                    <Route path="manufacturers" element={<Manufacturers />} />
-                    <Route path="category" element={<Category/>}/>
                     <Route path="stocks" element={<Stocks />} />
                     <Route path="faqs" element={<FaqAdmin />} />
                     <Route path="orders" element={<Orders />} />

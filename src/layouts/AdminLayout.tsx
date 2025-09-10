@@ -12,7 +12,7 @@ import {
   MenuUnfoldOutlined,
   HomeOutlined,
   ShopOutlined,
-  TeamOutlined,
+
   StockOutlined,
   FileTextOutlined
 
