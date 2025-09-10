@@ -21,7 +21,10 @@ import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
 import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
-import Category from "../pages/admin/Category";
+
+import BlogAdmin from "../pages/admin/Blog";
+import BlogDetail from "../pages/Blog/BlogDetail";
+
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
 import { AuthProvider } from "./AuthContext";
@@ -56,6 +59,7 @@ export const AppRouter = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:id" element={<BlogDetail />} />
                 <Route path="/detail-product/:id" element={<DetailProduct />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
@@ -77,6 +81,7 @@ export const AppRouter = () => (
                     <Route path="faqs" element={<FaqAdmin />} />
                     <Route path="orders" element={<Orders />} />
                     <Route path="coupons" element={<Coupons />} />
+                    <Route path="blog" element={<BlogAdmin />} />
                 </Route>
             {/*</Route>*/}
             <Route path="*" element={<NotFound />} />

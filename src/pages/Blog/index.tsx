@@ -1,10 +1,50 @@
 import React, { useState } from "react";
-import { Card, Row, Col, Tag, Input, Select, Button, Avatar, Divider } from "antd";
-import { SearchOutlined, CalendarOutlined, UserOutlined, EyeOutlined } from "@ant-design/icons";
+import { 
+  Card, 
+  Row, 
+  Col, 
+  Tag, 
+  Input, 
+  Select, 
+  Button, 
+  Avatar, 
+  Divider, 
+  Modal, 
+  Form, 
+  Upload, 
+  message,
+  DatePicker,
+  Tabs,
+  Image,
+  Space,
+  Typography,
+  Switch,
+  Tooltip,
+  Rate
+} from "antd";
+import { 
+  SearchOutlined, 
+  CalendarOutlined, 
+  UserOutlined, 
+  EyeOutlined, 
+  PlusOutlined, 
+  UploadOutlined,
+  EditOutlined,
+  SaveOutlined,
+  CloseOutlined,
+  PictureOutlined,
+  CopyOutlined,
+  CheckOutlined,
+  LoadingOutlined,
+  ClockCircleOutlined,
+  FileTextOutlined
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import "./BlogPage.css";
 
-const { Search } = Input;
+const { Search, TextArea } = Input;
 const { Option } = Select;
+const { Title, Paragraph, Text } = Typography;
 
 interface BlogPost {
   id: number;
@@ -23,9 +63,19 @@ interface BlogPost {
 const Blog: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("edit");
+  const [previewImage, setPreviewImage] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
 
-  // Mock blog data
-  const blogPosts: BlogPost[] = [
+  // Mock blog data - chuyển thành state để có thể thêm blog mới
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([
     {
       id: 1,
       title: "The Future of Reading: Digital Books vs Traditional Books",
@@ -104,7 +154,120 @@ const Blog: React.FC = () => {
       views: 2341,
       tags: ["Classics", "Literature", "History"]
     }
-  ];
+  ]);
+
+  // Handle create new blog
+  const handleCreateBlog = (values: any) => {
+    const newBlog: BlogPost = {
+      id: Math.max(...blogPosts.map(b => b.id)) + 1,
+      title: values.title,
+      excerpt: values.excerpt,
+      content: values.content,
+      author: values.author || "Anonymous",
+      date: new Date().toISOString().split('T')[0],
+      category: values.category,
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
+      readTime: calculateReadTime(values.content),
+      views: 0,
+      tags: values.tags ? values.tags.split(',').map((tag: string) => tag.trim()) : []
+    };
+
+    setBlogPosts([newBlog, ...blogPosts]);
+    setIsWriteModalVisible(false);
+    form.resetFields();
+    message.success('Blog created successfully!');
+  };
+
+  // Calculate reading time based on content length
+  const calculateReadTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
+  };
+
+  // Handle write blog button
+  const handleWriteBlog = () => {
+    setIsWriteModalVisible(true);
+    setActiveTab("edit");
+    setPreviewImage("");
+    setHasChanges(false);
+    setLastSaved(null);
+    setPreviewData({
+      title: "",
+      content: "",
+      excerpt: "",
+      author: "",
+      category: "",
+      tags: "",
+      featuredImage: "",
+    });
+  };
+
+  // Monitor form changes
+  const handleFormChange = () => {
+    setHasChanges(true);
+    updatePreviewData();
+  };
+
+  // Update preview data từ form values
+  const updatePreviewData = () => {
+    const values = form.getFieldsValue();
+    setPreviewData({
+      ...values,
+      featuredImage: previewImage || values.featuredImage,
+    });
+  };
+
+  // Handle image upload
+  const handleImageUpload = (info: any) => {
+    if (info.file.status === "uploading") {
+      setUploading(true);
+      return;
+    }
+    
+    if (info.file.status === "done") {
+      setUploading(false);
+      const imageUrl = URL.createObjectURL(info.file.originFileObj);
+      setPreviewImage(imageUrl);
+      form.setFieldsValue({ featuredImage: imageUrl });
+      message.success("Image uploaded successfully!");
+    }
+    
+    if (info.file.status === "error") {
+      setUploading(false);
+      message.error("Image upload failed!");
+    }
+  };
+
+  // Calculate reading time
+  const calculateReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
+  };
+
+  // Generate excerpt from content
+  const generateExcerpt = (content: string, maxLength = 150) => {
+    if (!content) return "";
+    return content.length > maxLength 
+      ? content.substring(0, maxLength) + "..." 
+      : content;
+  };
+
+  // Handle save draft
+  const handleSaveDraft = async () => {
+    const values = form.getFieldsValue();
+    values.status = "draft";
+    await handleCreateBlog(values);
+  };
+
+  // Handle publish
+  const handlePublish = async () => {
+    const values = form.getFieldsValue();
+    values.status = "published";
+    await handleCreateBlog(values);
+  };
 
   const categories = ["all", "Technology", "Literature", "Lifestyle", "Collecting", "Children"];
 
@@ -123,10 +286,25 @@ const Blog: React.FC = () => {
       {/* Header Section */}
       <div className="blog-header">
         <div className="blog-header-content">
-          <h1 className="blog-title">Book Blog</h1>
-          <p className="blog-subtitle">
-            Discover the world of books through reviews, recommendations, and reading insights
-          </p>
+          <div className="header-main">
+            <div className="header-text">
+              <h1 className="blog-title">Book Blog</h1>
+              <p className="blog-subtitle">
+                Discover the world of books through reviews, recommendations, and reading insights
+              </p>
+            </div>
+            <div className="header-actions">
+              <Button 
+                type="primary" 
+                size="large" 
+                icon={<EditOutlined />}
+                onClick={handleWriteBlog}
+                className="write-blog-btn"
+              >
+                Write Blog
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -192,7 +370,12 @@ const Blog: React.FC = () => {
                     <span>{featuredPost.author}</span>
                     <span className="read-time">{featuredPost.readTime}</span>
                   </div>
-                  <Button type="primary" size="large" className="read-more-btn">
+                  <Button 
+                    type="primary" 
+                    size="large" 
+                    className="read-more-btn"
+                    onClick={() => navigate(`/blog/${featuredPost.id}`)}
+                  >
                     Read Full Article
                   </Button>
                 </div>
@@ -212,7 +395,11 @@ const Blog: React.FC = () => {
                 hoverable
                 className="article-card"
                 cover={
-                  <div className="article-image">
+                  <div 
+                    className="article-image"
+                    onClick={() => navigate(`/blog/${post.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <img src={post.image} alt={post.title} />
                     <div className="article-overlay">
                       <Button type="primary" ghost>
@@ -228,7 +415,13 @@ const Blog: React.FC = () => {
                     <CalendarOutlined /> {new Date(post.date).toLocaleDateString()}
                   </span>
                 </div>
-                <h3 className="article-title">{post.title}</h3>
+                <h3 
+                  className="article-title"
+                  onClick={() => navigate(`/blog/${post.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {post.title}
+                </h3>
                 <p className="article-excerpt">{post.excerpt}</p>
                 <div className="article-footer">
                   <div className="article-author">
@@ -276,6 +469,306 @@ const Blog: React.FC = () => {
           </Row>
         </Card>
       </div>
+
+      {/* Enhanced Write Blog Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>
+              <FileTextOutlined style={{ marginRight: 8 }} />
+              Write New Blog Post
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {lastSaved && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  <CheckOutlined style={{ color: "#52c41a", marginRight: 4 }} />
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </Text>
+              )}
+              <Tooltip title="Auto save">
+                <Switch
+                  checked={autoSaveEnabled}
+                  onChange={setAutoSaveEnabled}
+                  size="small"
+                />
+              </Tooltip>
+            </div>
+          </div>
+        }
+        open={isWriteModalVisible}
+        onCancel={() => {
+          if (hasChanges) {
+            Modal.confirm({
+              title: "Do you want to exit?",
+              content: "You have unsaved changes. Are you sure you want to exit?",
+              onOk: () => setIsWriteModalVisible(false),
+            });
+          } else {
+            setIsWriteModalVisible(false);
+          }
+        }}
+        footer={null}
+        width={1000}
+        destroyOnClose
+        className="write-blog-modal"
+      >
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab}
+          items={[
+            {
+              key: "edit",
+              label: (
+                <span>
+                  <EditOutlined />
+                  Edit
+                  {hasChanges && <span style={{ color: "#ff4d4f" }}> *</span>}
+                </span>
+              ),
+              children: (
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={handleCreateBlog}
+                  onValuesChange={handleFormChange}
+                  initialValues={{
+                    category: "Technology",
+                  }}
+                >
+                  <Row gutter={16}>
+                    <Col span={24}>
+                      <Form.Item
+                        label="Blog Title"
+                        name="title"
+                        rules={[
+                          { required: true, message: "Please enter blog title!" },
+                          { min: 10, message: "Title must be at least 10 characters!" }
+                        ]}
+                      >
+                        <Input 
+                          placeholder="Enter an engaging title for your blog post..." 
+                          showCount
+                          maxLength={100}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Author Name"
+                        name="author"
+                        rules={[{ required: true, message: "Please enter your name!" }]}
+                      >
+                        <Input placeholder="Your name" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Category"
+                        name="category"
+                        rules={[{ required: true, message: "Please select a category!" }]}
+                      >
+                        <Select placeholder="Select category">
+                          {categories.filter(cat => cat !== "all").map(category => (
+                            <Option key={category} value={category}>
+                              {category}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item label="Tags" name="tags">
+                    <Input 
+                      placeholder="Enter tags separated by commas"
+                      suffix={<Text type="secondary" style={{ fontSize: 12 }}>e.g., reading, books</Text>}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Excerpt"
+                    name="excerpt"
+                    rules={[{ required: true, message: "Please enter an excerpt!" }]}
+                  >
+                    <TextArea 
+                      rows={3} 
+                      placeholder="Write a brief excerpt that summarizes your blog post..."
+                      showCount
+                      maxLength={300}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label={
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Blog Content</span>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => {
+                            const content = form.getFieldValue("content");
+                            if (content && !form.getFieldValue("excerpt")) {
+                              form.setFieldsValue({ excerpt: generateExcerpt(content) });
+                              message.success("Auto-generated excerpt!");
+                            }
+                          }}
+                        >
+                          Auto-generate excerpt
+                        </Button>
+                      </div>
+                    }
+                    name="content"
+                    rules={[
+                      { required: true, message: "Please enter blog content!" },
+                      { min: 50, message: "Content must be at least 50 characters!" }
+                    ]}
+                  >
+                    <TextArea 
+                      rows={12} 
+                      placeholder="Write your blog content here. Share your thoughts, insights, and experiences about books..."
+                      showCount
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="Featured Image" name="featuredImage">
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Upload
+                          name="image"
+                          listType="picture-card"
+                          showUploadList={false}
+                          beforeUpload={() => false}
+                          onChange={handleImageUpload}
+                        >
+                          {previewImage ? (
+                            <Image
+                              src={previewImage}
+                              alt="Preview"
+                              style={{ width: "100%", height: 100, objectFit: "cover" }}
+                              preview={false}
+                            />
+                          ) : (
+                            <div>
+                              {uploading ? <LoadingOutlined /> : <PictureOutlined />}
+                              <div style={{ marginTop: 8 }}>
+                                {uploading ? "Uploading..." : "Upload Image"}
+                              </div>
+                            </div>
+                          )}
+                        </Upload>
+                      </Col>
+                      <Col span={12}>
+                        <div style={{ padding: 8, background: "#f5f5f5", borderRadius: 4 }}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            • Recommended size: 800x600px<br/>
+                            • Format: JPG, PNG<br/>
+                            • Max size: 2MB
+                          </Text>
+                        </div>
+                      </Col>
+                    </Row>
+                  </Form.Item>
+
+                  <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
+                    <Space>
+                      <Button onClick={() => setIsWriteModalVisible(false)}>
+                        <CloseOutlined /> Cancel
+                      </Button>
+                      <Button onClick={handleSaveDraft}>
+                        <SaveOutlined /> Save Draft
+                      </Button>
+                      <Button type="primary" onClick={handlePublish}>
+                        <CheckOutlined /> Publish
+                      </Button>
+                    </Space>
+                  </Form.Item>
+                </Form>
+              )
+            },
+            {
+              key: "preview",
+              label: (
+                <span>
+                  <CopyOutlined />
+                  Preview
+                </span>
+              ),
+              children: (
+                <div style={{ padding: "20px 0" }}>
+                  {(() => {
+                    const values = previewData || form.getFieldsValue();
+                    const readingTime = values.content ? calculateReadingTime(values.content) : 0;
+                    
+                    return (
+                      <div className="blog-preview">
+                        <div className="preview-header">
+                          {(previewImage || values.featuredImage) && (
+                            <Image
+                              src={previewImage || values.featuredImage}
+                              alt="Featured"
+                              style={{ 
+                                width: "100%", 
+                                height: 200, 
+                                objectFit: "cover",
+                                borderRadius: 8,
+                                marginBottom: 16
+                              }}
+                            />
+                          )}
+                          <Title level={2} style={{ marginBottom: 8 }}>
+                            {values.title || "Blog Title"}
+                          </Title>
+                          <div style={{ marginBottom: 16 }}>
+                            <Space split={<span style={{ color: "#d9d9d9" }}>|</span>}>
+                              <Text type="secondary">
+                                <UserOutlined /> {values.author || "Author"}
+                              </Text>
+                              <Text type="secondary">
+                                <CalendarOutlined /> {new Date().toLocaleDateString()}
+                              </Text>
+                              <Text type="secondary">
+                                <ClockCircleOutlined /> {readingTime} min read
+                              </Text>
+                              {values.category && (
+                                <Tag color="blue">{values.category}</Tag>
+                              )}
+                            </Space>
+                          </div>
+                          {values.tags && (
+                            <div style={{ marginBottom: 16 }}>
+                              {(typeof values.tags === 'string' ? values.tags.split(",") : values.tags).map((tag: string, index: number) => 
+                                tag.trim() && <Tag key={index}>{tag.trim()}</Tag>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="preview-content">
+                          <Paragraph style={{ fontSize: 16, lineHeight: 1.8 }}>
+                            <Text strong>{values.excerpt || "Blog excerpt will appear here..."}</Text>
+                          </Paragraph>
+                          <div 
+                            style={{ 
+                              whiteSpace: "pre-wrap", 
+                              lineHeight: 1.8,
+                              fontSize: 16 
+                            }}
+                          >
+                            {values.content || "Blog content will appear here..."}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )
+            }
+          ]}
+        />
+      </Modal>
     </div>
   );
 };
