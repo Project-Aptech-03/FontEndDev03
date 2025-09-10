@@ -21,8 +21,10 @@ import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
 import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
+
 import BlogAdmin from "../pages/admin/Blog";
 import BlogDetail from "../pages/Blog/BlogDetail";
+
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
 import { AuthProvider } from "./AuthContext";
@@ -34,6 +36,7 @@ import ResetPassword from "../pages/Auth/ResetPassword";
 import FAQPage from "../pages/Faq";
 import FaqAdmin from "../pages/admin/FaqAdmin";
 import MyOrders from "../pages/MyOrders";
+import ProductAttributes from "../pages/admin/ProductAttributes";
 
 // import FaqAdmin from "../pages/admin/FaqAdmin";
 
@@ -71,7 +74,9 @@ export const AppRouter = () => (
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<Users />} />
                     <Route path="products" element={<Products />} />
+                    <Route path="productAttributes" element={<ProductAttributes/>}/>
                     <Route path="manufacturers" element={<Manufacturers />} />
+                    <Route path="category" element={<Category/>}/>
                     <Route path="stocks" element={<Stocks />} />
                     <Route path="faqs" element={<FaqAdmin />} />
                     <Route path="orders" element={<Orders />} />

@@ -33,7 +33,7 @@ export interface ProductPhoto {
   createdDate: string;
 }
 
-export interface AdminProduct {
+export interface Products {
   id: number;
   productCode: string;
   productName: string;
@@ -72,10 +72,32 @@ export interface ProductFormData {
   manufacturer?: string | null;
   publisher?: string | null;
   photos?: string[] | string;
-  // Legacy fields for backward compatibility
   categoryId?: number;
   manufacturerId?: number;
   image?: string;
+
+  validateFields(): ProductFormData;
 }
 
+export const toFormData = (data: ProductFormData): FormData => {
+  const formData = new FormData();
 
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (Array.isArray(value)) {
+      // Nếu là array ảnh (photos)
+      value.forEach((file: any) => {
+        if (file.originFileObj) {
+          formData.append(key, file.originFileObj);
+        } else {
+          formData.append(key, file);
+        }
+      });
+    } else {
+      formData.append(key, value.toString());
+    }
+  });
+
+  return formData;
+};

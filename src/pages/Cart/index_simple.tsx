@@ -4,10 +4,10 @@ import { FaImage, FaMinus, FaPlus, FaTrash, FaMapMarkerAlt, FaEdit, FaTrashAlt, 
 import { toast } from 'react-toastify';
 import { cartApi } from '../../api/cart.api';
 import { couponApi } from '../../api/coupon.api';
-import { customerAddressApi } from '../../api/customerAddress.api';
+import {CreateCustomerAddressDto, CustomerAddress, customerAddressApi} from '../../api/customerAddress.api';
 import { ApiCartItem } from '../../@type/cart';
-import { CustomerAddress, CreateCustomerAddressDto } from '../../@type/Users';
-import './CartPage.css';
+import "./CartPage.css";
+
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -21,8 +21,7 @@ const CartPage = () => {
     discountType: 'percentage' | 'fixed';
   } | null>(null);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
-  
-  // Address states
+
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number>(0);
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -39,14 +38,11 @@ const CartPage = () => {
   const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
   const [addressLoading, setAddressLoading] = useState(false);
 
-  // Fixed base address (store location)
   const BASE_ADDRESS = {
     lat: 10.8231, // Ho Chi Minh City center coordinates
     lng: 106.6297,
     name: "ShradBook Store - District 1, Ho Chi Minh City"
   };
-
-  // OpenRouteService API Configuration
   const API_CONFIG = {
     openRouteService: {
       token: 'abc', // Replace with your actual OpenRouteService API key
@@ -104,12 +100,9 @@ const CartPage = () => {
   const calculateDistanceFromAddress = async (address: string): Promise<number | null> => {
     try {
       console.log('🚀 Validating address and calculating distance...');
-      
-      // Get coordinates for both addresses - REQUIRED for validation
       const fromCoords = { lat: BASE_ADDRESS.lat, lng: BASE_ADDRESS.lng };
       const toCoords = await getCoordinatesFromAddress(address);
-      
-      // If we can't get coordinates, the address is invalid - BLOCK the operation
+
       if (!toCoords) {
         console.log('❌ Invalid address - cannot find coordinates');
         return null;
@@ -147,8 +140,6 @@ const CartPage = () => {
       } catch (error) {
         console.warn('OpenRouteService failed, using fallback calculation');
       }
-
-      // Fallback: Use coordinate-based calculation
       const distance = calculateDistance(fromCoords.lat, fromCoords.lng, toCoords.lat, toCoords.lng);
       console.log('✅ Fallback distance calculation:', distance, 'km');
       return distance;
