@@ -1,14 +1,14 @@
 import React from 'react';
 import { Table, Button, Space, Popconfirm, Tag, Tooltip, Image, Typography } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import {AdminProduct, ProductPhoto, Publisher} from '../../@type/adminProduct';
+import {Products, ProductPhoto, Publisher} from '../../@type/products';
 
 const { Text } = Typography;
 
 interface ProductTableProps {
-  products: AdminProduct[];
+  products: Products[];
   loading: boolean;
-  onEdit: (product: AdminProduct) => void;
+  onEdit: (product: Products) => void;
   onDelete: (id: number) => void;
 }
 
@@ -24,7 +24,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
       dataIndex: "photos",
       key: "photos",
       width: 80,
-      render: (photos: ProductPhoto[] | undefined, record: AdminProduct) =>
+      render: (photos: ProductPhoto[] | undefined, record: Products) =>
           photos && photos.length > 0 ? (
               <Image
                   src={photos[0].photoUrl}
@@ -93,7 +93,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
       title: "Category",
       key: "category",
       width: 120,
-      render: (_: any, record: AdminProduct) => (
+      render: (_: any, record: Products) => (
           <Tag color="blue">{record.category?.categoryName || "N/A"}</Tag>
       ),
     },
@@ -102,7 +102,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
       key: "manufacturer",
       width: 160,
       ellipsis: { showTitle: false },
-      render: (_: any, record: AdminProduct) => (
+      render: (_: any, record: Products) => (
           <Tooltip placement="topLeft" title={record.manufacturer?.manufacturerName || "N/A"}>
             <Text>{record.manufacturer?.manufacturerName || "N/A"}</Text>
           </Tooltip>
@@ -113,7 +113,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
         key: "publisher",
         width: 160,
         ellipsis: { showTitle: false },
-        render: (_: Publisher, record: AdminProduct) => (
+        render: (_: Publisher, record: Products) => (
             <Tooltip placement="topLeft" title={record.publisher?.publisherName || "N/A"}>
               <Text>{record.publisher?.publisherName || "N/A"}</Text>
             </Tooltip>
@@ -129,7 +129,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
           ${price.toLocaleString()}
         </Text>
       ),
-      sorter: (a: AdminProduct, b: AdminProduct) => a.price - b.price,
+      sorter: (a: Products, b: Products) => a.price - b.price,
     },
     {
       title: "Pages",
@@ -139,7 +139,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
       render: (pages: number) => (
         <Text>{pages}</Text>
       ),
-      sorter: (a: AdminProduct, b: AdminProduct) => a.pages - b.pages,
+      sorter: (a: Products, b: Products) => a.pages - b.pages,
     },
     {
       title: "Weight",
@@ -149,7 +149,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
       render: (weight: number) => (
         <Text>{weight}kg</Text>
       ),
-      sorter: (a: AdminProduct, b: AdminProduct) => a.weight - b.weight,
+      sorter: (a: Products, b: Products) => a.weight - b.weight,
     },
     {
       title: "Stock",
@@ -161,7 +161,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
           {stock}
         </Tag>
       ),
-      sorter: (a: AdminProduct, b: AdminProduct) => a.stockQuantity - b.stockQuantity,
+      sorter: (a: Products, b: Products) => a.stockQuantity - b.stockQuantity,
     },
     {
       title: "Status",
@@ -177,14 +177,14 @@ const ProductTable: React.FC<ProductTableProps> = ({
         { text: 'Active', value: true },
         { text: 'Inactive', value: false },
       ],
-      onFilter: (value: never, record: AdminProduct) => record.isActive === value,
+      onFilter: (value: never, record: Products) => record.isActive === value,
     },
     {
       title: "Actions",
       key: "action",
       width: 120,
       fixed: 'right' as const,
-      render: (_: never, record: AdminProduct) => (
+      render: (_: never, record: Products) => (
         <Space size="small">
           <Tooltip title="Edit Product">
             <Button 

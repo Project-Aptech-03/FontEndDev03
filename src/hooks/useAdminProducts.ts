@@ -1,31 +1,12 @@
 import { useState, useEffect } from 'react';
-import { AdminProduct, ProductFormData } from '../@type/adminProduct';
-import { getAdminProducts, createProduct, updateProduct, deleteProduct } from '../api/adminProducts.api';
-import { ProductsResponseDto } from '../@type/productsResponse';
+import {Products, ProductFormData, Category, Manufacturer, Publisher, toFormData} from '../@type/products';
 
-// Mock data for fallback
-const mockProducts: AdminProduct[] = [
-  {
-    id: 1,
-    productCode: "12dsauf",
-    productName: "Sach Hay",
-    description: "HIHIHIHII",
-    author: "Nguyen tien dat",
-    productType: "book",
-    pages: 10,
-    dimensions: "ok",
-    weight: 1.00,
-    price: 19.00,
-    stockQuantity: 12,
-    isActive: true,
-    createdDate: "2025-09-05T06:01:06.1833333",
-    category: null,
-    manufacturer: null,
-    publisher: null,
-    photos: [],
-  },
-];
-const mapToAdminProduct = (product: ProductsResponseDto): AdminProduct => {
+import {ProductsResponseDto} from '../@type/productsResponse';
+import {getCategory} from "../api/category.api";
+import {getManufacturers} from "../api/manufacturer.api";
+import {getPublishers} from "../api/publisher.api";
+import {createProduct, deleteProduct, getProducts, updateProduct} from "../api/products.api";
+const mapToAdminProduct = (product: ProductsResponseDto): Products => {
   return {
     id: product.id,
     productCode: product.productCode,
@@ -71,89 +52,147 @@ const mapToAdminProduct = (product: ProductsResponseDto): AdminProduct => {
           productCount: product.publisher.productCount,
         }
         : null,
-    photos: product.photos.map((url, index) => ({
-      id: index,
-      photoUrl: url,
-      isActive: true,
-      createdDate: new Date().toISOString(),
+    photos: product.photos.map((photo, index) => ({
+      id: photo.id || index,
+      photoUrl: photo.photoUrl,
+      isActive: photo.isActive ?? true,
+      createdDate: photo.createdDate || new Date().toISOString(),
     })),
+
   };
 };
+const mapToCategory = (dto: any): Category => {
+  return {
+    id: dto.id,
+    categoryCode: dto.categoryCode,
+    categoryName: dto.categoryName,
+    isActive: dto.isActive,
+    createdDate: dto.createdDate,
+    productCount: dto.productCount,
+  };
+};
+const mapToManufacturer = (dto: any): Manufacturer => ({
+  id: dto.id,
+  manufacturerCode: dto.manufacturerCode,
+  manufacturerName: dto.manufacturerName,
+  isActive: dto.isActive,
+  createdDate: dto.createdDate,
+  productCount: dto.productCount,
+});
+
+const mapToPublisher = (dto: any): Publisher => ({
+  id: dto.id,
+  publisherName: dto.publisherName,
+  publisherAddress: dto.publisherAddress,
+  contactInfo: dto.contactInfo,
+  isActive: dto.isActive,
+  createdDate: dto.createdDate,
+  productCount: dto.productCount,
+});
+
+
+
 
 
 export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20) => {
-  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [products, setProducts] = useState<Products[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAll = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const response = await getAdminProducts(pageIndex, pageSize);
-        
-        if (response.success && response.data) {
-          const mappedProducts = response.data.items.map(mapToAdminProduct);
+
+        const [productsRes, categoriesRes, manufacturersRes, publishersRes] = await Promise.all([
+          getProducts(pageIndex, pageSize),
+          getCategory(pageIndex, pageSize),
+          getManufacturers(pageIndex, pageSize),
+          getPublishers(pageIndex, pageSize)
+        ]);
+
+        // products
+        if (productsRes.success && productsRes.data) {
+          const mappedProducts = productsRes.data.items.map(mapToAdminProduct);
           setProducts(mappedProducts);
-          setTotalCount(response.data.totalCount);
-          setTotalPages(response.data.totalPages);
-        } else {
-          console.warn('API failed, using mock data');
-          setProducts(mockProducts);
-          setTotalCount(mockProducts.length);
-          setTotalPages(1);
+          setTotalCount(productsRes.data.totalCount);
+          setTotalPages(productsRes.data.totalPages);
         }
+
+        if (categoriesRes.success && categoriesRes.data?.items) {
+          const mappedCategories = categoriesRes.data.items.map(mapToCategory);
+          setCategories(mappedCategories);
+        }
+
+        // manufacturers
+        if (manufacturersRes.success && manufacturersRes.data?.items) {
+          const mappedManufacturers = manufacturersRes.data.items.map(mapToManufacturer);
+          setManufacturers(mappedManufacturers);
+        }
+
+        // publishers
+        if (publishersRes.success && publishersRes.data?.items) {
+          const mappedPublishers = publishersRes.data.items.map(mapToPublisher);
+          setPublishers(mappedPublishers);
+        }
+
+
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to fetch products');
-        setProducts(mockProducts);
-        setTotalCount(mockProducts.length);
-        setTotalPages(1);
+        console.error('Error fetching data:', err);
+        setError('Failed to fetch admin data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchAll();
   }, [pageIndex, pageSize]);
 
   const handleCreateProduct = async (productData: ProductFormData) => {
     try {
-      const response = await createProduct(productData);
+      const formData = toFormData(productData);
+      const response = await createProduct(formData);
+
       if (response.success) {
-        const updatedResponse = await getAdminProducts(pageIndex, pageSize);
+        const updatedResponse = await getProducts(pageIndex, pageSize);
         if (updatedResponse.success && updatedResponse.data) {
           const mappedProducts = updatedResponse.data.items.map(mapToAdminProduct);
           setProducts(mappedProducts);
         }
         return { success: true };
       }
-      return { success: false, error: 'Failed to create product' };
+
+      return { success: false, error: "Failed to create product" };
     } catch (err) {
-      console.error('Error creating product:', err);
-      return { success: false, error: 'Failed to create product' };
+      console.error("Error creating product:", err);
+      return { success: false, error: "Failed to create product" };
     }
   };
 
   const handleUpdateProduct = async (id: number, productData: ProductFormData) => {
     try {
-      const response = await updateProduct(id, productData);
+      const formData = toFormData(productData);
+      const response = await updateProduct(id, formData);
+
       if (response.success) {
-        const updatedResponse = await getAdminProducts(pageIndex, pageSize);
+        const updatedResponse = await getProducts(pageIndex, pageSize);
         if (updatedResponse.success && updatedResponse.data) {
           const mappedProducts = updatedResponse.data.items.map(mapToAdminProduct);
           setProducts(mappedProducts);
         }
         return { success: true };
       }
-      return { success: false, error: 'Failed to update product' };
+
+      return { success: false, error: "Failed to update product" };
     } catch (err) {
-      console.error('Error updating product:', err);
-      return { success: false, error: 'Failed to update product' };
+      console.error("Error updating product:", err);
+      return { success: false, error: "Failed to update product" };
     }
   };
 
@@ -161,7 +200,6 @@ export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20) =
     try {
       const response = await deleteProduct(id);
       if (response.success) {
-        // Remove from local state
         setProducts(prev => prev.filter(p => p.id !== id));
         setTotalCount(prev => prev - 1);
         return { success: true };
@@ -175,6 +213,9 @@ export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20) =
 
   return {
     products,
+    categories,
+    manufacturers,
+    publishers,
     loading,
     error,
     totalCount,
@@ -186,7 +227,7 @@ export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20) =
       const fetchProducts = async () => {
         try {
           setLoading(true);
-          const response = await getAdminProducts(pageIndex, pageSize);
+          const response = await getProducts(pageIndex, pageSize);
           if (response.success && response.data) {
             const mappedProducts = response.data.items.map(mapToAdminProduct);
             setProducts(mappedProducts);

@@ -5,13 +5,15 @@ import { PlusOutlined, ReloadOutlined, ExclamationCircleOutlined } from "@ant-de
 import { useAdminProducts } from "../../../hooks/useAdminProducts";
 import ProductTable from "../../../components/Admin/ProductTable";
 import ProductModal from "../../../components/Admin/ProductModal";
-import { AdminProduct, ProductFormData } from "../../../@type/adminProduct";
+import {Products as ProductType, ProductFormData} from "../../../@type/products";
+import {ApiResponse} from "../../../@type/apiResponse";
 
 const { Title, Text } = Typography;
 
 const Products = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductType | null>(null);
+
   const [form] = Form.useForm();
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -19,13 +21,16 @@ const Products = () => {
     products,
     loading,
     error,
+    categories,
+    manufacturers,
+    publishers,
     handleCreateProduct,
     handleUpdateProduct,
     handleDeleteProduct,
     refetch,
   } = useAdminProducts();
 
-  const showModal = (product: AdminProduct | null = null) => {
+  const showModal = (product: ProductType | null = null) => {
     setEditingProduct(product);
     setIsModalVisible(true);
     if (product) {
@@ -76,11 +81,13 @@ const Products = () => {
           duration: 5,
         });
       }
-    } catch (error) {
-      message.error({
-        content: "An unexpected error occurred. Please try again.",
-        duration: 5,
-      });
+    } catch (err: any) {
+      const apiError = err?.response?.data as ApiResponse<string>;
+      if (apiError?.errors) {
+        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+      } else {
+        message.error(apiError?.message || "Lỗi hệ thống không xác định");
+      }
     } finally {
       setModalLoading(false);
     }
@@ -100,11 +107,13 @@ const Products = () => {
           duration: 5,
         });
       }
-    } catch (error) {
-      message.error({
-        content: "An unexpected error occurred. Please try again.",
-        duration: 5,
-      });
+    } catch (err: any) {
+      const apiError = err?.response?.data as ApiResponse<string>;
+      if (apiError?.errors) {
+        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+      } else {
+        message.error(apiError?.message || "Lỗi hệ thống không xác định");
+      }
     }
   };
 
@@ -219,17 +228,21 @@ const Products = () => {
       </Card>
 
       <ProductModal
-        visible={isModalVisible}
-        editingProduct={editingProduct}
-        onOk={handleOk}
-        onCancel={() => {
-          setIsModalVisible(false);
-          setEditingProduct(null);
-          form.resetFields();
-        }}
-        form={form}
-        loading={modalLoading}
+          visible={isModalVisible}
+          editingProduct={editingProduct}
+          onOk={handleOk}
+          onCancel={() => {
+            setIsModalVisible(false);
+            setEditingProduct(null);
+            form.resetFields();
+          }}
+          form={form}
+          loading={modalLoading}
+          categories={categories}
+          manufacturers={manufacturers}
+          publishers={publishers}
       />
+
     </div>
   );
 };
