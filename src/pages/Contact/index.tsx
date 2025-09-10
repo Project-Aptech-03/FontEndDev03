@@ -892,7 +892,7 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="info-item">
+              <div className="info-item1">
                 <div className="info-icon"><PhoneOutlined /></div>
                 <div className="info-content">
                   <Text strong>Phone Number</Text>
@@ -900,7 +900,7 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="info-item">
+              <div className="info-item1">
                 <div className="info-icon"><MailOutlined /></div>
                 <div className="info-content">
                   <Text strong>Email</Text>
@@ -908,7 +908,7 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="info-item">
+              <div className="info-item1">
                 <div className="info-icon"><ClockCircleOutlined /></div>
                 <div className="info-content">
                   <Text strong>Working Hours</Text>
