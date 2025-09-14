@@ -13,7 +13,7 @@ import {
 } from "antd";
 import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { Category } from "../../../../@type/products";
-import { PagedResult } from "../../../../@type/apiResponse";
+import {ApiResponse, PagedResult} from "../../../../@type/apiResponse";
 import {
     getCategory,
     createCategory,
@@ -25,6 +25,7 @@ const CategoryTab: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+    const [keyword, setKeyword] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [pagination, setPagination] = useState({
@@ -35,10 +36,16 @@ const CategoryTab: React.FC = () => {
 
     const [form] = Form.useForm();
 
-    const fetchCategories = async (pageIndex = 1, pageSize = 10) => {
+    const fetchCategories = async (
+        pageIndex: number = 1,
+        pageSize: number = 10,
+        keyword: string = ""
+    ) => {
         try {
             setLoading(true);
-            const res = await getCategory(pageIndex, pageSize);
+            // Gọi API có kèm keyword search
+            const res = await getCategory(pageIndex, pageSize, keyword);
+
             if (res.success) {
                 const data = res.data as PagedResult<Category>;
                 setCategories(data.items);
@@ -50,16 +57,24 @@ const CategoryTab: React.FC = () => {
             } else {
                 message.error(res.message || "Failed to fetch categories");
             }
-        } catch (err) {
-            message.error("Failed to fetch categories");
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<string>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors)
+                    .flat()
+                    .forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchCategories(pagination.current, pagination.pageSize);
-    }, []);
+        fetchCategories(pagination.current, pagination.pageSize, keyword);
+    }, [pagination.current, pagination.pageSize, keyword]);
+
 
     const openModal = (category?: Category) => {
         if (category) {
@@ -92,9 +107,13 @@ const CategoryTab: React.FC = () => {
             }
             setIsModalOpen(false);
             fetchCategories(pagination.current, pagination.pageSize);
-        } catch {
-            message.error("Save failed");
-        }
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<string>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }}
     };
 
     const handleDelete = async (id: number) => {
@@ -106,47 +125,39 @@ const CategoryTab: React.FC = () => {
             } else {
                 message.error(res.message || "Delete failed");
             }
-        } catch {
-            message.error("Delete failed");
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<string>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }
         }
     };
 
-    const filteredData = categories.filter((c) =>
-        c.categoryName.toLowerCase().includes(search.toLowerCase())
-    );
-
     const columns = [
-        { title: "ID", dataIndex: "id", key: "id", width: 80 },
-        { title: "Code", dataIndex: "categoryCode", key: "categoryCode", width: 120 },
+        { title: "ID", dataIndex: "id", key: "id" },
+        { title: "Code", dataIndex: "categoryCode", key: "categoryCode"},
         { title: "Name", dataIndex: "categoryName", key: "categoryName" },
         {
             title: "Products",
             dataIndex: "productCount",
             key: "productCount",
-            width: 120,
-        },
-        {
-            title: "Active",
-            dataIndex: "isActive",
-            key: "isActive",
-            render: (val: boolean) => (val ? "Yes" : "No"),
-            width: 100,
+
         },
         {
             title: "Actions",
             key: "actions",
-            width: 180,
+
             render: (_: any, record: Category) => (
                 <Space>
-                    <Button type="link" onClick={() => openModal(record)}>
-                        Edit
-                    </Button>
+                    <Button onClick={() => openModal(record)}>✏ Sửa</Button>
                     <Popconfirm
                         title="Are you sure to delete this category?"
                         onConfirm={() => handleDelete(record.id)}
                     >
-                        <Button type="link" danger>
-                            Delete
+                        <Button danger >
+                            🗑 Xóa
                         </Button>
                     </Popconfirm>
                 </Space>
@@ -165,29 +176,31 @@ const CategoryTab: React.FC = () => {
                     prefix={<SearchOutlined />}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onPressEnter={() => {
+                        setPagination(prev => ({ ...prev, current: 1 })); // reset trang về 1
+                        fetchCategories(1, pagination.pageSize, search);
+                    }}
                     allowClear
                 />
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => openModal()}
-                >
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>
                     Add Category
                 </Button>
             </Space>
 
+
             <Table
                 rowKey="id"
                 columns={columns}
-                dataSource={filteredData}
+                dataSource={categories}
                 loading={loading}
                 pagination={{
                     current: pagination.current,
                     pageSize: pagination.pageSize,
                     total: pagination.total,
-                    onChange: (page, pageSize) => fetchCategories(page, pageSize),
+                    onChange: (page, pageSize) => fetchCategories(page, pageSize, keyword),
                 }}
             />
+
 
             <Modal
                 title={editingCategory ? "Edit Category" : "Add Category"}
@@ -200,10 +213,29 @@ const CategoryTab: React.FC = () => {
                     <Form.Item
                         label="Code"
                         name="categoryCode"
-                        rules={[{ required: true, message: "Please enter code" }]}
+                        rules={
+                            !editingCategory
+                                ? [
+                                    { required: true, message: "Please enter code" },
+                                    {
+                                        pattern: /^[A-Z]$/,
+                                        message: "Code must be exactly 1 uppercase letter (A-Z).",
+                                    },
+                                ]
+                                : []
+                        }
                     >
-                        <Input />
+                        <Input
+                            placeholder="Code must be 1 uppercase letter (A-Z)"
+                            value={form.getFieldValue("categoryCode") || ""}
+                            onChange={(e) => {
+                                const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+                                form.setFieldsValue({ categoryCode: value.slice(0, 1) });
+                            }}
+                            maxLength={1}
+                        />
                     </Form.Item>
+
                     <Form.Item
                         label="Name"
                         name="categoryName"
@@ -212,6 +244,7 @@ const CategoryTab: React.FC = () => {
                         <Input />
                     </Form.Item>
                 </Form>
+
             </Modal>
         </Card>
     );

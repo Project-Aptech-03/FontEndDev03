@@ -150,18 +150,10 @@
   border-color: #667eea;
 }
 
-/* Upload Component */
-.ant-upload {
-  border-radius: 6px;
-  border: 1px dashed #d9d9d9;
-  transition: all 0.2s ease;
-}
-
 .ant-upload:hover {
   border-color: #667eea;
 }
 
-/* Search Input */
 .ant-input-search .ant-input-group .ant-input-affix-wrapper:not(:last-child) {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;

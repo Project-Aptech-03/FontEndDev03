@@ -54,6 +54,11 @@ const Header: React.FC = () => {
             label: 'Blog',
             icon: <ReadOutlined />,
         },
+        {
+            key: '/faqs',
+            label: 'FAQ',
+            icon: <InfoCircleOutlined />,
+        }
     ];
 
     const userMenuItems: MenuProps['items'] = isLoggedIn
@@ -201,7 +206,6 @@ const Header: React.FC = () => {
                 <span style={logoTextStyle}>MOON.</span>
             </div>
 
-            {/* Navigation Menu */}
             <Menu
                 mode="horizontal"
                 selectedKeys={[location.pathname]}

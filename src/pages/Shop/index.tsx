@@ -7,14 +7,13 @@ import { usePagination } from '../../hooks/usePagination';
 import HeroSection from '../../components/Shop/HeroSection';
 import FiltersSidebar from '../../components/Shop/FiltersSidebar';
 import BooksGrid from '../../components/Shop/BooksGrid';
-import Pagination from '../../components/Shop/Pagination';
 import LoadingSpinner from '../../components/Shop/LoadingSpinner';
 
 const BookStore = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
-  
-  const { books, loading, error, totalCount, totalPages } = useBooks(currentPage, pageSize);
+
+  const { books, loading, totalCount, totalPages } = useBooks(currentPage, pageSize);
   const { handleWishlistToggle, isInWishlist } = useWishlist();
   
   const {
@@ -62,13 +61,11 @@ const BookStore = () => {
           isInWishlist={isInWishlist}
           onWishlistToggle={handleWishlistToggle}
           totalCount={totalCount}
-        />
-        
-        <Pagination
+          pageSize={pageSize}
           currentPage={currentPage}
-          totalPages={totalPages}
-          onPaginate={handlePageChange}
+          onPageChange={handlePageChange}
         />
+
       </div>
     </div>
   );
