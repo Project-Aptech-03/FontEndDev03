@@ -29,18 +29,14 @@ const UserForm: React.FC<UserFormProps> = ({
                 ...values,
                 dateOfBirth: values.dateOfBirth ? values.dateOfBirth.format("YYYY-MM-DD") : null,
             };
-
             setLoading(true);
-
             if (editingUser) {
-    await updateUser(editingUser.id, payload);
-    message.success("Cập nhật người dùng thành công!");
-} else {
-    await createUser(payload);
-    message.success("Tài khoản đã được tạo. Vui lòng kiểm tra email để xác thực!");
-}
-
-
+                await updateUser(editingUser.id, payload);
+                message.success("Cập nhật người dùng thành công!");
+            } else {
+                await createUser(payload);
+                message.success("Tài khoản đã được tạo. Vui lòng kiểm tra email để xác thực!");
+            }
             onSuccess();
         } catch (err: any) {
             const apiError = err.response?.data;
@@ -185,7 +181,6 @@ const UserForm: React.FC<UserFormProps> = ({
                         options={[
                             { label: "Admin", value: "admin" },
                             { label: "User", value: "user" },
-                            { label: "Employee", value: "employee" },
                         ]}
                     />
                 </Form.Item>

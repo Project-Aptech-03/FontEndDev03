@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button, Form, message, Card, Typography, Space, Alert, Spin, Empty } from "antd";
 import { PlusOutlined, ReloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -14,6 +13,11 @@ const Products = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductType | null>(null);
 
+  // Pagination and Search state
+  const [pageIndex, setPageIndex] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [keyword, setKeyword] = useState('');
+
   const [form] = Form.useForm();
   const [modalLoading, setModalLoading] = useState(false);
 
@@ -28,6 +32,7 @@ const Products = () => {
     handleUpdateProduct,
     handleDeleteProduct,
     refetch,
+    fetchProducts, // Assuming this function exists to fetch with params
   } = useAdminProducts();
 
   const showModal = (product: ProductType | null = null) => {
@@ -43,11 +48,11 @@ const Products = () => {
   const handleOk = async (values: ProductFormData) => {
     setModalLoading(true);
     try {
-      const photos = values.photos ? 
-        (typeof values.photos === 'string' ? 
-          (values.photos as string).split('\n').filter((url: string) => url.trim()) : 
-          Array.isArray(values.photos) ? values.photos : []) : 
-        [];
+      const photos = values.photos ?
+          (typeof values.photos === 'string' ?
+              (values.photos as string).split('\n').filter((url: string) => url.trim()) :
+              Array.isArray(values.photos) ? values.photos : []) :
+          [];
 
       const productData = {
         ...values,
@@ -55,7 +60,9 @@ const Products = () => {
         author: values.author || '',
         productType: values.productType || 'book',
         pages: values.pages || 1,
-        dimensions: values.dimensions || '',
+        dimensionLength: values.dimensionLength,
+        dimensionWidth : values.dimensionWidth,
+        dimensionHeight: values.dimensionHeight,
         weight: values.weight || 0,
         description: values.description || '',
       };
@@ -75,6 +82,8 @@ const Products = () => {
         setIsModalVisible(false);
         setEditingProduct(null);
         form.resetFields();
+        // Refresh current page with current filters
+        handleRefreshData();
       } else {
         message.error({
           content: result.error || "Operation failed. Please try again.",
@@ -101,6 +110,8 @@ const Products = () => {
           content: "Product deleted successfully!",
           duration: 3,
         });
+        // Refresh current page with current filters
+        handleRefreshData();
       } else {
         message.error({
           content: result.error || "Failed to delete product. Please try again.",
@@ -117,133 +128,161 @@ const Products = () => {
     }
   };
 
+  // Handle pagination change from ProductTable
+  const handlePageChange = (page: number, size: number) => {
+    setPageIndex(page);
+    setPageSize(size);
+    // Fetch data with new pagination
+    if (fetchProducts) {
+      fetchProducts(page, size, keyword);
+    }
+  };
+
+  // Handle search from ProductTable
+  const handleSearch = (searchKeyword: string) => {
+    setKeyword(searchKeyword);
+    setPageIndex(1); // Reset to first page when searching
+    // Fetch data with new search term
+    if (fetchProducts) {
+      fetchProducts(1, pageSize, searchKeyword);
+    }
+  };
+
+  // Refresh data with current filters
+  const handleRefreshData = () => {
+    if (fetchProducts) {
+      fetchProducts(pageIndex, pageSize, keyword);
+    } else {
+      refetch();
+    }
+  };
+
   const handleRefresh = () => {
-    refetch();
+    handleRefreshData();
     message.info("Refreshing products...");
   };
 
   if (error) {
     return (
-      <div style={{ padding: 24 }}>
-        <Card>
-          <Alert
-            message="Error Loading Products"
-            description={error}
-            type="error"
-            icon={<ExclamationCircleOutlined />}
-            showIcon
-            action={
-              <Button size="small" danger onClick={handleRefresh}>
-                Retry
-              </Button>
-            }
-          />
-        </Card>
-      </div>
+        <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
+          <Card style={{
+            borderRadius: 12,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            <Alert
+                message="Error Loading Products"
+                description={error}
+                type="error"
+                icon={<ExclamationCircleOutlined />}
+                showIcon
+                action={
+                  <Button size="small" danger onClick={handleRefresh}>
+                    Retry
+                  </Button>
+                }
+            />
+          </Card>
+        </div>
     );
   }
 
   return (
-    <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
-      <Card 
-        style={{ 
-          borderRadius: 12, 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          marginBottom: 24
-        }}
-      >
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: 24
-        }}>
-          <div>
-            <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
-              Products Management
-            </Title>
-            <Text type="secondary">
-              Manage your product inventory and details
-            </Text>
-          </div>
-          <Space>
-            <Button 
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-              loading={loading}
-            >
-              Refresh
-            </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => showModal()}
-              size="large"
-              style={{ borderRadius: 8 }}
-            >
-              Add Product
-            </Button>
-          </Space>
-        </div>
-
-        {loading && products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <Spin size="large" />
-            <div style={{ marginTop: 16 }}>
-              <Text type="secondary">Loading products...</Text>
+      <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
+        <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              marginBottom: 24
+            }}
+        >
+          {/* Header Section */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 24,
+            flexWrap: 'wrap',
+            gap: 16
+          }}>
+            <div>
+              <Title level={2} style={{
+                margin: 0,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                Products Management
+              </Title>
+              <Text type="secondary" style={{ fontSize: 14 }}>
+                Manage your product inventory and details
+              </Text>
             </div>
+            <Space>
+              <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefresh}
+                  loading={loading}
+                  style={{ borderRadius: 8 }}
+              >
+                Refresh
+              </Button>
+              <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => showModal()}
+                  size="large"
+                  style={{
+                    borderRadius: 8,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                  }}
+              >
+                Add Product
+              </Button>
+            </Space>
           </div>
-        ) : products.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={
-              <div>
-                <Text type="secondary" style={{ fontSize: 16 }}>
-                  No products found
-                </Text>
-                <br />
-                <Text type="secondary">
-                  Start by adding your first product
-                </Text>
+
+          {/* Content Section */}
+          {loading && products.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: 16 }}>
+                  <Text type="secondary">Loading products...</Text>
+                </div>
               </div>
-            }
-          >
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              onClick={() => showModal()}
-              size="large"
-            >
-              Add Your First Product
-            </Button>
-          </Empty>
-        ) : (
-          <ProductTable
-            products={products}
-            loading={loading}
-            onEdit={showModal}
-            onDelete={handleDelete}
-          />
-        )}
-      </Card>
+          ) : (
+              <ProductTable
+                  products={products}
+                  loading={loading}
+                  onEdit={showModal}
+                  onDelete={handleDelete}
+                  pageIndex={pageIndex}
+                  pageSize={pageSize}
+                  keyword={keyword}
+                  onPageChange={handlePageChange}
+                  onSearch={handleSearch}
+              />
+          )}
 
-      <ProductModal
-          visible={isModalVisible}
-          editingProduct={editingProduct}
-          onOk={handleOk}
-          onCancel={() => {
-            setIsModalVisible(false);
-            setEditingProduct(null);
-            form.resetFields();
-          }}
-          form={form}
-          loading={modalLoading}
-          categories={categories}
-          manufacturers={manufacturers}
-          publishers={publishers}
-      />
+        </Card>
 
-    </div>
+        <ProductModal
+            visible={isModalVisible}
+            editingProduct={editingProduct}
+            onOk={handleOk}
+            onCancel={() => {
+              setIsModalVisible(false);
+              setEditingProduct(null);
+              form.resetFields();
+            }}
+            form={form}
+            loading={modalLoading}
+            categories={categories}
+            manufacturers={manufacturers}
+            publishers={publishers}
+        />
+      </div>
   );
 };
 

@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     createManufacturer,
     deleteManufacturer,
     getManufacturers,
     updateManufacturer,
 } from "../../../../api/manufacturer.api";
-import { Button, Input, Modal, Table, Space, message } from "antd";
+import { Button, Input, Modal, Table, Space, Form, message, Popconfirm } from "antd";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import type { ColumnsType } from "antd/es/table";
+import { ApiResponse } from "../../../../@type/apiResponse";
 
 interface Manufacturer {
     id: number;
@@ -16,93 +19,145 @@ interface Manufacturer {
     productCount: number;
 }
 
+interface PagedResponse<T> {
+    items: T[];
+    totalCount: number;
+    pageIndex: number;
+    pageSize: number;
+}
+
 const ManufacturerTab = () => {
     const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
     const [loading, setLoading] = useState(false);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const [openModal, setOpenModal] = useState(false);
+    const [search, setSearch] = useState("");
+    const [keyword, setKeyword] = useState("");
     const [editItem, setEditItem] = useState<Manufacturer | null>(null);
-    const [form, setForm] = useState({ manufacturerCode: "", manufacturerName: "" });
+    const [form] = Form.useForm();
 
-    // Load list
-    const fetchData = async () => {
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 10,
+        total: 0,
+    });
+
+    // 🔹 Fetch data với pagination + keyword
+    const fetchData = async (
+        page = pagination.current,
+        pageSize = pagination.pageSize,
+        kw = keyword
+    ) => {
         try {
             setLoading(true);
-            const res = await getManufacturers(1, 10);
-            setManufacturers(res.data.items as Manufacturer[]);
-        } catch (err) {
-            console.error("Fetch manufacturers failed", err);
+            const res = await getManufacturers(page, pageSize, kw);
+            if (res.success && res.data) {
+                const data = res.data as PagedResponse<Manufacturer>;
+                setManufacturers(data.items);
+                setPagination({
+                    current: data.pageIndex,
+                    pageSize: data.pageSize,
+                    total: data.totalCount,
+                });
+            } else {
+                message.error(res.message || "Failed to fetch manufacturers");
+            }
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<string>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }
         } finally {
             setLoading(false);
         }
     };
+
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [keyword]);
 
-    // Save (Create or Update)
+    const handleSearch = () => {
+        setPagination({ ...pagination, current: 1 }); // reset page
+        setKeyword(search);
+    };
+
+    const openForm = (item: Manufacturer | null = null) => {
+        setEditItem(item);
+        if (item) {
+            form.setFieldsValue({
+                manufacturerCode: item.manufacturerCode,
+                manufacturerName: item.manufacturerName,
+            });
+        } else {
+            form.resetFields();
+        }
+        setOpenModal(true);
+    };
+
     const handleSave = async () => {
         try {
+            const values = await form.validateFields();
             if (editItem) {
-                await updateManufacturer(editItem.id, form);
+                await updateManufacturer(editItem.id, values);
                 message.success("Cập nhật thành công");
             } else {
-                await createManufacturer(form);
+                await createManufacturer(values);
                 message.success("Tạo mới thành công");
             }
             setOpenModal(false);
-            setForm({ manufacturerCode: "", manufacturerName: "" });
-            setEditItem(null);
-            fetchData();
+            fetchData(pagination.current, pagination.pageSize, keyword);
         } catch (err) {
-            console.error("Save manufacturer failed", err);
-            message.error("Lỗi khi lưu manufacturer");
+            console.log("Validation Failed:", err);
         }
     };
 
-    // Delete
     const handleDelete = async (id: number) => {
-        if (!window.confirm("Bạn có chắc muốn xóa manufacturer này?")) return;
         try {
+            setDeletingId(id);
             await deleteManufacturer(id);
             message.success("Xóa thành công");
-            fetchData();
-        } catch (err) {
-            console.error("Delete manufacturer failed", err);
-            message.error("Xóa thất bại");
+            fetchData(pagination.current, pagination.pageSize, keyword);
+        } catch (err: any) {
+            const apiError = err?.response?.data as ApiResponse<string>;
+            if (apiError?.errors) {
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+            } else {
+                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+            }
+        } finally {
+            setDeletingId(null);
         }
     };
 
-    // Table columns
-    const columns = [
-        { title: "ID", dataIndex: "id" },
-        { title: "Code", dataIndex: "manufacturerCode" },
-        { title: "Name", dataIndex: "manufacturerName" },
-        { title: "Active", dataIndex: "isActive", render: (val: boolean) => (val ? "✅" : "❌") },
+    const columns: ColumnsType<Manufacturer> = [
+        { title: "ID", dataIndex: "id", key: "id", width: 60 },
+        { title: "Code", dataIndex: "manufacturerCode", key: "manufacturerCode" },
+        { title: "Name", dataIndex: "manufacturerName", key: "manufacturerName" },
         {
             title: "Created Date",
             dataIndex: "createdDate",
+            key: "createdDate",
             render: (val: string) => new Date(val).toLocaleDateString(),
         },
-        { title: "Products", dataIndex: "productCount" },
+        { title: "Products", dataIndex: "productCount", key: "productCount" },
         {
             title: "Actions",
+            key: "actions",
             render: (_: any, record: Manufacturer) => (
                 <Space>
-                    <Button
-                        onClick={() => {
-                            setEditItem(record);
-                            setForm({
-                                manufacturerCode: record.manufacturerCode,
-                                manufacturerName: record.manufacturerName,
-                            });
-                            setOpenModal(true);
-                        }}
+                    <Button onClick={() => openForm(record)}>✏ Sửa</Button>
+                    <Popconfirm
+                        title="Bạn có chắc muốn xóa manufacturer này?"
+                        onConfirm={() => handleDelete(record.id)}
+                        okText="Xóa"
+                        cancelText="Hủy"
                     >
-                        ✏ Sửa
-                    </Button>
-                    <Button danger onClick={() => handleDelete(record.id)}>
-                        🗑 Xóa
-                    </Button>
+                        <Button danger loading={deletingId === record.id}>
+                            🗑 Xóa
+                        </Button>
+                    </Popconfirm>
                 </Space>
             ),
         },
@@ -110,12 +165,19 @@ const ManufacturerTab = () => {
 
     return (
         <div>
-            <h2 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
-                🏭 Quản lý Manufacturer
-            </h2>
-            <Button type="primary" onClick={() => setOpenModal(true)}>
-                + Thêm Manufacturer
-            </Button>
+            <Space style={{ marginBottom: 16 }}>
+                <Input
+                    placeholder="Search by name"
+                    prefix={<SearchOutlined />}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    allowClear
+                    onPressEnter={handleSearch}
+                />
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => openForm()}>
+                    Add Manufacturer
+                </Button>
+            </Space>
 
             <Table
                 className="mt-4"
@@ -123,34 +185,57 @@ const ManufacturerTab = () => {
                 columns={columns}
                 dataSource={manufacturers}
                 loading={loading}
-                pagination={false}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    showSizeChanger: true,
+                    onChange: (page, pageSize) => fetchData(page, pageSize, keyword),
+                }}
             />
 
-            {/* Modal Create/Update */}
             <Modal
                 title={editItem ? "✏ Cập nhật Manufacturer" : "+ Thêm Manufacturer"}
                 open={openModal}
-                onCancel={() => {
-                    setOpenModal(false);
-                    setEditItem(null);
-                    setForm({ manufacturerCode: "", manufacturerName: "" });
-                }}
+                onCancel={() => setOpenModal(false)}
                 onOk={handleSave}
                 okText={editItem ? "Lưu thay đổi" : "Thêm mới"}
                 cancelText="Hủy"
             >
-                <Space direction="vertical" style={{ width: "100%" }}>
-                    <Input
-                        placeholder="Code (VD: ABC01)"
-                        value={form.manufacturerCode}
-                        onChange={(e) => setForm({ ...form, manufacturerCode: e.target.value })}
-                    />
-                    <Input
-                        placeholder="Name"
-                        value={form.manufacturerName}
-                        onChange={(e) => setForm({ ...form, manufacturerName: e.target.value })}
-                    />
-                </Space>
+                <Form form={form} layout="vertical">
+                    <Form.Item
+                        label="Code"
+                        name="manufacturerCode"
+                        rules={[
+                            { required: true, message: "Manufacturer code cannot be empty." },
+                            {
+                                pattern: /^[A-Z]{3}$/,
+                                message: "Manufacturer code must be exactly 3 uppercase letters (e.g., ABC).",
+                            },
+                        ]}
+                    >
+                        <Input
+                            placeholder="ABC"
+                            maxLength={3}
+                            onChange={(e) => {
+                                const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+                                form.setFieldsValue({ manufacturerCode: value.slice(0, 3) });
+                            }}
+                        />
+                    </Form.Item>
+
+
+                    <Form.Item
+                        label="Name"
+                        name="manufacturerName"
+                        rules={[
+                            { required: true, message: "Manufacturer name cannot be empty." },
+                            { max: 150, message: "Name cannot exceed 150 characters." },
+                        ]}
+                    >
+                        <Input />
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
     );

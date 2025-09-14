@@ -3,13 +3,27 @@ import { ApiResponse } from "../@type/apiResponse";
 import apiClient from "../services/api";
 import { ProductsResponseDto } from "../@type/productsResponse";
 
-export const getProducts = async (pageIndex: number, pageSize: number) => {
+export const getProducts = async (
+    pageIndex: number,
+    pageSize: number,
+    keyword?: string,
+    categoriesId?: number,
+    manufacturerId?: number
+) => {
     const res = await apiClient.get<ApiResponse<PagedResult<ProductsResponseDto>>>(
         "/Products",
-        { params: { pageIndex, pageSize } }
+        {
+            params: {
+                page: pageIndex,
+                size: pageSize,
+                keyword,
+                categoriesId,
+                manufacturerId
+            }
+        }
     );
     return res.data;
-}
+};
 
 
 // Create new product (multipart/form-data + endpoint /Products/create)
@@ -55,7 +69,6 @@ export const deleteProducts = async (ids: number[]) => {
     return res.data;
 };
 
-// Get product by ID
 export const getProductById = async (id: number) => {
     const res = await apiClient.get<ApiResponse<ProductsResponseDto>>(
         `/Products/${id}`
@@ -63,3 +76,12 @@ export const getProductById = async (id: number) => {
     return res.data;
 };
 
+export const generateProductCode = async (categoryId: number, manufacturerId: number) => {
+    const res = await apiClient.get<ApiResponse<string>>(
+        `/Products/generate-code`,
+        {
+            params: { categoryId, manufacturerId },
+        }
+    );
+    return res.data;
+};
