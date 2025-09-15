@@ -64,9 +64,7 @@ export const AppRouter = () => (
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/myorders" element={<MyOrders />} />
-                <Route path="/profile" element={<Profile />} />
                 <Route path="/faqs" element={<FAQPage />} />
-                <Route path="/profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
             <Route element={<ProtectedRoute />}>
@@ -78,7 +76,7 @@ export const AppRouter = () => (
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<Users />} />
                     <Route path="products" element={<Products />} />
-                    <Route path="productAttributes" element={<ProductAttributes/>}/>
+                    <Route path="productAttributes" element={<ProductAttributes />} />
                     <Route path="stocks" element={<Stocks />} />
                     <Route path="faqs" element={<FaqAdmin />} />
                     <Route path="orders" element={<Orders />} />

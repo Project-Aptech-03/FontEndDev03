@@ -82,7 +82,7 @@ const Login: React.FC = () => {
           } else {
             sessionStorage.setItem("token", token);
           }
-          login(token);
+          login(token, rememberMe);
         }
 
         if (res.success) {
