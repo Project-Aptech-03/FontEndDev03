@@ -4,10 +4,14 @@ import {ApiResponse, PagedResult} from "../@type/apiResponse";
 import {Category} from "../@type/products";
 
 
-export const getCategory = async (pageIndex: number, pageSize: number) => {
+export const getCategory = async (
+    pageNumber: number,
+    pageSize: number,
+    keyword?: string
+) => {
     const res = await apiClient.get<ApiResponse<PagedResult<Category>>>(
         "/categories",
-        { params: { pageIndex, pageSize } }
+        { params: { pageNumber, pageSize, keyword } }
     );
     return res.data;
 };

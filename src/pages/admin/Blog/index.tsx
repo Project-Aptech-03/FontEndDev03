@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import {
   Card,
   Table,
@@ -22,7 +24,7 @@ import {
   Image,
   Switch,
   Tooltip,
-  Progress,
+  Alert,
 } from "antd";
 import {
   PlusOutlined,
@@ -30,7 +32,6 @@ import {
   DeleteOutlined,
   EyeOutlined,
   SearchOutlined,
-  UploadOutlined,
   FileTextOutlined,
   UserOutlined,
   CalendarOutlined,
@@ -39,11 +40,14 @@ import {
   PictureOutlined,
   CopyOutlined,
   CheckOutlined,
-  ExclamationCircleOutlined,
   LoadingOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { useBlogs, useBlogCrud } from "../../../hooks/useBlogs";
+import { useCategories } from "../../../hooks/useFilters";
+import { BlogQueryDto, CreateBlogDto, UpdateBlogDto, BlogListResponseDto } from "../../../@type/blog";
+import { blogApi } from "../../../api/blog.api";
 import "./Blog.css";
 
 const { Title, Paragraph, Text } = Typography;
@@ -51,73 +55,52 @@ const { TextArea } = Input;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
-interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
-  excerpt: string;
-  author: string;
-  category: string;
-  status: "draft" | "published" | "archived";
-  tags: string[];
-  featuredImage: string;
-  publishDate: string;
-  views: number;
-  createdAt: string;
-  updatedAt: string;
-}
+// ReactQuill configuration
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    [{ 'align': [] }],
+    ['link', 'image', 'video'],
+    ['blockquote', 'code-block'],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header', 'bold', 'italic', 'underline', 'strike',
+  'color', 'background', 'list', 'bullet', 'indent',
+  'align', 'link', 'image', 'video', 'blockquote', 'code-block'
+];
 
 const BlogAdmin: React.FC = () => {
-  const [blogs, setBlogs] = useState<BlogPost[]>([
-    {
-      id: "1",
-      title: "Hướng dẫn chọn sách hay cho trẻ em",
-      content: "Nội dung bài viết chi tiết về cách chọn sách phù hợp cho trẻ em...",
-      excerpt: "Những tiêu chí quan trọng khi chọn sách cho trẻ em",
-      author: "Nguyễn Văn A",
-      category: "Giáo dục",
-      status: "published",
-      tags: ["trẻ em", "giáo dục", "sách"],
-      featuredImage: "/images/blog1.jpg",
-      publishDate: "2024-01-15",
-      views: 1250,
-      createdAt: "2024-01-15 10:00:00",
-      updatedAt: "2024-01-15 10:00:00",
-    },
-    {
-      id: "2",
-      title: "Top 10 cuốn sách kinh doanh nên đọc",
-      content: "Danh sách những cuốn sách kinh doanh hay nhất...",
-      excerpt: "Khám phá những cuốn sách kinh doanh được đánh giá cao",
-      author: "Trần Thị B",
-      category: "Kinh doanh",
-      status: "published",
-      tags: ["kinh doanh", "top 10", "bestseller"],
-      featuredImage: "/images/blog2.jpg",
-      publishDate: "2024-01-20",
-      views: 980,
-      createdAt: "2024-01-20 14:30:00",
-      updatedAt: "2024-01-20 14:30:00",
-    },
-    {
-      id: "3",
-      title: "Xu hướng đọc sách trong thời đại số",
-      content: "Phân tích xu hướng đọc sách hiện đại...",
-      excerpt: "Sự thay đổi trong thói quen đọc sách của người Việt",
-      author: "Lê Văn C",
-      category: "Xu hướng",
-      status: "draft",
-      tags: ["xu hướng", "công nghệ", "đọc sách"],
-      featuredImage: "/images/blog3.jpg",
-      publishDate: "",
-      views: 0,
-      createdAt: "2024-01-25 09:15:00",
-      updatedAt: "2024-01-25 09:15:00",
-    },
-  ]);
+  // API hooks
+  const { categories, loading: categoriesLoading, error: categoriesError } = useCategories();
+  const { createBlog, updateBlog, deleteBlog, loading: crudLoading } = useBlogCrud();
+
+  // Blog query state
+  const [blogQuery, setBlogQuery] = useState<BlogQueryDto>({
+    page: 1,
+    pageSize: 10,
+    sortBy: "CreatedDate",
+    sortOrder: "desc"
+  });
+
+  // Fetch blogs with current query
+  const { blogs, loading: blogsLoading, error: blogsError, pagination, updateQuery } = useBlogs(blogQuery);
+
+  // Debug categories
+  useEffect(() => {
+    console.log('Categories loaded:', categories);
+    console.log('Categories loading:', categoriesLoading);
+    console.log('Categories error:', categoriesError);
+  }, [categories, categoriesLoading, categoriesError]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editingBlog, setEditingBlog] = useState<BlogListResponseDto | null>(null);
   const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState("edit");
@@ -128,7 +111,16 @@ const BlogAdmin: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
 
-  const categories = ["Giáo dục", "Kinh doanh", "Xu hướng", "Văn học", "Khoa học", "Kỹ năng"];
+  // Update blog query when search changes
+  useEffect(() => {
+    const newQuery: BlogQueryDto = {
+      ...blogQuery,
+      search: searchText || undefined,
+      page: 1 // Reset to first page when searching
+    };
+    setBlogQuery(newQuery);
+    updateQuery(newQuery);
+  }, [searchText]);
 
   // Auto-save function
   const handleAutoSave = React.useCallback(async () => {
@@ -143,8 +135,8 @@ const BlogAdmin: React.FC = () => {
         publishDate: values.publishDate ? values.publishDate.format("YYYY-MM-DD") : "",
         updatedAt: new Date().toISOString(),
       };
-      
-      setBlogs(prevBlogs => prevBlogs.map((blog) => (blog.id === editingBlog.id ? updatedBlog : blog)));
+
+      updateQuery(blogQuery);
       setLastSaved(new Date());
       setHasChanges(false);
       message.success("Đã tự động lưu bản nháp!", 2);
@@ -167,37 +159,11 @@ const BlogAdmin: React.FC = () => {
   // Update form khi editingBlog thay đổi
   useEffect(() => {
     if (editingBlog && isModalVisible) {
-      const formData = {
-        title: editingBlog.title,
-        content: editingBlog.content,
-        excerpt: editingBlog.excerpt,
-        author: editingBlog.author,
-        category: editingBlog.category,
-        status: editingBlog.status,
-        tags: editingBlog.tags.join(", "),
-        publishDate: editingBlog.publishDate ? dayjs(editingBlog.publishDate) : null,
-        featuredImage: editingBlog.featuredImage,
-      };
-      
-      // Sử dụng setTimeout để đảm bảo form đã render
-      setTimeout(() => {
-        form.setFieldsValue(formData);
-        setPreviewImage(editingBlog.featuredImage || "");
-        // Update preview data also
-        setPreviewData({
-          title: editingBlog.title,
-          content: editingBlog.content,
-          excerpt: editingBlog.excerpt,
-          author: editingBlog.author,
-          category: editingBlog.category,
-          status: editingBlog.status,
-          tags: editingBlog.tags.join(", "),
-          publishDate: editingBlog.publishDate || "",
-          featuredImage: editingBlog.featuredImage || "",
-        });
-      }, 100);
+      // Form data will be set in handleEdit function after fetching full blog details
+      // This useEffect is mainly for handling modal visibility changes
+      setPreviewImage(editingBlog.featuredImageUrl || "");
     }
-  }, [editingBlog, isModalVisible, form]);
+  }, [editingBlog, isModalVisible]);
 
   // Update preview data từ form values
   const updatePreviewData = React.useCallback(() => {
@@ -223,24 +189,41 @@ const BlogAdmin: React.FC = () => {
   };
 
   // Handle image upload
-  const handleImageUpload = (info: any) => {
-    if (info.file.status === "uploading") {
+  const handleImageUpload = async (info: any) => {
+    const { file, fileList } = info;
+    
+    // Only process if there are files and we're not in uploading state
+    if (fileList && fileList.length > 0) {
+      const selectedFile = fileList[fileList.length - 1];
+      const actualFile = selectedFile.originFileObj || selectedFile;
+      
+      // Check if it's an image file
+      const isImage = actualFile.type?.startsWith('image/');
+      if (!isImage) {
+        message.error('Chỉ được tải lên file ảnh!');
+        return;
+      }
+      
+      // Set uploading state
       setUploading(true);
-      return;
-    }
-    
-    if (info.file.status === "done") {
-      setUploading(false);
-      // Giả lập URL ảnh đã upload
-      const imageUrl = URL.createObjectURL(info.file.originFileObj);
-      setPreviewImage(imageUrl);
-      form.setFieldsValue({ featuredImage: imageUrl });
-      message.success("Tải ảnh thành công!");
-    }
-    
-    if (info.file.status === "error") {
-      setUploading(false);
-      message.error("Tải ảnh thất bại!");
+      
+      try {
+        // Upload image to server
+        const uploadResponse = await blogApi.uploadBlogImage(actualFile);
+        
+        if (uploadResponse && uploadResponse.url) {
+          setPreviewImage(uploadResponse.url);
+          form.setFieldsValue({ featuredImage: uploadResponse.url });
+          message.success("Tải ảnh thành công!");
+        } else {
+          message.error("Không thể lưu ảnh lên server!");
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        message.error("Tải ảnh thất bại!");
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
@@ -252,8 +235,7 @@ const BlogAdmin: React.FC = () => {
     if (!values.title?.trim()) errors.push("Tiêu đề không được để trống");
     if (!values.content?.trim()) errors.push("Nội dung không được để trống");
     if (!values.excerpt?.trim()) errors.push("Tóm tắt không được để trống");
-    if (!values.author?.trim()) errors.push("Tác giả không được để trống");
-    if (!values.category) errors.push("Vui lòng chọn danh mục");
+    if (!values.categoryId) errors.push("Vui lòng chọn danh mục");
 
     if (values.title && values.title.length < 10) {
       errors.push("Tiêu đề phải có ít nhất 10 ký tự");
@@ -307,30 +289,35 @@ const BlogAdmin: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<BlogPost> = [
+  const columns: ColumnsType<BlogListResponseDto> = [
+    {
+      title: "Ảnh",
+      dataIndex: "featuredImageUrl",
+      key: "featuredImageUrl",
+      width: "10%",
+      render: (image: string) => (
+        <Image src={image} alt="Ảnh" width={100} height={80} style={{ objectFit: "cover", borderRadius: 8, border: "1px solid #f0f0f0" }} />
+      ),
+    },
     {
       title: "Tiêu đề",
       dataIndex: "title",
       key: "title",
       width: "25%",
-      render: (text: string, record: BlogPost) => (
+      render: (text: string, record: BlogListResponseDto) => (
         <div>
           <Text strong>{text}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {record.excerpt}
+            {record.summary}
           </Text>
         </div>
       ),
-      filteredValue: searchText ? [searchText] : null,
-      onFilter: (value, record) =>
-        record.title.toLowerCase().includes(value.toString().toLowerCase()) ||
-        record.content.toLowerCase().includes(value.toString().toLowerCase()),
     },
     {
       title: "Tác giả",
-      dataIndex: "author",
-      key: "author",
+      dataIndex: "authorName",
+      key: "authorName",
       width: "12%",
       render: (text: string) => (
         <Space>
@@ -341,8 +328,8 @@ const BlogAdmin: React.FC = () => {
     },
     {
       title: "Danh mục",
-      dataIndex: "category",
-      key: "category",
+      dataIndex: "categoryName",
+      key: "categoryName",
       width: "10%",
       render: (category: string) => (
         <Tag color="blue">{category}</Tag>
@@ -350,37 +337,36 @@ const BlogAdmin: React.FC = () => {
     },
     {
       title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "isPublished",
+      key: "isPublished",
       width: "10%",
-      render: (status: string) => (
-        <Tag color={getStatusColor(status)}>
-          {getStatusText(status)}
+      render: (isPublished: boolean) => (
+        <Tag color={isPublished ? "green" : "orange"}>
+          {isPublished ? "Đã xuất bản" : "Bản nháp"}
         </Tag>
       ),
       filters: [
-        { text: "Đã xuất bản", value: "published" },
-        { text: "Bản nháp", value: "draft" },
-        { text: "Đã lưu trữ", value: "archived" },
+        { text: "Đã xuất bản", value: true },
+        { text: "Bản nháp", value: false },
       ],
-      onFilter: (value, record) => record.status === value,
+      onFilter: (value, record) => record.isPublished === value,
     },
     {
       title: "Ngày xuất bản",
-      dataIndex: "publishDate",
-      key: "publishDate",
+      dataIndex: "publishedDate",
+      key: "publishedDate",
       width: "12%",
       render: (date: string) => (
         <Space>
           <CalendarOutlined />
-          {date || "Chưa xuất bản"}
+          {date ? new Date(date).toLocaleDateString() : "Chưa xuất bản"}
         </Space>
       ),
     },
     {
       title: "Lượt xem",
-      dataIndex: "views",
-      key: "views",
+      dataIndex: "viewCount",
+      key: "viewCount",
       width: "8%",
       render: (views: number) => (
         <Statistic
@@ -388,13 +374,13 @@ const BlogAdmin: React.FC = () => {
           valueStyle={{ fontSize: 14 }}
         />
       ),
-      sorter: (a, b) => a.views - b.views,
+      sorter: (a, b) => a.viewCount - b.viewCount,
     },
     {
       title: "Thao tác",
       key: "action",
       width: "15%",
-      render: (_, record: BlogPost) => (
+      render: (_, record: BlogListResponseDto) => (
         <Space size="small">
           <Button
             type="link"
@@ -447,86 +433,104 @@ const BlogAdmin: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleEdit = (blog: BlogPost) => {
+  const handleEdit = async (blog: BlogListResponseDto) => {
     setEditingBlog(blog);
-    
-    // Prepare form data với format đúng
-    const formData = {
-      title: blog.title,
-      content: blog.content,
-      excerpt: blog.excerpt,
-      author: blog.author,
-      category: blog.category,
-      status: blog.status,
-      tags: blog.tags.join(", "),
-      publishDate: blog.publishDate ? dayjs(blog.publishDate) : null,
-      featuredImage: blog.featuredImage,
-    };
-    
-    // Set form values
-    form.setFieldsValue(formData);
     
     // Reset states
     setActiveTab("edit");
-    setPreviewImage(blog.featuredImage || "");
+    setPreviewImage(blog.featuredImageUrl || "");
     setHasChanges(false);
     setLastSaved(null);
     
-    // Set preview data từ blog đang edit
-    setPreviewData({
-      title: blog.title,
-      content: blog.content,
-      excerpt: blog.excerpt,
-      author: blog.author,
-      category: blog.category,
-      status: blog.status,
-      tags: blog.tags.join(", "),
-      publishDate: blog.publishDate || "",
-      featuredImage: blog.featuredImage || "",
-    });
-    
-    setIsModalVisible(true);
-    
-    console.log("Editing blog:", blog);
-    console.log("Form data:", formData);
+    try {
+      // Fetch full blog content
+      const fullBlog = await blogApi.getBlogById(blog.id);
+      
+      // Prepare form data với format đúng
+      const formData = {
+        title: fullBlog.title,
+        content: fullBlog.content || "",
+        excerpt: fullBlog.summary || "",
+        categoryId: fullBlog.categoryId,
+        status: fullBlog.isPublished ? "published" : "draft",
+        isFeatured: fullBlog.isFeatured,
+        publishDate: fullBlog.publishedDate ? dayjs(fullBlog.publishedDate) : null,
+        featuredImage: fullBlog.featuredImageUrl,
+        tags: (fullBlog as any).tags ? (fullBlog as any).tags.join(", ") : "",
+      };
+      
+      // Set form values
+      form.setFieldsValue(formData);
+      
+      // Set preview data từ blog đang edit
+      setPreviewData({
+        title: fullBlog.title,
+        content: fullBlog.content || "",
+        excerpt: fullBlog.summary || "",
+        categoryId: fullBlog.categoryId,
+        status: fullBlog.isPublished ? "published" : "draft",
+        isFeatured: fullBlog.isFeatured,
+        publishDate: fullBlog.publishedDate || "",
+        featuredImage: fullBlog.featuredImageUrl || "",
+        tags: (fullBlog as any).tags ? (fullBlog as any).tags.join(", ") : "",
+      });
+      
+      setIsModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching blog details:", error);
+      message.error("Không thể tải chi tiết bài viết!");
+    }
   };
 
-  const handleView = (blog: BlogPost) => {
+  const handleView = (blog: BlogListResponseDto) => {
     Modal.info({
       title: blog.title,
       width: 800,
       content: (
         <div>
           <Paragraph>
-            <Text strong>Tác giả:</Text> {blog.author}
+            <Text strong>Tác giả:</Text> {blog.authorName}
           </Paragraph>
           <Paragraph>
-            <Text strong>Danh mục:</Text> {blog.category}
+            <Text strong>Danh mục:</Text> {blog.categoryName}
           </Paragraph>
           <Paragraph>
             <Text strong>Trạng thái:</Text>{" "}
-            <Tag color={getStatusColor(blog.status)}>
-              {getStatusText(blog.status)}
+            <Tag color={blog.isPublished ? "green" : "orange"}>
+              {blog.isPublished ? "Đã xuất bản" : "Bản nháp"}
             </Tag>
           </Paragraph>
           <Paragraph>
-            <Text strong>Tags:</Text> {blog.tags.join(", ")}
+            <Text strong>Lượt xem:</Text> {blog.viewCount}
           </Paragraph>
           <Paragraph>
-            <Text strong>Tóm tắt:</Text> {blog.excerpt}
+            <Text strong>Lượt thích:</Text> {blog.likeCount}
           </Paragraph>
           <Paragraph>
-            <Text strong>Nội dung:</Text>
+            <Text strong>Bình luận:</Text> {blog.commentCount}
           </Paragraph>
-          <Paragraph>{blog.content}</Paragraph>
+          <Paragraph>
+            <Text strong>Tóm tắt:</Text> {blog.summary}
+          </Paragraph>
+          <Paragraph>
+            <Text strong>Ngày tạo:</Text> {new Date(blog.createdDate).toLocaleDateString()}
+          </Paragraph>
+          {blog.publishedDate && (
+            <Paragraph>
+              <Text strong>Ngày xuất bản:</Text> {new Date(blog.publishedDate).toLocaleDateString()}
+            </Paragraph>
+          )}
         </div>
       ),
     });
   };
 
-  const handleDelete = (id: string) => {
-    setBlogs(blogs.filter((blog) => blog.id !== id));
-    message.success("Đã xóa bài viết thành công!");
+  const handleDelete = async (id: number) => {
+    const success = await deleteBlog(id);
+    if (success) {
+      message.success("Đã xóa bài viết thành công!");
+      updateQuery(blogQuery);
+    }
   };
 
   const handleSubmit = async (values: any) => {
@@ -547,33 +551,47 @@ const BlogAdmin: React.FC = () => {
     }
 
     try {
-      const newBlog: BlogPost = {
-        id: editingBlog ? editingBlog.id : Date.now().toString(),
-        title: values.title.trim(),
-        content: values.content.trim(),
-        excerpt: values.excerpt.trim() || generateExcerpt(values.content),
-        author: values.author.trim(),
-        category: values.category,
-        status: values.status,
-        tags: values.tags ? values.tags.split(",").map((tag: string) => tag.trim()).filter(Boolean) : [],
-        featuredImage: previewImage || values.featuredImage || "",
-        publishDate: values.publishDate ? values.publishDate.format("YYYY-MM-DD") : "",
-        views: editingBlog ? editingBlog.views : 0,
-        createdAt: editingBlog ? editingBlog.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
       if (editingBlog) {
-        setBlogs(blogs.map((blog) => (blog.id === editingBlog.id ? newBlog : blog)));
-        message.success("Đã cập nhật bài viết thành công!");
-      } else {
-        setBlogs([...blogs, newBlog]);
-        message.success("Đã thêm bài viết mới thành công!");
-      }
+        // Update existing blog
+        const updateData: UpdateBlogDto = {
+          title: values.title.trim(),
+          content: values.content.trim(),
+          summary: values.excerpt.trim() || generateExcerpt(values.content),
+          featuredImageUrl: previewImage || values.featuredImage,
+          isPublished: values.status === "published",
+          isFeatured: values.isFeatured || false,
+          categoryId: values.categoryId
+        };
 
-      setIsModalVisible(false);
-      setHasChanges(false);
-      form.resetFields();
+        const result = await updateBlog(editingBlog.id, updateData);
+        if (result) {
+          message.success("Đã cập nhật bài viết thành công!");
+          setIsModalVisible(false);
+          setHasChanges(false);
+          form.resetFields();
+          updateQuery(blogQuery);
+        }
+      } else {
+        // Create new blog
+        const createData: CreateBlogDto = {
+          title: values.title.trim(),
+          content: values.content.trim(),
+          summary: values.excerpt.trim() || generateExcerpt(values.content),
+          featuredImageUrl: previewImage || values.featuredImage,
+          isPublished: values.status === "published",
+          isFeatured: values.isFeatured || false,
+          categoryId: values.categoryId
+        };
+
+        const result = await createBlog(createData);
+        if (result) {
+          message.success("Đã thêm bài viết mới thành công!");
+          setIsModalVisible(false);
+          setHasChanges(false);
+          form.resetFields();
+          updateQuery(blogQuery);
+        }
+      }
     } catch (error) {
       message.error("Có lỗi xảy ra khi lưu bài viết!");
       console.error("Submit error:", error);
@@ -595,32 +613,25 @@ const BlogAdmin: React.FC = () => {
     await handleSubmit(values);
   };
 
-  const filteredBlogs = blogs.filter(
-    (blog) =>
-      blog.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      blog.content.toLowerCase().includes(searchText.toLowerCase()) ||
-      blog.author.toLowerCase().includes(searchText.toLowerCase())
-  );
-
   const statsData = [
     {
       title: "Tổng bài viết",
-      value: blogs.length,
+      value: pagination.totalCount,
       icon: <FileTextOutlined style={{ color: "#1890ff" }} />,
     },
     {
       title: "Đã xuất bản",
-      value: blogs.filter((blog) => blog.status === "published").length,
+      value: blogs.filter((blog) => blog.isPublished).length,
       icon: <FileTextOutlined style={{ color: "#52c41a" }} />,
     },
     {
       title: "Bản nháp",
-      value: blogs.filter((blog) => blog.status === "draft").length,
+      value: blogs.filter((blog) => !blog.isPublished).length,
       icon: <FileTextOutlined style={{ color: "#faad14" }} />,
     },
     {
       title: "Tổng lượt xem",
-      value: blogs.reduce((total, blog) => total + blog.views, 0),
+      value: blogs.reduce((total, blog) => total + blog.viewCount, 0),
       icon: <EyeOutlined style={{ color: "#722ed1" }} />,
     },
   ];
@@ -680,17 +691,33 @@ const BlogAdmin: React.FC = () => {
 
       {/* Blog Table */}
       <Card>
+        {blogsError && (
+          <Alert
+            message="Error loading blogs"
+            description={blogsError}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <Table
           columns={columns}
-          dataSource={filteredBlogs}
+          dataSource={blogs}
           rowKey="id"
+          loading={blogsLoading}
           pagination={{
-            total: filteredBlogs.length,
-            pageSize: 10,
+            current: pagination.pageNumber,
+            pageSize: pagination.pageSize,
+            total: pagination.totalCount,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} của ${total} bài viết`,
+            onChange: (page, pageSize) => {
+              const newQuery = { ...blogQuery, page, pageSize };
+              setBlogQuery(newQuery);
+              updateQuery(newQuery);
+            },
           }}
           scroll={{ x: 1200 }}
         />
@@ -735,41 +762,42 @@ const BlogAdmin: React.FC = () => {
         }}
         footer={null}
         width={1000}
-        destroyOnClose
+        destroyOnHidden
       >
-        <Tabs 
-          activeKey={activeTab} 
-          onChange={setActiveTab}
-          items={[
-            {
-              key: "edit",
-              label: (
-                <span>
-                  <EditOutlined />
-                  Chỉnh sửa
-                  {hasChanges && <span style={{ color: "#ff4d4f" }}> *</span>}
-                </span>
-              ),
-              children: (
-                 <Form
-                   form={form}
-                   layout="vertical"
-                   onFinish={handleSubmit}
-                   onValuesChange={handleFormChange}
-                   initialValues={editingBlog ? {
-                     title: editingBlog.title,
-                     content: editingBlog.content,
-                     excerpt: editingBlog.excerpt,
-                     author: editingBlog.author,
-                     category: editingBlog.category,
-                     status: editingBlog.status,
-                     tags: editingBlog.tags.join(", "),
-                     publishDate: editingBlog.publishDate ? dayjs(editingBlog.publishDate) : null,
-                     featuredImage: editingBlog.featuredImage,
-                   } : {
-                     status: "draft",
-                   }}
-                 >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          onValuesChange={handleFormChange}
+          initialValues={editingBlog ? {
+            title: editingBlog.title,
+            content: "", // Content needs to be fetched separately
+            excerpt: editingBlog.summary || "",
+            author: editingBlog.authorName,
+            category: editingBlog.categoryName,
+            status: editingBlog.isPublished ? "published" : "draft",
+            tags: "", // Tags are not available in BlogListResponseDto
+            publishDate: editingBlog.publishedDate ? dayjs(editingBlog.publishedDate) : null,
+            featuredImage: editingBlog.featuredImageUrl || "",
+          } : {
+            status: "draft",
+          }}
+        >
+          <Tabs 
+            activeKey={activeTab} 
+            onChange={setActiveTab}
+            items={[
+              {
+                key: "edit",
+                label: (
+                  <span>
+                    <EditOutlined />
+                    Chỉnh sửa
+                    {hasChanges && <span style={{ color: "#ff4d4f" }}> *</span>}
+                  </span>
+                ),
+                children: (
+                  <div>
                   <Row gutter={16}>
                     <Col span={24}>
                       <Form.Item
@@ -792,26 +820,32 @@ const BlogAdmin: React.FC = () => {
                   <Row gutter={16}>
                     <Col span={12}>
                       <Form.Item
-                        label="Tác giả"
-                        name="author"
-                        rules={[{ required: true, message: "Vui lòng nhập tên tác giả!" }]}
+                        label="Danh mục"
+                        name="categoryId"
+                        rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+                        help={categoriesError ? `Lỗi tải danh mục: ${categoriesError}` : undefined}
+                        validateStatus={categoriesError ? "error" : undefined}
                       >
-                        <Input placeholder="Nhập tên tác giả" />
+                        <Select 
+                          placeholder={categoriesError ? "Không thể tải danh mục" : "Chọn danh mục"} 
+                          loading={categoriesLoading}
+                          disabled={!!categoriesError}
+                        >
+                          {categories.map((category) => (
+                            <Option key={category.id} value={category.id}>
+                              {category.name}
+                            </Option>
+                          ))}
+                        </Select>
                       </Form.Item>
                     </Col>
                     <Col span={12}>
                       <Form.Item
-                        label="Danh mục"
-                        name="category"
-                        rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
+                        label="Featured"
+                        name="isFeatured"
+                        valuePropName="checked"
                       >
-                        <Select placeholder="Chọn danh mục">
-                          {categories.map((category) => (
-                            <Option key={category} value={category}>
-                              {category}
-                            </Option>
-                          ))}
-                        </Select>
+                        <Switch />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -863,37 +897,57 @@ const BlogAdmin: React.FC = () => {
                     />
                   </Form.Item>
 
-                  <Form.Item
-                    label={
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>Nội dung</span>
-                        <Button
-                          type="link"
-                          size="small"
-                          onClick={() => {
-                            const content = form.getFieldValue("content");
-                            if (content && !form.getFieldValue("excerpt")) {
-                              form.setFieldsValue({ excerpt: generateExcerpt(content) });
-                              message.success("Đã tự động tạo tóm tắt!");
-                            }
-                          }}
-                        >
-                          Tự động tạo tóm tắt
-                        </Button>
-                      </div>
-                    }
-                    name="content"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập nội dung!" },
-                      { min: 50, message: "Nội dung phải có ít nhất 50 ký tự!" }
-                    ]}
-                  >
-                    <TextArea 
-                      rows={12} 
-                      placeholder="Nhập nội dung chi tiết của bài viết"
-                      showCount
-                    />
-                  </Form.Item>
+<Form.Item
+  label={
+    <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <span>Nội dung</span>
+      <Button
+        type="link"
+        size="small"
+        onClick={() => {
+          const content = form.getFieldValue("content");
+          if (content && !form.getFieldValue("excerpt")) {
+            // Strip HTML tags for excerpt generation
+            const textContent = content.replace(/<[^>]*>/g, '');
+            form.setFieldsValue({ excerpt: generateExcerpt(textContent) });
+            message.success("Đã tự động tạo tóm tắt!");
+          }
+        }}
+      >
+        Tự động tạo tóm tắt
+      </Button>
+    </div>
+  }
+  name="content"
+  rules={[
+    { required: true, message: "Vui lòng nhập nội dung!" },
+    { 
+      validator: (_, value) => {
+        if (!value) return Promise.resolve();
+        const textContent = value.replace(/<[^>]*>/g, '');
+        if (textContent.length < 50) {
+          return Promise.reject(new Error("Nội dung phải có ít nhất 50 ký tự!"));
+        }
+        return Promise.resolve();
+      }
+    }
+  ]}
+>
+  <div style={{ height: '300px', marginBottom: '24px' }}>
+    <ReactQuill
+      theme="snow"
+      modules={quillModules}
+      formats={quillFormats}
+      placeholder="Nhập nội dung chi tiết của bài viết..."
+      style={{ height: '250px' }}
+      value={form.getFieldValue("content") || ""}
+      onChange={(content) => {
+        form.setFieldsValue({ content });
+        setHasChanges(true);
+      }}
+    />
+  </div>
+</Form.Item>
 
                   <Form.Item label="Ảnh đại diện" name="featuredImage">
                     <Row gutter={16}>
@@ -901,18 +955,16 @@ const BlogAdmin: React.FC = () => {
                         <Upload
                           name="image"
                           listType="picture-card"
-                          showUploadList={false}
-                          beforeUpload={() => false}
+                          showUploadList={true}
+                          customRequest={({ file, onSuccess, onError }) => {
+                            // We handle the upload manually in handleImageUpload
+                            if (onSuccess) onSuccess("ok");
+                          }}
                           onChange={handleImageUpload}
+                          accept="image/*"
+                          maxCount={1}
                         >
-                          {previewImage ? (
-                            <Image
-                              src={previewImage}
-                              alt="Preview"
-                              style={{ width: "100%", height: 100, objectFit: "cover" }}
-                              preview={false}
-                            />
-                          ) : (
+                          {!previewImage && (
                             <div>
                               {uploading ? <LoadingOutlined /> : <PictureOutlined />}
                               <div style={{ marginTop: 8 }}>
@@ -925,9 +977,9 @@ const BlogAdmin: React.FC = () => {
                       <Col span={12}>
                         <div style={{ padding: 8, background: "#f5f5f5", borderRadius: 4 }}>
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            • Kích thước đề xuất: 800x600px<br/>
-                            • Định dạng: JPG, PNG<br/>
-                            • Dung lượng tối đa: 2MB
+                            • Định dạng: JPG, PNG, GIF, WEBP<br/>
+                            • Không giới hạn kích thước file<br/>
+                            • Không giới hạn kích thước ảnh
                           </Text>
                         </div>
                       </Col>
@@ -947,9 +999,9 @@ const BlogAdmin: React.FC = () => {
                       </Button>
                     </Space>
                   </Form.Item>
-                </Form>
-              )
-            },
+                  </div>
+                )
+              },
             {
               key: "preview",
               label: (
@@ -1034,9 +1086,11 @@ const BlogAdmin: React.FC = () => {
             }
           ]}
         />
+        </Form>
       </Modal>
     </div>
   );
 };
 
 export default BlogAdmin;
+

@@ -1,11 +1,11 @@
-import {Form, Input, Button, DatePicker, Upload, Row, Col, Alert, message, FormInstance} from "antd";
+import {Form, Input, Button, DatePicker, Upload, Row, Col, Alert, message, FormInstance, Space} from "antd";
 import {
     UploadOutlined,
     UserOutlined,
     PhoneOutlined,
     HomeOutlined,
     CalendarOutlined,
-    ArrowLeftOutlined
+
 } from "@ant-design/icons";
 import {UpdateProfileDto, UsersResponseDto} from "../../../@type/UserResponseDto";
 import "./ProfileForm.css";
@@ -25,7 +25,7 @@ interface Props {
 
 }
 
-const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, onBack, user}) => {
+const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, user}) => {
     const [hasChanges, setHasChanges] = useState(false);
     const [avatarFile, setAvatarFile] = useState<any>(null);
 
@@ -188,36 +188,22 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, on
 
 
             <Form.Item className="action-buttons">
-                <Row justify="space-between" align="middle" style={{ width: "100%" }}>
-                    <Col>
-                        <Button
-                            type="link"
-                            icon={<ArrowLeftOutlined />}
-                            onClick={onBack}
-                            style={{ marginBottom: 16 }}
-                        >
-                            Quay lại
-                        </Button>
-                    </Col>
-                    <Col>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            loading={submitting}
-                            size="large"
-                            className="save-button"
-                        >
-                            Lưu thay đổi
-                        </Button>
-                        <Button
-                            style={{ marginLeft: 8 }}
-                            onClick={openChangePassword}
-                            size="large"
-                        >
-                            Đổi mật khẩu
-                        </Button>
-                    </Col>
-                </Row>
+
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={submitting}
+                                size="large"
+                            >
+                                Lưu thay đổi
+                            </Button>
+                            <Button onClick={openChangePassword} size="large" style={{backgroundColor: "#FCC61D", color:"#fff"}}>
+                                Đổi mật khẩu
+                            </Button>
+                        </div>
+
+
             </Form.Item>
         </Form>
     );

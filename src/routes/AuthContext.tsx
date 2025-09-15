@@ -31,8 +31,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     });
 
-
-
     const login = (token: string, user: User, rememberMe: boolean = true) => {
         if (rememberMe) {
             localStorage.setItem("accessToken", token);
@@ -45,8 +43,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLoggedIn(true);
         setUser(user);
     };
-
-
 
     const logout = () => {
         localStorage.removeItem("accessToken");

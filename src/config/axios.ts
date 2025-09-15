@@ -1,19 +1,19 @@
-// src/services/api.js
+// src/config/axios.ts
 import axios from "axios";
-import {toast} from "react-toastify";
-import error = toast.error;
+import { toast } from "react-toastify";
 
 const API_BASE_URL = "https://localhost:7275/api";
 
-export const axiosInstance = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
-// @ts-ignore
 
-axiosInstance.interceptors.request.use(
+export const axiosInstance = api;
+
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -26,16 +26,13 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for debugging
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // Debug log
-    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
-    return response;
-  },
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
-    // Debug log
-    console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem("accessToken");
+      window.location.href = "/login";
+    }
     return Promise.reject(error);
   }
 );

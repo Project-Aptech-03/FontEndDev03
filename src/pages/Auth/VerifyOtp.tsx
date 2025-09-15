@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthService } from "../../services/authService";
-import { Button, Card, Form, Input, Typography, message } from "antd";
+import { Button, Form, Input, Typography, message } from "antd";
 import {ApiResponse} from "../../@type/apiResponse";
 import "./auth.css";
-const { Title, Text } = Typography;
+const {Text } = Typography;
 
 interface LocationState {
     email?: string;
@@ -89,18 +89,35 @@ const VerifyOtp: React.FC = () => {
                                 <Form.Item
                                     label={<span style={{ color: "white" }}>Mã OTP</span>}
                                     name="otp"
-                                    rules={[{required: true, message: "Vui lòng nhập mã OTP"}]}
+                                    rules={[{ required: true, message: "Vui lòng nhập mã OTP" }]}
                                 >
                                     <Input
                                         value={otp}
-                                        onChange={(e) =>
-                                            setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                                        }
-                                        maxLength={6}
-                                        placeholder="Nhập mã OTP 6 chữ số"
+                                        onChange={(e) => {
+                                            const numbersOnly = e.target.value.replace(/\D/g, "");
+                                            if (numbersOnly.length <= 6) {
+                                                setOtp(numbersOnly);
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (otp.length >= 6 && e.key !== "Backspace" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                        placeholder="______"
                                         size="large"
+                                        style={{
+                                            textAlign: "center",
+                                            letterSpacing: "16px",
+                                            fontSize: "20px",
+                                            width: "100%",
+                                        }}
                                     />
                                 </Form.Item>
+
+
+
+
 
                                 <Form.Item>
                                     <Button

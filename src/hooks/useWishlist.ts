@@ -5,7 +5,6 @@ export const useWishlist = () => {
   const [wishlist, setWishlist] = useState<Book[]>([]);
 
   useEffect(() => {
-    // Load Wishlist from localStorage
     const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
     setWishlist(savedWishlist);
   }, []);
