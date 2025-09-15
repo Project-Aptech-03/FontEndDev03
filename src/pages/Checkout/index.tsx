@@ -1,391 +1,325 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FaUser, FaMapMarkerAlt, FaPhone, FaMoneyBillWave, FaImage, FaUniversity } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import { checkoutOrder } from '../../api/orders.api';
+import { CartProduct, CheckoutAddress, AppliedCoupon, CheckoutData } from '../../@type/Orders';
 import './CheckoutPage.css';
 
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface BillingDetails {
-  firstName: string;
-  lastName: string;
-  company: string;
-  country: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  phone: string;
-  email: string;
-}
-
-interface CardDetails {
-  cardNumber: string;
-  nameOnCard: string;
-  expirationDate: string;
-  securityCode: string;
-}
-
 const CheckoutPage = () => {
-  // Default store location (example: District 1, Ho Chi Minh City)
-  const storeLocation = { latitude: 10.7769, longitude: 106.7009 };
+  const location = useLocation();
+  const navigate = useNavigate();
+  const checkoutData = location.state as CheckoutData;
 
-  const [billingDetails, setBillingDetails] = useState<BillingDetails>({
-    firstName: 'John',
-    lastName: 'Doe',
-    company: '',
-    country: 'Vietnam',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    phone: '',
-    email: 'john.doe@example.com'
-  });
-
-  const [orderNotes, setOrderNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('creditCard');
-  const [cardDetails, setCardDetails] = useState<CardDetails>({
-    cardNumber: '',
-    nameOnCard: '',
-    expirationDate: '',
-    securityCode: ''
-  });
-
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
-  // Mock cart data
-  const mockCartItems: CartItem[] = [
-    {
-      id: 1,
-      name: "Porcelain Dinner Plate (27cm)",
-      price: 59.00,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop"
-    },
-    {
-      id: 2,
-      name: "Ophelia Matte Natural Vase",
-      price: 168.00,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop"
-    },
-    {
-      id: 3,
-      name: "Luana Bowl",
-      price: 49.00,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop"
-    }
-  ];
-
-  // Geocoding using OpenStreetMap Nominatim API (free)
-  const getCoordinatesFromAddress = async (address: string): Promise<{ latitude: number; longitude: number }> => {
-    try {
-      const searchQuery = `${address}, Ho Chi Minh City, Vietnam`;
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1&countrycodes=vn`
-      );
-      
-      const data = await response.json();
-      if (data.length > 0) {
-        return {
-          latitude: parseFloat(data[0].lat),
-          longitude: parseFloat(data[0].lon)
-        };
-      }
-    } catch (error) {
-      console.warn('Geocoding failed:', error);
-    }
-    
-    // Default to store location if geocoding fails
-    return { latitude: 10.7769, longitude: 106.7009 };
-  };
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Radius of the Earth in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return Math.round(distance * 100) / 100; // Round to 2 decimal places
-  };
+  const [paymentMethod, setPaymentMethod] = useState('bankTransfer');
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   useEffect(() => {
-    // Load cart data from localStorage or use mock data
-    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartItems(savedCart.length > 0 ? savedCart : mockCartItems);
-  }, []);
-
-  const handleBillingChange = (field: keyof BillingDetails, value: string) => {
-    setBillingDetails(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleCardChange = (field: keyof CardDetails, value: string) => {
-    setCardDetails(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handlePlaceOrder = () => {
-    // Validate required fields
-    const requiredFields: (keyof BillingDetails)[] = ['firstName', 'lastName', 'email', 'phone'];
-    const missingFields = requiredFields.filter(field => !billingDetails[field]);
-    
-    if (missingFields.length > 0) {
-      alert('Please fill in all required personal information');
+    // Redirect if no checkout data
+    if (!checkoutData || !checkoutData.products || checkoutData.products.length === 0) {
+      navigate('/cart');
       return;
     }
+  }, [checkoutData, navigate]);
 
-    if (paymentMethod === 'creditCard') {
-      const cardRequiredFields: (keyof CardDetails)[] = ['cardNumber', 'nameOnCard', 'expirationDate', 'securityCode'];
-      const missingCardFields = cardRequiredFields.filter(field => !cardDetails[field]);
-      
-      if (missingCardFields.length > 0) {
-        alert('Please fill in all credit card details');
-        return;
-      }
+  const validateForm = () => {
+    if (!checkoutData?.address) {
+      alert('No address information. Please return to the cart.');
+      return false;
     }
 
-    // Process order
-    alert('Order placed successfully!');
-    // Here you would typically send the order to your backend
+    // Bank transfer and COD don't need additional validation
+    return true;
   };
 
-  // Calculate totals (shipping is calculated in Cart page)
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 0; // Shipping already calculated in Cart
-  const total = subtotal + shipping;
+  const handlePlaceOrder = async () => {
+    if (!validateForm()) return;
+
+    if (isPlacingOrder) return; // Prevent double clicking
+
+    setIsPlacingOrder(true);
+
+    // Test toast first
+    console.log('Starting order process...');
+    
+    try {
+      // Map payment method to API format
+      const paymentType = paymentMethod === 'bankTransfer' ? 'BankTransfer' : 
+                         paymentMethod === 'cashOnDelivery' ? 'COD' : 'COD';
+
+      // Prepare checkout data
+      const checkoutRequest = {
+        deliveryAddressId: checkoutData.address.id || checkoutData.address._idx,
+        paymentType: paymentType,
+        deliveryCharges: checkoutData.shipping,
+        deliveryNotes: checkoutData.orderNote || '',
+        couponCodes: checkoutData.coupon ? [checkoutData.coupon.code] : [],
+        orderItems: checkoutData.products.map(item => ({
+          productId: item.productId || item.product?.id || item.id,
+          quantity: item.quantity
+        }))
+      };
+
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 35000);
+      });
+
+      // Race between the actual request and timeout
+      const response = await Promise.race([
+        checkoutOrder(checkoutRequest),
+        timeoutPromise
+      ]) as any;
+
+      console.log('Checkout response:', response);
+
+      if (response && response.success) {
+        toast.success('Order placed successfully!');
+        navigate('/myorders');
+      } else {
+        // Handle failed response
+        const errorMessage = response?.error?.message || response?.message || 'Payment failed. Please check your payment or contact the shop for support.';
+        console.log('Order failed:', errorMessage);
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error('Error placing order:', error);
+      
+      // Always show error message regardless of error type
+      const errorMessage = error.message === 'Request timeout' 
+        ? 'Request timeout. Please check your payment or contact the shop for support.'
+        : 'Payment failed. Please check your payment or contact the shop for support.';
+      
+      console.log('Showing error toast:', errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  if (!checkoutData) {
+    return (
+      <div className="checkout-loading">
+        <p>Redirecting...</p>
+      </div>
+    );
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price);
+  };
 
   return (
-    <div className="checkoutPage">
-      {/* Page Header */}
-      <div className="pageHeader">
-        <Link to="/cart" className="backLink">
-          <FaArrowLeft /> Back to Cart
-        </Link>
-        <h1 className="pageTitle">Checkout</h1>
-      </div>
+    <div className="checkout-container">
+      <div className="checkout-content">
+        {/* YOUR ORDER - Left Sidebar */}
+        <div className="checkout-order-summary">
+          <h2>YOUR ORDER: {checkoutData.orderCode}</h2>
 
-      {/* Checkout Section */}
-      <section className="checkoutSection">
-        <div className="checkoutContent">
-          {/* Left - Checkout Form */}
-          <div className="checkoutForm">
-            <h2 className="formTitle">BILLING INFORMATION</h2>
-            <p className="formDescription">
-              Please provide your billing details to complete your order. All fields marked with * are required.
-            </p>
-
-            <form className="form">
-              {/* Personal Information */}
-              <div className="personalSection">
-                <h3 className="sectionTitle">PERSONAL INFORMATION</h3>
-                
-                <div className="formRow">
-                  <div className="formField">
-                    <label className="fieldLabel">First Name *</label>
-                    <input
-                      type="text"
-                      value={billingDetails.firstName}
-                      onChange={(e) => handleBillingChange('firstName', e.target.value)}
-                      className="inputField"
-                      placeholder="Enter your first name"
-                    />
+          <div className="order-products">
+            {checkoutData.products.map(item => (
+              <div key={item.id} className="order-product-item">
+                <div className="product-info">
+                  <div className="item-image">
+                    {item.product?.photos && item.product.photos.length > 0 ? (
+                      <img
+                        src={
+                          typeof item.product.photos[0] === 'string'
+                            ? item.product.photos[0]
+                            : item.product.photos[0].imageUrl
+                        }
+                        alt={item.product?.productName || 'Product'}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling!.setAttribute('style', 'display: flex');
+                        }}
+                      />
+                    ) : null}
+                    <div className="no-image" style={{ display: item.product?.photos && item.product.photos.length > 0 ? 'none' : 'flex' }}>
+                      <FaImage />
+                    </div>
                   </div>
-                  <div className="formField">
-                    <label className="fieldLabel">Last Name *</label>
-                    <input
-                      type="text"
-                      value={billingDetails.lastName}
-                      onChange={(e) => handleBillingChange('lastName', e.target.value)}
-                      className="inputField"
-                      placeholder="Enter your last name"
-                    />
+                  <div className="product-details">
+                    <h4>{item.product?.productName}</h4>
+                    <p className="product-quantity">Quantity: {item.quantity}</p>
                   </div>
                 </div>
-
-                <div className="formRow">
-                  <div className="formField">
-                    <label className="fieldLabel">Email Address *</label>
-                    <input
-                      type="email"
-                      value={billingDetails.email}
-                      onChange={(e) => handleBillingChange('email', e.target.value)}
-                      className="inputField"
-                      placeholder="Enter your email address"
-                    />
-                  </div>
-                  <div className="formField">
-                    <label className="fieldLabel">Phone Number *</label>
-                    <input
-                      type="tel"
-                      value={billingDetails.phone}
-                      onChange={(e) => handleBillingChange('phone', e.target.value)}
-                      className="inputField"
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
+                <div className="product-price">
+                  {formatPrice(item.totalPrice)}
                 </div>
               </div>
+            ))}
+          </div>
 
-              <div className="formField">
-                <label className="fieldLabel">Order Notes (Optional)</label>
-                <textarea
-                  value={orderNotes}
-                  onChange={(e) => setOrderNotes(e.target.value)}
-                  className="textareaField"
-                  placeholder="Notes about your order, e.g. special notes for delivery"
-                  rows={4}
-                />
+          <div className="order-summary-details">
+            <div className="summary-row">
+              <span>Subtotal:</span>
+              <span>{formatPrice(checkoutData.subtotal)}</span>
+            </div>
+            <div className="summary-row">
+              <span>Shipping fee:</span>
+              <span>{formatPrice(checkoutData.shipping)}</span>
+            </div>
+            {checkoutData.coupon && (
+              <div className="summary-row discount">
+                <span>Discount ({checkoutData.coupon.code}):</span>
+                <span>-{formatPrice(checkoutData.discount)}</span>
               </div>
+            )}
+            <div className="summary-row total">
+              <span>Total:</span>
+              <span>{formatPrice(checkoutData.total)}</span>
+            </div>
+          </div>
 
-              {/* Payment Method */}
-              <div className="paymentSection">
-                <h3 className="paymentTitle">PAYMENT METHOD</h3>
-                
-                <div className="paymentMethods">
-                  <label className="paymentMethod">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="creditCard"
-                      checked={paymentMethod === 'creditCard'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <span className="paymentLabel">Credit Card</span>
-                  </label>
-                  
-                  <label className="paymentMethod">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="paypal"
-                      checked={paymentMethod === 'paypal'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <span className="paymentLabel">PayPal</span>
-                  </label>
-                  
-                  <label className="paymentMethod">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={paymentMethod === 'cod'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <span className="paymentLabel">Cash on Delivery (COD)</span>
-                  </label>
+          {checkoutData.orderNote && (
+            <div className="order-notes">
+              <h4>Order notes:</h4>
+              <p>{checkoutData.orderNote}</p>
+            </div>
+          )}
+        </div>
+
+        {/* BILLING INFORMATION - Right Section */}
+        <div className="checkout-billing-section">
+          <h2>BILLING INFORMATION</h2>
+
+          <div className="billing-info-display">
+            {checkoutData.address ? (
+              <>
+                <div className="billing-field">
+                  <FaUser className="field-icon" />
+                  <div className="field-content">
+                    <label>Full name:</label>
+                    <span>{checkoutData.address.fullName || 'No information available'}</span>
+                  </div>
                 </div>
 
-                {paymentMethod === 'creditCard' && (
-                  <div className="cardDetails">
-                    <div className="formField">
-                      <label className="fieldLabel">Card Number</label>
-                      <input
-                        type="text"
-                        value={cardDetails.cardNumber}
-                        onChange={(e) => handleCardChange('cardNumber', e.target.value)}
-                        className="inputField"
-                        placeholder="1234 5678 9012 3456"
-                      />
-                    </div>
-                    
-                    <div className="formField">
-                      <label className="fieldLabel">Name on Card</label>
-                      <input
-                        type="text"
-                        value={cardDetails.nameOnCard}
-                        onChange={(e) => handleCardChange('nameOnCard', e.target.value)}
-                        className="inputField"
-                        placeholder="Enter name as it appears on card"
-                      />
-                    </div>
-                    
-                    <div className="formRow">
-                      <div className="formField">
-                        <label className="fieldLabel">Expiration Date (MM/YY)</label>
-                        <input
-                          type="text"
-                          value={cardDetails.expirationDate}
-                          onChange={(e) => handleCardChange('expirationDate', e.target.value)}
-                          className="inputField"
-                          placeholder="MM/YY"
-                        />
-                      </div>
-                      
-                      <div className="formField">
-                        <label className="fieldLabel">Security Code</label>
-                        <input
-                          type="text"
-                          value={cardDetails.securityCode}
-                          onChange={(e) => handleCardChange('securityCode', e.target.value)}
-                          className="inputField"
-                          placeholder="CVC"
-                        />
-                      </div>
-                    </div>
+                <div className="billing-field">
+                  <FaPhone className="field-icon" />
+                  <div className="field-content">
+                    <label>Phone number:</label>
+                    <span>{checkoutData.address.phoneNumber || 'No information available'}</span>
                   </div>
-                )}
+                </div>
 
-                <button type="button" className="submitButton" onClick={handlePlaceOrder}>
-                  PLACE ORDER
+                <div className="billing-field">
+                  <FaMapMarkerAlt className="field-icon" />
+                  <div className="field-content">
+                    <label>Address:</label>
+                    <span>
+                      {checkoutData.address.fullAddress ||
+                        checkoutData.address.displayAddress ||
+                        [
+                          checkoutData.address.addressLine,
+                          checkoutData.address.ward,
+                          checkoutData.address.district,
+                          checkoutData.address.province
+                        ].filter(Boolean).join(', ') ||
+                        'No address information'}
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="no-address">
+                <p>No address information. Please return to the cart to select an address.</p>
+                <button
+                  onClick={() => navigate('/cart')}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    background: '#4299e1',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Return to cart
                 </button>
               </div>
-            </form>
+            )}
           </div>
 
-          {/* Right - Order Summary */}
-          <div className="orderSummary">
-            <h3 className="summaryTitle">YOUR ORDER</h3>
-            
-            <div className="orderItems">
-              {cartItems.map(item => (
-                <div key={item.id} className="orderItem">
-                  <div className="itemImage">
-                    <img src={item.image} alt={item.name} />
+          {/* Payment Methods */}
+          <div className="payment-section">
+            <h3>Payment method</h3>
+
+            <div className="payment-methods">
+              <div className="payment-method">
+                <input
+                  type="radio"
+                  id="bankTransfer"
+                  name="paymentMethod"
+                  value="bankTransfer"
+                  checked={paymentMethod === 'bankTransfer'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <label htmlFor="bankTransfer">
+                  <FaUniversity className="payment-icon" />
+                  Bank transfer
+                </label>
+              </div>
+
+              <div className="payment-method">
+                <input
+                  type="radio"
+                  id="cashOnDelivery"
+                  name="paymentMethod"
+                  value="cashOnDelivery"
+                  checked={paymentMethod === 'cashOnDelivery'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                />
+                <label htmlFor="cashOnDelivery">
+                  <FaMoneyBillWave className="payment-icon" />
+                  Cash on Delivery (COD)
+                </label>
+              </div>
+            </div>
+
+            {/* QR Code for Bank Transfer */}
+            {paymentMethod === 'bankTransfer' && (
+              <div className="bank-transfer-details">
+                <div className="bank-info">
+                  <div className="bank-details">
+                    <h4>Bank transfer details</h4>
+                    <p><strong>Bank:</strong> MB Bank</p>
+                    <p><strong>Account number:</strong> 0962887472</p>
+                    <p><strong>Account holder:</strong> HOANG NHAT PHUC</p>
+                    <p><strong>Amount:</strong> {formatPrice(checkoutData.total)}</p>
+                    <p><strong>Content:</strong> Payment for order {checkoutData.orderCode}</p>
                   </div>
-                  <div className="itemDetails">
-                    <h4 className="itemName">{item.name}</h4>
-                    <p className="itemQuantity">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="itemPrice">
-                    ${(item.price * item.quantity).toFixed(2)}
+                  <div className="qr-code-container">
+                    <h4>Scan QR code to transfer</h4>
+                    <img
+                      src={`https://qr.sepay.vn/img?acc=0962887472&bank=MB&amount=${checkoutData.total}&des=Thanh Order number ${checkoutData.orderCode}`}
+                      alt="Bank Transfer QR Code"
+                      className="qr-code"
+                    />
+                    <p className="qr-note">Please transfer the correct amount and content for quick order processing</p>
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="orderTotals">
-              <div className="totalRow">
-                <span className="totalLabel">Subtotal</span>
-                <span className="totalValue">${subtotal.toFixed(2)}</span>
+                <div className="transfer-note">
+                  <p><strong>Note:</strong> Please transfer the payment before placing your order to ensure the order is processed quickly.</p>
+                </div>
               </div>
-              <div className="totalRow">
-                <span className="totalLabel">Shipping</span>
-                <span className="totalValue">Calculated in Cart</span>
-              </div>
-              <div className="totalRow final">
-                <span className="totalLabel">Total</span>
-                <span className="totalValue">${total.toFixed(2)}</span>
-              </div>
-            </div>
+            )}
           </div>
+
+          <button
+            className="place-order-btn"
+            onClick={handlePlaceOrder}
+            disabled={isPlacingOrder}
+          >
+            {isPlacingOrder ? 'Placing order...' : `Place Order - ${formatPrice(checkoutData.total)}`}
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   );
 };
