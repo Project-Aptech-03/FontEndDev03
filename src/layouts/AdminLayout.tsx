@@ -12,10 +12,8 @@ import {
   MenuUnfoldOutlined,
   HomeOutlined,
   ShopOutlined,
-
   StockOutlined,
-  FileTextOutlined
-
+  FileTextOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -25,7 +23,7 @@ const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -119,28 +117,32 @@ const AdminLayout: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider 
-        theme="dark" 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        theme="dark"
+        collapsible
+        collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
         trigger={null}
         width={250}
       >
-        <div style={{ 
-          height: 64, 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center",
-          borderBottom: "1px solid #434343"
-        }}>
+        <div
+          style={{
+            height: 64,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderBottom: "1px solid #434343",
+          }}
+        >
           {collapsed ? (
             <QuestionCircleOutlined style={{ fontSize: 24, color: "#fff" }} />
           ) : (
-            <h2 style={{ color: "#fff", margin: 0, fontSize: 18 }}>ADMIN PANEL</h2>
+            <h2 style={{ color: "#fff", margin: 0, fontSize: 18 }}>
+              ADMIN PANEL
+            </h2>
           )}
         </div>
-        
+
         <Menu
           theme="dark"
           mode="inline"
@@ -149,33 +151,38 @@ const AdminLayout: React.FC = () => {
           style={{ borderRight: 0, marginTop: 16 }}
         />
       </Sider>
-      
+
       <Layout>
-        <Header style={{ 
-          background: colorBgContainer, 
-          padding: "0 24px", 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between",
-          boxShadow: "0 1px 4px rgba(0,21,41,.08)",
-          zIndex: 1
-        }}>
+        <Header
+          style={{
+            background: colorBgContainer,
+            padding: "0 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            boxShadow: "0 1px 4px rgba(0,21,41,.08)",
+            zIndex: 1,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center" }}>
-            {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-              className: "trigger",
-              onClick: () => setCollapsed(!collapsed),
-              style: { fontSize: 18, marginRight: 16 }
-            })}
+            {React.createElement(
+              collapsed ? MenuUnfoldOutlined : MenuFoldOutlined,
+              {
+                className: "trigger",
+                onClick: () => setCollapsed(!collapsed),
+                style: { fontSize: 18, marginRight: 16 },
+              }
+            )}
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
               Trang Quản Trị
             </h2>
           </div>
-          
+
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: "pointer" }}>
-              <Avatar 
-                size="large" 
-                icon={<UserOutlined />} 
+              <Avatar
+                size="large"
+                icon={<UserOutlined />}
                 style={{ backgroundColor: "#1890ff" }}
               />
               {!collapsed && (
@@ -184,7 +191,7 @@ const AdminLayout: React.FC = () => {
             </Space>
           </Dropdown>
         </Header>
-        
+
         <Content
           style={{
             margin: "24px",
@@ -192,7 +199,7 @@ const AdminLayout: React.FC = () => {
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: 8,
-            overflow: "auto"
+            overflow: "auto",
           }}
         >
           <Outlet />

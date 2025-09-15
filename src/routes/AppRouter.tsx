@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
@@ -30,57 +30,55 @@ import EditProfile from "../pages/Profile/EditProfile/EditProfile";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
 
-
 import FAQPage from "../pages/Faq";
 import FaqAdmin from "../pages/admin/FaqAdmin";
 import MyOrders from "../pages/MyOrders";
 import ProductAttributes from "../pages/admin/ProductAttributes";
 import ProductDetail from "../pages/ProductDetail";
 
-
 export const AppRouter = () => (
-    <AuthProvider>
-        <Routes>
-            <Route element={<AuthLayout />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/verify-otp" element={<VerifyOtp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-            </Route>
+  <AuthProvider>
+    <Routes>
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Route>
 
-            <Route element={<MainLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogDetail />} />
-                <Route path="/detail-product/:id" element={<ProductDetail />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/myorders" element={<MyOrders />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/faqs" element={<FAQPage />} />
-                <Route path="/profile/edit" element={<EditProfile />} />
-                <Route path="*" element={<NotFound />} />
-            </Route>
-            {/*<Route element={<AdminRoute />}>*/}
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="users" element={<Users />} />
-                    <Route path="products" element={<Products />} />
-                    <Route path="productAttributes" element={<ProductAttributes/>}/>
-                    <Route path="stocks" element={<Stocks />} />
-                    <Route path="faqs" element={<FaqAdmin />} />
-                    <Route path="orders" element={<Orders />} />
-                    <Route path="coupons" element={<Coupons />} />
-                    <Route path="blog" element={<BlogAdmin />} />
-                </Route>
-            {/*</Route>*/}
-            <Route path="*" element={<NotFound />} />
-        </Routes>
-    </AuthProvider>
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
+        <Route path="/detail-product/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/myorders" element={<MyOrders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/faqs" element={<FAQPage />} />
+        <Route path="/profile/edit" element={<EditProfile />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+      {/*<Route element={<AdminRoute />}>*/}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="users" element={<Users />} />
+        <Route path="products" element={<Products />} />
+        <Route path="productAttributes" element={<ProductAttributes />} />
+        <Route path="stocks" element={<Stocks />} />
+        <Route path="faqs" element={<FaqAdmin />} />
+        <Route path="orders" element={<Orders />} />
+        <Route path="coupons" element={<Coupons />} />
+        <Route path="blog" element={<BlogAdmin />} />
+      </Route>
+      {/*</Route>*/}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </AuthProvider>
 );

@@ -7,6 +7,7 @@ import {
   Input,
   InputNumber,
   Select,
+  Space,
   message,
 } from "antd";
 
@@ -16,7 +17,7 @@ const Stocks = () => {
   const [data, setData] = useState([
     {
       id: 1,
-      productName: "Travel book",
+      productName: "iPhone 14",
       quantity: 10,
       previousStock: 50,
       newStock: 60,
@@ -25,12 +26,10 @@ const Stocks = () => {
       reason: "Stock replenishment",
       createdBy: "admin",
       createdDate: "2025-08-27",
-      image:
-        "https://cdn.pixabay.com/photo/2023/02/04/18/47/book-7767900_640.jpg",
     },
     {
       id: 2,
-      productName: "Science book",
+      productName: "Samsung S23",
       quantity: -5,
       previousStock: 30,
       newStock: 25,
@@ -39,8 +38,6 @@ const Stocks = () => {
       reason: "Customer order",
       createdBy: "admin",
       createdDate: "2025-08-27",
-      image:
-        "https://cdn.pixabay.com/photo/2018/01/17/18/43/book-3088775_640.jpg",
     },
   ]);
 
@@ -48,26 +45,6 @@ const Stocks = () => {
   const [form] = Form.useForm();
 
   const columns = [
-    {
-      title: "Image",
-      dataIndex: "image",
-      key: "image",
-      render: (src) =>
-        src ? (
-          <img
-            src={src}
-            alt="product"
-            style={{
-              width: 50,
-              height: 50,
-              objectFit: "cover",
-              borderRadius: 8,
-            }}
-          />
-        ) : (
-          "No image"
-        ),
-    },
     {
       title: "Product",
       dataIndex: "productName",
@@ -131,7 +108,6 @@ const Stocks = () => {
         referenceType,
         unitCost,
         reason,
-        image,
       } = values;
       const newStock = previousStock + quantity;
       const newRecord = {
@@ -145,7 +121,6 @@ const Stocks = () => {
         reason,
         createdBy: "admin",
         createdDate: new Date().toISOString().split("T")[0],
-        image,
       };
       setData([...data, newRecord]);
       message.success("Stock movement added successfully!");
@@ -167,13 +142,6 @@ const Stocks = () => {
         onCancel={() => setIsModalVisible(false)}
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="image"
-            label="Image URL"
-            rules={[{ required: true, message: "Please enter image URL" }]}
-          >
-            <Input placeholder="Enter product image URL" />
-          </Form.Item>
           <Form.Item
             name="productName"
             label="Product"
