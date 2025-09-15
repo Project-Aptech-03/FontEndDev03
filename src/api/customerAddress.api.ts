@@ -1,60 +1,12 @@
 import apiClient from '../services/api';
 import { ApiResponse } from '../@type/apiResponse';
-
-// Interface for Customer Address
-export interface CustomerAddress {
-  id: number;
-  userId: string;
-  addressName: string;
-  fullAddress: string;
-  district?: string;
-  city?: string;
-  postalCode?: string;
-  distanceKm?: number;
-  isDefault: boolean;
-  isActive: boolean;
-  createdDate: string;
-  displayAddress: string;
-}
-
-// DTOs for API calls
-export interface CreateCustomerAddressDto {
-  addressName?: string;
-  fullAddress: string;
-  district?: string;
-  city?: string;
-  postalCode?: string;
-  distanceKm?: number;
-  isDefault?: boolean;
-}
-
-export interface UpdateCustomerAddressDto {
-  addressName?: string;
-  fullAddress?: string;
-  district?: string;
-  city?: string;
-  postalCode?: string;
-  distanceKm?: number;
-  isDefault?: boolean;
-  isActive?: boolean;
-}
-
-// API Response interfaces
-export interface CustomerAddressResponse {
-  success: boolean;
-  message: string;
-  data: CustomerAddress[];
-  errors: any;
-  statusCode: number;
-}
-
-export interface SingleCustomerAddressResponse {
-  success: boolean;
-  message: string;
-  data: CustomerAddress;
-  errors: any;
-  statusCode: number;
-}
+import { 
+  CustomerAddress, 
+  CreateCustomerAddressDto, 
+  UpdateCustomerAddressDto,
+  CustomerAddressResponse,
+  SingleCustomerAddressResponse 
+} from '../@type/customerAddress';
 
 // Customer Address API methods
 export const customerAddressApi = {
@@ -117,9 +69,10 @@ export const customerAddressApi = {
     } catch (error: any) {
       console.error('Error setting default address:', error);
       return {
-        code: error.response?.status || 500,
+        success: false,
+        statusCode: error.response?.status || 500,
         message: error.response?.data?.message || 'Failed to set default address',
-        result: null
+        data: null
       };
     }
   },
@@ -132,9 +85,10 @@ export const customerAddressApi = {
     } catch (error: any) {
       console.error('Error deleting customer address:', error);
       return {
-        code: error.response?.status || 500,
+        success: false,
+        statusCode: error.response?.status || 500,
         message: error.response?.data?.message || 'Failed to delete address',
-        result: null
+        data: null
       };
     }
   }

@@ -55,3 +55,11 @@ export interface CartApiResponse {
   errors: any;
   statusCode: number;
 }
+
+export interface SingleCartItemResponse {
+  success: boolean;
+  message: string;
+  data: CartItem;
+  errors: any;
+  statusCode: number;
+}
