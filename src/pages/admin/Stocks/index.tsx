@@ -16,7 +16,7 @@ const Stocks = () => {
   const [data, setData] = useState([
     {
       id: 1,
-      productName: "iPhone 14",
+      productName: "Travel book",
       quantity: 10,
       previousStock: 50,
       newStock: 60,
@@ -30,7 +30,7 @@ const Stocks = () => {
     },
     {
       id: 2,
-      productName: "Samsung S23",
+      productName: "Science book",
       quantity: -5,
       previousStock: 30,
       newStock: 25,
