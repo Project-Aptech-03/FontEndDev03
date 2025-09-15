@@ -36,7 +36,9 @@ export interface ProductsResponseDto {
     author: string;
     productType: string;
     pages: number;
-    dimensions: string;
+    dimensionLength: number;
+    dimensionWidth: number ;
+    dimensionHeight: number;
     weight: number;
     price: number;
     stockQuantity: number;

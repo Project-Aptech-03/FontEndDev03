@@ -16,6 +16,9 @@ import {
   BackTop,
   Affix,
   List,
+  Spin,
+  Alert,
+  message
 } from "antd";
 import {
   CalendarOutlined,
@@ -31,6 +34,9 @@ import {
   LinkedinFilled,
   MessageOutlined,
 } from "@ant-design/icons";
+import { useBlog, useBlogComments, useBlogLikes, useAuthorFollows, useRecentBlogs } from "../../hooks/useBlogs";
+import { blogApi } from "../../api/blog.api";
+import { BlogResponseDto, CommentResponseDto } from "../../@type/blog";
 import "./BlogDetail.css";
 
 const { Title, Paragraph, Text } = Typography;
@@ -60,153 +66,123 @@ const CustomComment: React.FC<{
   );
 };
 
-interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  date: string;
-  category: string;
-  image: string;
-  readTime: string;
-  views: number;
-  tags: string[];
-  likes: number;
-}
-
-interface Comment {
-  id: number;
-  author: string;
-  content: string;
-  date: string;
-  rating: number;
-  avatar: string;
-}
-
 const BlogDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [blog, setBlog] = useState<BlogPost | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLiked, setIsLiked] = useState(false);
-  const [newComment, setNewComment] = useState("");
-  const [rating, setRating] = useState(0);
   const [form] = Form.useForm();
 
-  // Mock blog data - trong thực tế sẽ fetch từ API
-  const mockBlogData: BlogPost[] = [
-    {
-      id: 1,
-      title: "The Future of Reading: Digital Books vs Traditional Books",
-      excerpt: "Explore the evolving landscape of reading habits and discover whether digital books or traditional paperbacks offer the best reading experience.",
-      content: `
-        <h2>Introduction</h2>
-        <p>In today's rapidly evolving digital landscape, the way we consume literature has undergone a dramatic transformation. The debate between digital books and traditional paperbacks has become more relevant than ever, as readers worldwide grapple with choosing between the convenience of e-readers and the tactile experience of physical books.</p>
-        
-        <h2>The Rise of Digital Reading</h2>
-        <p>Digital books have revolutionized the reading experience in numerous ways. With e-readers like Kindle, Kobo, and tablet devices, readers can carry thousands of books in a single device. This convenience factor cannot be overstated - imagine having access to your entire library while traveling, without the weight and space constraints of physical books.</p>
-        
-        <p>Furthermore, digital books offer features that traditional books simply cannot match:</p>
-        <ul>
-          <li>Adjustable font sizes for better readability</li>
-          <li>Built-in dictionaries for instant word definitions</li>
-          <li>Search functionality to quickly find specific passages</li>
-          <li>Highlighting and note-taking capabilities that sync across devices</li>
-          <li>Instant access to new releases and a vast selection of titles</li>
-        </ul>
-        
-        <h2>The Enduring Appeal of Traditional Books</h2>
-        <p>Despite the digital revolution, traditional books continue to hold a special place in readers' hearts. There's something irreplaceable about the sensory experience of reading a physical book - the smell of paper, the weight of the book in your hands, and the satisfying feeling of turning pages.</p>
-        
-        <p>Research has shown that many readers retain information better when reading from physical books compared to digital screens. This might be due to the spatial memory associated with the physical location of text on a page, which helps in comprehension and recall.</p>
-        
-        <h2>Environmental Considerations</h2>
-        <p>The environmental impact of our reading choices is another crucial factor to consider. While e-readers require energy to manufacture and electricity to operate, a single device can replace hundreds of physical books over its lifetime. Traditional books, on the other hand, require paper, ink, and transportation, but they don't require ongoing energy consumption.</p>
-        
-        <h2>The Future of Reading</h2>
-        <p>As we look toward the future, it's becoming clear that the choice between digital and traditional books isn't necessarily an either-or decision. Many avid readers find themselves using both formats depending on the situation - digital for travel and convenience, physical for deep reading and collection purposes.</p>
-        
-        <p>The publishing industry continues to innovate, with enhanced e-books featuring interactive elements, audio integration, and multimedia content. Meanwhile, traditional books are seeing a resurgence in artisanal and collectible editions, emphasizing the book as both content and physical object.</p>
-        
-        <h2>Conclusion</h2>
-        <p>Ultimately, the future of reading lies not in the dominance of one format over another, but in the coexistence and complementary nature of both digital and traditional books. Each format offers unique advantages, and the best reading experience often comes from embracing both according to your needs, preferences, and circumstances.</p>
-        
-        <p>Whether you're team digital, team traditional, or happily somewhere in between, what matters most is that we continue to read, learn, and grow through the incredible power of books in all their forms.</p>
-      `,
-      author: "Sarah Johnson",
-      date: "2024-01-15",
-      category: "Technology",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=400&fit=crop",
-      readTime: "8 min read",
-      views: 1247,
-      tags: ["Digital Books", "Reading", "Technology", "E-readers", "Literature"],
-      likes: 89,
-    },
-    // Thêm các blog khác nếu cần...
-  ];
+  // API hooks
+  const { blog, loading: blogLoading, error: blogError, refetch: refetchBlog } = useBlog(Number(id));
+  const { 
+    comments, 
+    loading: commentsLoading, 
+    error: commentsError,
+    createComment,
+    likeComment,
+    unlikeComment
+  } = useBlogComments(Number(id));
+  const { likeBlog, unlikeBlog } = useBlogLikes();
+  const { followAuthor, unfollowAuthor, loading: followLoading, error: followError } = useAuthorFollows();
+  const { blogs: recentBlogs } = useRecentBlogs(3);
 
-  const mockComments: Comment[] = [
-    {
-      id: 1,
-      author: "Alex Wilson",
-      content: "Great article! I've been using both formats for years and completely agree with your balanced perspective. Digital for travel, physical for home reading.",
-      date: "2024-01-16",
-      rating: 5,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex Wilson",
-    },
-    {
-      id: 2,
-      author: "Maria Garcia",
-      content: "I was skeptical about e-readers at first, but after trying one, I'm converted! The convenience factor is just incredible, especially for someone who reads 50+ books a year.",
-      date: "2024-01-17",
-      rating: 4,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria Garcia",
-    },
-    {
-      id: 3,
-      author: "David Chen",
-      content: "Nothing beats the feel of a real book in your hands. While I appreciate the convenience of digital, I'll always prefer physical books for the experience.",
-      date: "2024-01-18",
-      rating: 4,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David Chen",
-    },
-  ];
+  // Local state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
-  useEffect(() => {
-    // Simulate API call to fetch blog data
-    const foundBlog = mockBlogData.find(b => b.id === parseInt(id || "1"));
-    if (foundBlog) {
-      setBlog(foundBlog);
-      setComments(mockComments);
+  // Calculate reading time
+  const calculateReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
+  };
+
+  // Handle blog like
+  const handleLike = async () => {
+    if (!blog) return;
+    
+    if (blog.isLikedByCurrentUser) {
+      await unlikeBlog(blog.id);
     } else {
-      navigate("/blog");
+      await likeBlog(blog.id);
     }
-  }, [id, navigate]);
+    // Refresh blog data to update like count
+    refetchBlog();
+  };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    if (blog) {
-      setBlog({
-        ...blog,
-        likes: isLiked ? blog.likes - 1 : blog.likes + 1,
-      });
+  // Handle comment like
+  const handleCommentLike = async (commentId: number, isLiked: boolean) => {
+    if (isLiked) {
+      await unlikeComment(commentId);
+    } else {
+      await likeComment(commentId);
     }
   };
 
-  const handleCommentSubmit = (values: any) => {
-    const newCommentData: Comment = {
-      id: comments.length + 1,
-      author: values.author || "Anonymous",
+  // Handle comment submit
+  const handleCommentSubmit = async (values: any) => {
+    const result = await createComment({
       content: values.comment,
-      date: new Date().toISOString().split('T')[0],
-      rating: rating || 5,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${values.author || "Anonymous"}`,
-    };
+      parentCommentId: undefined
+    });
     
-    setComments([newCommentData, ...comments]);
-    form.resetFields();
-    setRating(0);
+    if (result) {
+      form.resetFields();
+      message.success('Comment posted successfully!');
+    }
+  };
+
+  // Handle author follow
+  const handleFollowAuthor = async () => {
+    if (!blog) return;
+    
+    // Check if user is authenticated
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      message.warning('Vui lòng đăng nhập để theo dõi tác giả');
+      navigate('/login');
+      return;
+    }
+    
+    // Test endpoint first (for debugging)
+    console.log('Testing follow endpoint...');
+    try {
+      const testResult = await blogApi.testFollowEndpoint(blog.authorId);
+      console.log('Testing generic follow approach...');
+      const genericResult = await blogApi.tryGenericFollow(blog.authorId);
+      
+      setDebugInfo({
+        authorId: blog.authorId,
+        testResult: testResult,
+        genericResult: genericResult,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.log('Endpoint test failed:', error);
+      setDebugInfo({
+        authorId: blog.authorId,
+        testError: error,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    try {
+      let success = false;
+      if (isFollowing) {
+        success = await unfollowAuthor(blog.authorId);
+      } else {
+        success = await followAuthor(blog.authorId);
+      }
+      
+      if (success) {
+        setIsFollowing(!isFollowing);
+        message.success(isFollowing ? 'Đã bỏ theo dõi tác giả' : 'Đã theo dõi tác giả');
+      } else {
+        message.error(followError || 'Có lỗi xảy ra khi thực hiện thao tác');
+      }
+    } catch (error) {
+      console.error('Follow author error:', error);
+      message.error('Có lỗi xảy ra khi thực hiện thao tác');
+    }
   };
 
   const shareOnSocial = (platform: string) => {
@@ -231,8 +207,36 @@ const BlogDetail: React.FC = () => {
     }
   };
 
+  if (blogLoading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (blogError) {
+    return (
+      <Alert
+        message="Error loading blog"
+        description={blogError}
+        type="error"
+        showIcon
+        style={{ margin: '20px' }}
+      />
+    );
+  }
+
   if (!blog) {
-    return <div>Loading...</div>;
+    return (
+      <Alert
+        message="Blog not found"
+        description="The blog you're looking for doesn't exist."
+        type="warning"
+        showIcon
+        style={{ margin: '20px' }}
+      />
+    );
   }
 
   return (
@@ -252,30 +256,33 @@ const BlogDetail: React.FC = () => {
         
         <div className="blog-hero">
           <div className="blog-hero-image">
-            <img src={blog.image} alt={blog.title} />
+            <img 
+              src={blog.featuredImageUrl || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=400&fit=crop"} 
+              alt={blog.title} 
+            />
             <div className="blog-hero-overlay">
               <div className="blog-hero-content">
-                <Tag color="blue" className="hero-category">{blog.category}</Tag>
+                <Tag color="blue" className="hero-category">{blog.categoryName}</Tag>
                 <Title level={1} className="hero-title">{blog.title}</Title>
-                <Paragraph className="hero-excerpt">{blog.excerpt}</Paragraph>
+                <Paragraph className="hero-excerpt">{blog.summary}</Paragraph>
                 
                 <div className="hero-meta">
                   <Space size="large">
                     <Space>
-                      <Avatar src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${blog.author}`} />
-                      <span>{blog.author}</span>
+                      <Avatar src={blog.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${blog.authorName}`} />
+                      <span>{blog.authorName}</span>
                     </Space>
                     <Space>
                       <CalendarOutlined />
-                      <span>{new Date(blog.date).toLocaleDateString()}</span>
+                      <span>{new Date(blog.publishedDate || blog.createdDate).toLocaleDateString()}</span>
                     </Space>
                     <Space>
                       <ClockCircleOutlined />
-                      <span>{blog.readTime}</span>
+                      <span>{calculateReadingTime(blog.content)} min read</span>
                     </Space>
                     <Space>
                       <EyeOutlined />
-                      <span>{blog.views} views</span>
+                      <span>{blog.viewCount} views</span>
                     </Space>
                   </Space>
                 </div>
@@ -293,12 +300,12 @@ const BlogDetail: React.FC = () => {
             <div className="article-actions">
               <Space size="large">
                 <Button
-                  type={isLiked ? "primary" : "default"}
-                  icon={isLiked ? <HeartFilled /> : <HeartOutlined />}
+                  type={blog.isLikedByCurrentUser ? "primary" : "default"}
+                  icon={blog.isLikedByCurrentUser ? <HeartFilled /> : <HeartOutlined />}
                   onClick={handleLike}
                   className="like-button"
                 >
-                  {blog.likes}
+                  {blog.likeCount}
                 </Button>
                 
                 <Button icon={<ShareAltOutlined />} className="share-button">
@@ -337,10 +344,8 @@ const BlogDetail: React.FC = () => {
             {/* Tags */}
             <Divider />
             <div className="article-tags">
-              <Text strong style={{ marginRight: 16 }}>Tags:</Text>
-              {blog.tags.map(tag => (
-                <Tag key={tag} className="article-tag">{tag}</Tag>
-              ))}
+              <Text strong style={{ marginRight: 16 }}>Category:</Text>
+              <Tag className="article-tag">{blog.categoryName}</Tag>
             </div>
           </Card>
 
@@ -351,26 +356,20 @@ const BlogDetail: React.FC = () => {
               <span>Comments ({comments.length})</span>
             </Space>
           }>
+            {commentsError && (
+              <Alert
+                message="Error loading comments"
+                description={commentsError}
+                type="error"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+            )}
+            
             {/* Add Comment Form */}
             <div className="add-comment">
               <Title level={4}>Leave a Comment</Title>
               <Form form={form} onFinish={handleCommentSubmit} layout="vertical">
-                <Row gutter={16}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item 
-                      name="author" 
-                      label="Name"
-                      rules={[{ required: true, message: "Please enter your name" }]}
-                    >
-                      <Input placeholder="Your name" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item label="Rating">
-                      <Rate value={rating} onChange={setRating} />
-                    </Form.Item>
-                  </Col>
-                </Row>
                 <Form.Item 
                   name="comment" 
                   label="Comment"
@@ -382,7 +381,7 @@ const BlogDetail: React.FC = () => {
                   />
                 </Form.Item>
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" size="large">
+                  <Button type="primary" htmlType="submit" size="large" loading={commentsLoading}>
                     Post Comment
                   </Button>
                 </Form.Item>
@@ -393,26 +392,41 @@ const BlogDetail: React.FC = () => {
 
             {/* Comments List */}
             <div className="comments-list">
-              {comments.map(comment => (
-                <CustomComment
-                  key={comment.id}
-                  author={comment.author}
-                  avatar={comment.avatar}
-                  content={
-                    <div>
-                      <Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>
-                      <Rate disabled value={comment.rating} style={{ fontSize: 14 }} />
-                    </div>
-                  }
-                  datetime={
-                    <Space>
-                      <CalendarOutlined />
-                      <span>{new Date(comment.date).toLocaleDateString()}</span>
-                    </Space>
-                  }
-                  className="comment-item"
-                />
-              ))}
+              {commentsLoading ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Spin />
+                </div>
+              ) : (
+                comments.map(comment => (
+                  <CustomComment
+                    key={comment.id}
+                    author={comment.userName}
+                    avatar={comment.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.userName}`}
+                    content={
+                      <div>
+                        <Paragraph style={{ marginBottom: 8 }}>{comment.content}</Paragraph>
+                        <div className="comment-actions">
+                          <Button
+                            type={comment.isLikedByCurrentUser ? "primary" : "default"}
+                            icon={comment.isLikedByCurrentUser ? <HeartFilled /> : <HeartOutlined />}
+                            onClick={() => handleCommentLike(comment.id, comment.isLikedByCurrentUser)}
+                            size="small"
+                          >
+                            {comment.likeCount}
+                          </Button>
+                        </div>
+                      </div>
+                    }
+                    datetime={
+                      <Space>
+                        <CalendarOutlined />
+                        <span>{new Date(comment.createdDate).toLocaleDateString()}</span>
+                      </Space>
+                    }
+                    className="comment-item"
+                  />
+                ))
+              )}
             </div>
           </Card>
         </Col>
@@ -426,32 +440,41 @@ const BlogDetail: React.FC = () => {
                 <div className="author-info">
                   <Avatar 
                     size={80} 
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${blog.author}`} 
+                    src={blog.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${blog.authorName}`} 
                   />
                   <div className="author-details">
-                    <Title level={4}>{blog.author}</Title>
+                    <Title level={4}>{blog.authorName}</Title>
                     <Paragraph>
                       Passionate writer and book enthusiast with over 10 years of experience 
                       in literary analysis and book reviews.
                     </Paragraph>
-                    <Button type="primary" block>Follow Author</Button>
+                    <Button 
+                      type={isFollowing ? "default" : "primary"} 
+                      block
+                      onClick={handleFollowAuthor}
+                    >
+                      {isFollowing ? "Following" : "Follow Author"}
+                    </Button>
                   </div>
                 </div>
               </Card>
 
               {/* Related Articles */}
               <Card title="Related Articles" className="related-articles">
-                {mockBlogData.slice(0, 3).map(relatedBlog => (
+                {recentBlogs.slice(0, 3).map(relatedBlog => (
                   <div 
                     key={relatedBlog.id} 
                     className="related-article"
                     onClick={() => navigate(`/blog/${relatedBlog.id}`)}
                   >
-                    <img src={relatedBlog.image} alt={relatedBlog.title} />
+                    <img 
+                      src={relatedBlog.featuredImageUrl || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop"} 
+                      alt={relatedBlog.title} 
+                    />
                     <div className="related-content">
                       <Text strong className="related-title">{relatedBlog.title}</Text>
                       <Text type="secondary" className="related-date">
-                        {new Date(relatedBlog.date).toLocaleDateString()}
+                        {new Date(relatedBlog.publishedDate || relatedBlog.createdDate).toLocaleDateString()}
                       </Text>
                     </div>
                   </div>
@@ -476,6 +499,26 @@ const BlogDetail: React.FC = () => {
           </Affix>
         </Col>
       </Row>
+      
+      {/* Debug Panel - Remove in production */}
+      {debugInfo && (
+        <Card 
+          title="Debug Information" 
+          style={{ marginTop: '20px', backgroundColor: '#f5f5f5' }}
+          size="small"
+        >
+          <pre style={{ fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+          <Button 
+            size="small" 
+            onClick={() => setDebugInfo(null)}
+            style={{ marginTop: '10px' }}
+          >
+            Clear Debug Info
+          </Button>
+        </Card>
+      )}
     </div>
   );
 };

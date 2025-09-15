@@ -84,6 +84,7 @@ const AdminLayout: React.FC = () => {
       key: "profile",
       icon: <UserOutlined />,
       label: "Hồ sơ",
+      onClick: () => navigate("/profile")
     },
     {
       key: "settings",

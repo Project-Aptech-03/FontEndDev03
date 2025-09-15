@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   Row, 
@@ -20,7 +20,9 @@ import {
   Typography,
   Switch,
   Tooltip,
-  Rate
+  Rate,
+  Spin,
+  Alert
 } from "antd";
 import { 
   SearchOutlined, 
@@ -37,32 +39,25 @@ import {
   CheckOutlined,
   LoadingOutlined,
   ClockCircleOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  HeartOutlined,
+  HeartFilled,
+  MessageOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useBlogs, useFeaturedBlogs, useRecentBlogs, useBlogCrud, useBlogLikes } from "../../hooks/useBlogs";
+import { useCategories } from "../../hooks/useFilters";
+import { BlogQueryDto, CreateBlogDto, BlogListResponseDto } from "../../@type/blog";
+import { blogApi } from "../../api/blog.api";
 import "./BlogPage.css";
 
 const { Search, TextArea } = Input;
 const { Option } = Select;
 const { Title, Paragraph, Text } = Typography;
 
-interface BlogPost {
-  id: number;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  date: string;
-  category: string;
-  image: string;
-  readTime: string;
-  views: number;
-  tags: string[];
-}
-
 const Blog: React.FC = () => {
   const [searchText, setSearchText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
   const [isWriteModalVisible, setIsWriteModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("edit");
   const [previewImage, setPreviewImage] = useState<string>("");
@@ -74,108 +69,68 @@ const Blog: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
-  // Mock blog data - chuyển thành state để có thể thêm blog mới
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([
-    {
-      id: 1,
-      title: "The Future of Reading: Digital Books vs Traditional Books",
-      excerpt: "Explore the evolving landscape of reading habits and discover whether digital books or traditional paperbacks offer the best reading experience.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "Sarah Johnson",
-      date: "2024-01-15",
-      category: "Technology",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
-      readTime: "5 min read",
-      views: 1247,
-      tags: ["Digital Books", "Reading", "Technology"]
-    },
-    {
-      id: 2,
-      title: "Must-Read Books for 2024: Our Top Recommendations",
-      excerpt: "Discover the most compelling books across fiction, non-fiction, and self-help genres that should be on your reading list this year.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "Michael Chen",
-      date: "2024-01-12",
-      category: "Literature",
-      image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=250&fit=crop",
-      readTime: "8 min read",
-      views: 892,
-      tags: ["Book Reviews", "Recommendations", "2024"]
-    },
-    {
-      id: 3,
-      title: "Building Your Personal Library: A Complete Guide",
-      excerpt: "Learn how to curate and organize your personal book collection, from choosing the right books to creating the perfect reading space.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "Emily Rodriguez",
-      date: "2024-01-10",
-      category: "Lifestyle",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=250&fit=crop",
-      readTime: "6 min read",
-      views: 1563,
-      tags: ["Library", "Organization", "Lifestyle"]
-    },
-    {
-      id: 4,
-      title: "The Art of Book Collecting: Tips for Beginners",
-      excerpt: "Start your journey as a book collector with expert advice on finding rare editions, preserving books, and building a valuable collection.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "David Kim",
-      date: "2024-01-08",
-      category: "Collecting",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=250&fit=crop",
-      readTime: "7 min read",
-      views: 1034,
-      tags: ["Book Collecting", "Rare Books", "Preservation"]
-    },
-    {
-      id: 5,
-      title: "Children's Books That Inspire: Educational Reading for Kids",
-      excerpt: "Discover the best children's books that combine entertainment with education, helping young minds grow and develop through reading.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "Lisa Wang",
-      date: "2024-01-05",
-      category: "Children",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=250&fit=crop",
-      readTime: "4 min read",
-      views: 756,
-      tags: ["Children's Books", "Education", "Reading"]
-    },
-    {
-      id: 6,
-      title: "Classic Literature: Timeless Books That Shaped History",
-      excerpt: "Journey through the greatest works of literature that have stood the test of time and continue to influence readers across generations.",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...",
-      author: "Alex Thompson",
-      date: "2024-01-03",
-      category: "Literature",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
-      readTime: "9 min read",
-      views: 2341,
-      tags: ["Classics", "Literature", "History"]
-    }
-  ]);
+  // API hooks
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { likeBlog, unlikeBlog } = useBlogLikes();
+  const { createBlog, loading: createLoading } = useBlogCrud();
+
+  // Blog query state
+  const [blogQuery, setBlogQuery] = useState<BlogQueryDto>({
+    page: 1,
+    pageSize: 10,
+    isPublished: true,
+    sortBy: "CreatedDate",
+    sortOrder: "desc"
+  });
+
+  // Fetch blogs with current query
+  const { blogs, loading: blogsLoading, error: blogsError, pagination, updateQuery } = useBlogs(blogQuery);
+  const { blogs: featuredBlogs, loading: featuredLoading } = useFeaturedBlogs(5);
+  const { blogs: recentBlogs, loading: recentLoading } = useRecentBlogs(5);
+
+  // Update blog query when search or category changes
+  useEffect(() => {
+    const newQuery: BlogQueryDto = {
+      ...blogQuery,
+      search: searchText || undefined,
+      categoryId: selectedCategory,
+      page: 1 // Reset to first page when filtering
+    };
+    setBlogQuery(newQuery);
+    updateQuery(newQuery);
+  }, [searchText, selectedCategory]);
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+  };
+
+  // Handle category change
+  const handleCategoryChange = (value: number | undefined) => {
+    setSelectedCategory(value);
+  };
 
   // Handle create new blog
-  const handleCreateBlog = (values: any) => {
-    const newBlog: BlogPost = {
-      id: Math.max(...blogPosts.map(b => b.id)) + 1,
+  const handleCreateBlog = async (values: any) => {
+    const blogData: CreateBlogDto = {
       title: values.title,
-      excerpt: values.excerpt,
       content: values.content,
-      author: values.author || "Anonymous",
-      date: new Date().toISOString().split('T')[0],
-      category: values.category,
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop",
-      readTime: calculateReadTime(values.content),
-      views: 0,
-      tags: values.tags ? values.tags.split(',').map((tag: string) => tag.trim()) : []
+      summary: values.excerpt,
+      featuredImageUrl: previewImage || values.featuredImage,
+      isPublished: values.status === "published",
+      isFeatured: false,
+      categoryId: values.categoryId
     };
 
-    setBlogPosts([newBlog, ...blogPosts]);
-    setIsWriteModalVisible(false);
-    form.resetFields();
-    message.success('Blog created successfully!');
+    const result = await createBlog(blogData);
+    if (result) {
+      setIsWriteModalVisible(false);
+      form.resetFields();
+      setPreviewImage("");
+      message.success('Blog created successfully!');
+      // Refresh the blog list
+      updateQuery(blogQuery);
+    }
   };
 
   // Calculate reading time based on content length
@@ -220,23 +175,41 @@ const Blog: React.FC = () => {
   };
 
   // Handle image upload
-  const handleImageUpload = (info: any) => {
-    if (info.file.status === "uploading") {
+  const handleImageUpload = async (info: any) => {
+    const { file, fileList } = info;
+    
+    // Only process if there are files and we're not in uploading state
+    if (fileList && fileList.length > 0) {
+      const selectedFile = fileList[fileList.length - 1];
+      const actualFile = selectedFile.originFileObj || selectedFile;
+      
+      // Check if it's an image file
+      const isImage = actualFile.type?.startsWith('image/');
+      if (!isImage) {
+        message.error('Only image files are allowed!');
+        return;
+      }
+      
+      // Set uploading state
       setUploading(true);
-      return;
-    }
-    
-    if (info.file.status === "done") {
-      setUploading(false);
-      const imageUrl = URL.createObjectURL(info.file.originFileObj);
-      setPreviewImage(imageUrl);
-      form.setFieldsValue({ featuredImage: imageUrl });
-      message.success("Image uploaded successfully!");
-    }
-    
-    if (info.file.status === "error") {
-      setUploading(false);
-      message.error("Image upload failed!");
+      
+      try {
+        // Upload image to server
+        const uploadResponse = await blogApi.uploadBlogImage(actualFile);
+        
+        if (uploadResponse && uploadResponse.url) {
+          setPreviewImage(uploadResponse.url);
+          form.setFieldsValue({ featuredImage: uploadResponse.url });
+          message.success("Image uploaded successfully!");
+        } else {
+          message.error("Could not save image to server!");
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        message.error("Image upload failed!");
+      } finally {
+        setUploading(false);
+      }
     }
   };
 
@@ -269,17 +242,19 @@ const Blog: React.FC = () => {
     await handleCreateBlog(values);
   };
 
-  const categories = ["all", "Technology", "Literature", "Lifestyle", "Collecting", "Children"];
+  // Handle blog like
+  const handleLikeBlog = async (blogId: number, isLiked: boolean) => {
+    if (isLiked) {
+      await unlikeBlog(blogId);
+    } else {
+      await likeBlog(blogId);
+    }
+    // Refresh the blog list to update like counts
+    updateQuery(blogQuery);
+  };
 
-  const filteredPosts = blogPosts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchText.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchText.toLowerCase()) ||
-                         post.tags.some(tag => tag.toLowerCase().includes(searchText.toLowerCase()));
-    const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const featuredPost = blogPosts[0];
+  // Get featured post (first featured blog or first blog)
+  const featuredPost = featuredBlogs[0] || blogs[0];
 
   return (
     <div className="blog-container">
@@ -316,6 +291,7 @@ const Blog: React.FC = () => {
               placeholder="Search articles..."
               allowClear
               value={searchText}
+              onSearch={handleSearch}
               onChange={(e) => setSearchText(e.target.value)}
               prefix={<SearchOutlined />}
               size="large"
@@ -325,59 +301,73 @@ const Blog: React.FC = () => {
             <Select
               placeholder="Select category"
               value={selectedCategory}
-              onChange={setSelectedCategory}
+              onChange={handleCategoryChange}
               size="large"
               style={{ width: "100%" }}
+              loading={categoriesLoading}
+              allowClear
             >
               {categories.map(category => (
-                <Option key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                <Option key={category.id} value={category.id}>
+                  {category.name}
                 </Option>
               ))}
             </Select>
           </Col>
           <Col xs={24} sm={24} md={8}>
             <div className="filter-stats">
-              <span>{filteredPosts.length} articles found</span>
+              <span>{pagination.totalCount} articles found</span>
             </div>
           </Col>
         </Row>
       </div>
 
       {/* Featured Article */}
-      {filteredPosts.length > 0 && (
+      {featuredPost && (
         <div className="featured-article">
           <Card className="featured-card">
             <Row gutter={[24, 24]}>
               <Col xs={24} lg={12}>
                 <div className="featured-image">
-                  <img src={featuredPost.image} alt={featuredPost.title} />
-                  <div className="featured-badge">Featured</div>
+                  <img 
+                    src={featuredPost.featuredImageUrl || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop"} 
+                    alt={featuredPost.title} 
+                  />
+                  {featuredPost.isFeatured && <div className="featured-badge">Featured</div>}
                 </div>
               </Col>
               <Col xs={24} lg={12}>
                 <div className="featured-content">
                   <div className="featured-meta">
-                    <Tag color="blue">{featuredPost.category}</Tag>
+                    <Tag color="blue">{featuredPost.categoryName}</Tag>
                     <span className="featured-date">
-                      <CalendarOutlined /> {new Date(featuredPost.date).toLocaleDateString()}
+                      <CalendarOutlined /> {new Date(featuredPost.publishedDate || featuredPost.createdDate).toLocaleDateString()}
                     </span>
                   </div>
                   <h2 className="featured-title">{featuredPost.title}</h2>
-                  <p className="featured-excerpt">{featuredPost.excerpt}</p>
+                  <p className="featured-excerpt">{featuredPost.summary}</p>
                   <div className="featured-author">
-                    <Avatar src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${featuredPost.author}`} />
-                    <span>{featuredPost.author}</span>
-                    <span className="read-time">{featuredPost.readTime}</span>
+                    <Avatar src={featuredPost.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${featuredPost.authorName}`} />
+                    <span>{featuredPost.authorName}</span>
+                    <span className="read-time">{calculateReadTime(featuredPost.summary || '')}</span>
                   </div>
-                  <Button 
-                    type="primary" 
-                    size="large" 
-                    className="read-more-btn"
-                    onClick={() => navigate(`/blog/${featuredPost.id}`)}
-                  >
-                    Read Full Article
-                  </Button>
+                  <div className="featured-actions">
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      className="read-more-btn"
+                      onClick={() => navigate(`/blog/${featuredPost.id}`)}
+                    >
+                      Read Full Article
+                    </Button>
+                    <Button
+                      type={featuredPost.isLikedByCurrentUser ? "primary" : "default"}
+                      icon={featuredPost.isLikedByCurrentUser ? <HeartFilled /> : <HeartOutlined />}
+                      onClick={() => handleLikeBlog(featuredPost.id, featuredPost.isLikedByCurrentUser)}
+                    >
+                      {featuredPost.likeCount}
+                    </Button>
+                  </div>
                 </div>
               </Col>
             </Row>
@@ -388,60 +378,86 @@ const Blog: React.FC = () => {
       {/* Articles Grid */}
       <div className="articles-section">
         <h2 className="section-title">Latest Book Reviews & Articles</h2>
-        <Row gutter={[24, 24]}>
-          {filteredPosts.slice(1).map(post => (
-            <Col xs={24} sm={12} lg={8} key={post.id}>
-              <Card
-                hoverable
-                className="article-card"
-                cover={
-                  <div 
-                    className="article-image"
-                    onClick={() => navigate(`/blog/${post.id}`)}
+        {blogsError && (
+          <Alert
+            message="Error loading blogs"
+            description={blogsError}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        {blogsLoading ? (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Row gutter={[24, 24]}>
+            {blogs.map(blog => (
+              <Col xs={24} sm={12} lg={8} key={blog.id}>
+                <Card
+                  hoverable
+                  className="article-card"
+                  cover={
+                    <div 
+                      className="article-image"
+                      onClick={() => navigate(`/blog/${blog.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <img 
+                        src={blog.featuredImageUrl || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=250&fit=crop"} 
+                        alt={blog.title} 
+                      />
+                      <div className="article-overlay">
+                        <Button type="primary" ghost>
+                          Read More
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="article-meta">
+                    <Tag color="blue">{blog.categoryName}</Tag>
+                    <span className="article-date">
+                      <CalendarOutlined /> {new Date(blog.publishedDate || blog.createdDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <h3 
+                    className="article-title"
+                    onClick={() => navigate(`/blog/${blog.id}`)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <img src={post.image} alt={post.title} />
-                    <div className="article-overlay">
-                      <Button type="primary" ghost>
-                        Read More
-                      </Button>
+                    {blog.title}
+                  </h3>
+                  <p className="article-excerpt">{blog.summary}</p>
+                  <div className="article-footer">
+                    <div className="article-author">
+                      <Avatar size="small" src={blog.authorAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${blog.authorName}`} />
+                      <span>{blog.authorName}</span>
+                    </div>
+                    <div className="article-stats">
+                      <span><EyeOutlined /> {blog.viewCount}</span>
+                      <span>{calculateReadTime(blog.summary || '')}</span>
                     </div>
                   </div>
-                }
-              >
-                <div className="article-meta">
-                  <Tag color="blue">{post.category}</Tag>
-                  <span className="article-date">
-                    <CalendarOutlined /> {new Date(post.date).toLocaleDateString()}
-                  </span>
-                </div>
-                <h3 
-                  className="article-title"
-                  onClick={() => navigate(`/blog/${post.id}`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {post.title}
-                </h3>
-                <p className="article-excerpt">{post.excerpt}</p>
-                <div className="article-footer">
-                  <div className="article-author">
-                    <Avatar size="small" src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author}`} />
-                    <span>{post.author}</span>
+                  <div className="article-actions">
+                    <Button
+                      type={blog.isLikedByCurrentUser ? "primary" : "default"}
+                      icon={blog.isLikedByCurrentUser ? <HeartFilled /> : <HeartOutlined />}
+                      onClick={() => handleLikeBlog(blog.id, blog.isLikedByCurrentUser)}
+                      size="small"
+                    >
+                      {blog.likeCount}
+                    </Button>
+                    <span style={{ marginLeft: 8 }}>
+                      <MessageOutlined /> {blog.commentCount}
+                    </span>
                   </div>
-                  <div className="article-stats">
-                    <span><EyeOutlined /> {post.views}</span>
-                    <span>{post.readTime}</span>
-                  </div>
-                </div>
-                <div className="article-tags">
-                  {post.tags.map(tag => (
-                    <Tag key={tag}>{tag}</Tag>
-                  ))}
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
       </div>
 
       {/* Newsletter Section */}
@@ -509,7 +525,7 @@ const Blog: React.FC = () => {
         }}
         footer={null}
         width={1000}
-        destroyOnClose
+        destroyOnHidden
         className="write-blog-modal"
       >
         <Tabs 
@@ -567,13 +583,13 @@ const Blog: React.FC = () => {
                     <Col span={12}>
                       <Form.Item
                         label="Category"
-                        name="category"
+                        name="categoryId"
                         rules={[{ required: true, message: "Please select a category!" }]}
                       >
-                        <Select placeholder="Select category">
-                          {categories.filter(cat => cat !== "all").map(category => (
-                            <Option key={category} value={category}>
-                              {category}
+                        <Select placeholder="Select category" loading={categoriesLoading}>
+                          {categories.map(category => (
+                            <Option key={category.id} value={category.id}>
+                              {category.name}
                             </Option>
                           ))}
                         </Select>
@@ -639,18 +655,16 @@ const Blog: React.FC = () => {
                         <Upload
                           name="image"
                           listType="picture-card"
-                          showUploadList={false}
-                          beforeUpload={() => false}
+                          showUploadList={true}
+                          customRequest={({ file, onSuccess, onError }) => {
+                            // We handle the upload manually in handleImageUpload
+                            if (onSuccess) onSuccess("ok");
+                          }}
                           onChange={handleImageUpload}
+                          accept="image/*"
+                          maxCount={1}
                         >
-                          {previewImage ? (
-                            <Image
-                              src={previewImage}
-                              alt="Preview"
-                              style={{ width: "100%", height: 100, objectFit: "cover" }}
-                              preview={false}
-                            />
-                          ) : (
+                          {!previewImage && (
                             <div>
                               {uploading ? <LoadingOutlined /> : <PictureOutlined />}
                               <div style={{ marginTop: 8 }}>
@@ -663,9 +677,9 @@ const Blog: React.FC = () => {
                       <Col span={12}>
                         <div style={{ padding: 8, background: "#f5f5f5", borderRadius: 4 }}>
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            • Recommended size: 800x600px<br/>
-                            • Format: JPG, PNG<br/>
-                            • Max size: 2MB
+                            • Format: JPG, PNG, GIF, WEBP<br/>
+                            • No file size limit<br/>
+                            • No image size limit
                           </Text>
                         </div>
                       </Col>
