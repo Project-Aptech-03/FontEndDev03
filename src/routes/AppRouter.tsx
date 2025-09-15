@@ -36,6 +36,8 @@ import FaqAdmin from "../pages/admin/FaqAdmin";
 import MyOrders from "../pages/MyOrders";
 import ProductAttributes from "../pages/admin/ProductAttributes";
 import ProductDetail from "../pages/ProductDetail";
+import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRouter";
 
 
 export const AppRouter = () => (
@@ -67,7 +69,11 @@ export const AppRouter = () => (
                 <Route path="/profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
-            {/*<Route element={<AdminRoute />}>*/}
+            <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/edit" element={<EditProfile />} />
+            </Route>
+            <Route element={<AdminRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<Users />} />
@@ -79,6 +85,7 @@ export const AppRouter = () => (
                     <Route path="coupons" element={<Coupons />} />
                     <Route path="blog" element={<BlogAdmin />} />
                 </Route>
+            </Route>
             {/*</Route>*/}
             <Route path="*" element={<NotFound />} />
         </Routes>

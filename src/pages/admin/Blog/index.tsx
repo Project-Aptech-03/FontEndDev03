@@ -24,10 +24,7 @@ import {
   Image,
   Switch,
   Tooltip,
-  Progress,
-  Spin,
   Alert,
-  Pagination
 } from "antd";
 import {
   PlusOutlined,
@@ -35,7 +32,6 @@ import {
   DeleteOutlined,
   EyeOutlined,
   SearchOutlined,
-  UploadOutlined,
   FileTextOutlined,
   UserOutlined,
   CalendarOutlined,
@@ -44,7 +40,6 @@ import {
   PictureOutlined,
   CopyOutlined,
   CheckOutlined,
-  ExclamationCircleOutlined,
   LoadingOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
@@ -140,9 +135,7 @@ const BlogAdmin: React.FC = () => {
         publishDate: values.publishDate ? values.publishDate.format("YYYY-MM-DD") : "",
         updatedAt: new Date().toISOString(),
       };
-      
-      // Note: This would need to be handled differently as setBlogs is not available in this scope
-      // The blogs are managed by the useBlogs hook, so we should refresh the data instead
+
       updateQuery(blogQuery);
       setLastSaved(new Date());
       setHasChanges(false);

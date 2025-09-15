@@ -1,8 +1,12 @@
 import React from 'react';
-import {FaFilter} from 'react-icons/fa';
-import {CATEGORIES, PRICE_RANGES, MANUFACTURER} from '../../constants/filterOptions';
+import { FaFilter } from 'react-icons/fa';
+import { PRICE_RANGES } from '../../constants/filterOptions';
+import {Category, Manufacturer} from "../../@type/products";
+
 
 interface FiltersSidebarProps {
+    categories: Category[];
+    manufacturers: Manufacturer[];
     selectedCategories: string[];
     selectedPriceRange: string;
     selectedManufacturers: string[];
@@ -12,6 +16,8 @@ interface FiltersSidebarProps {
 }
 
 const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
+                                                           categories,
+                                                           manufacturers,
                                                            selectedCategories,
                                                            selectedPriceRange,
                                                            selectedManufacturers,
@@ -19,28 +25,62 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                                            onPriceFilter,
                                                            onManufacturerFilter
                                                        }) => {
-    return (<aside className="filters">
-        <div className="filterSection"><h3 className="filterTitle"><FaFilter/> Filters </h3>
-            <div className="filterGroup"><h4 className="filterGroupTitle">Categories</h4> {CATEGORIES.map(category => (
-                <label key={category} className="filterOption"> <input type="checkbox"
-                                                                       checked={selectedCategories.includes(category)}
-                                                                       onChange={() => onCategoryFilter(category)}/> {category}
-                </label>))} </div>
-            {/* Price Range */}
-            <div className="filterGroup"><h4 className="filterGroupTitle">Price Range</h4> {PRICE_RANGES.map(range => (
-                <label key={range.value} className="filterOption"> <input type="radio" name="priceRange"
-                                                                          value={range.value}
-                                                                          checked={selectedPriceRange === range.value}
-                                                                          onChange={() => onPriceFilter(range.value)}/> {range.label}
-                </label>))} </div>
-            {/* Manufacturer */}
-            <div className="filterGroup"><h4
-                className="filterGroupTitle">Manufacturer</h4> {MANUFACTURER.map(manufacturer => (
-                <label key={manufacturer} className="filterOption"> <input type="checkbox"
-                                                                           checked={selectedManufacturers.includes(manufacturer)}
-                                                                           onChange={() => onManufacturerFilter(manufacturer)}/> {manufacturer}
-                </label>))} </div>
-        </div>
-    </aside>);
+    return (
+        <aside className="filters">
+            <div className="filterSection">
+                <h3 className="filterTitle">
+                    <FaFilter /> Filters
+                </h3>
+
+                {/* Categories */}
+                <div className="filterGroup">
+                    <h4 className="filterGroupTitle">Categories</h4>
+                    {categories.map(category => (
+                        <label key={category.id} className="filterOption">
+                            <input
+                                type="checkbox"
+                                checked={selectedCategories.includes(category.categoryName)}
+                                onChange={() => onCategoryFilter(category.categoryName)}
+                            />
+                            {category.categoryName}
+                        </label>
+                    ))}
+                </div>
+
+                {/* Price Range */}
+                <div className="filterGroup">
+                    <h4 className="filterGroupTitle">Price Range</h4>
+                    {PRICE_RANGES.map(range => (
+                        <label key={range.value} className="filterOption">
+                            <input
+                                type="radio"
+                                name="priceRange"
+                                value={range.value}
+                                checked={selectedPriceRange === range.value}
+                                onChange={() => onPriceFilter(range.value)}
+                            />
+                            {range.label}
+                        </label>
+                    ))}
+                </div>
+
+                {/* Manufacturers */}
+                <div className="filterGroup">
+                    <h4 className="filterGroupTitle">Manufacturer</h4>
+                    {manufacturers.map(manufacturer => (
+                        <label key={manufacturer.id} className="filterOption">
+                            <input
+                                type="checkbox"
+                                checked={selectedManufacturers.includes(manufacturer.manufacturerName)}
+                                onChange={() => onManufacturerFilter(manufacturer.manufacturerName)}
+                            />
+                            {manufacturer.manufacturerName}
+                        </label>
+                    ))}
+                </div>
+            </div>
+        </aside>
+    );
 };
+
 export default FiltersSidebar;

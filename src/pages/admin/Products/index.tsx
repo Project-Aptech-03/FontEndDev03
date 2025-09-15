@@ -33,7 +33,7 @@ const Products = () => {
     handleUpdateProduct,
     handleDeleteProduct,
     refetch,
-    fetchProducts, // Assuming this function exists to fetch with params
+    fetchProducts,
   } = useAdminProducts();
 
   const showModal = (product: ProductType | null = null) => {
