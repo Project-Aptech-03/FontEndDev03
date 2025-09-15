@@ -28,6 +28,7 @@ const Products = () => {
     categories,
     manufacturers,
     publishers,
+    totalCount,
     handleCreateProduct,
     handleUpdateProduct,
     handleDeleteProduct,
@@ -256,6 +257,7 @@ const Products = () => {
                   products={products}
                   loading={loading}
                   onEdit={showModal}
+                  totalItems={totalCount}
                   onDelete={handleDelete}
                   pageIndex={pageIndex}
                   pageSize={pageSize}

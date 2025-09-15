@@ -13,6 +13,7 @@ interface ProductTableProps {
     onDelete: (id: number) => void;
     pageIndex?: number;
     pageSize?: number;
+    totalItems?: number;
     keyword?: string;
     onPageChange?: (page: number, size: number) => void;
     onSearch?: (keyword: string) => void;
@@ -22,6 +23,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                                        loading,
                                                        onEdit,
                                                        onDelete,
+                                                       totalItems = 0,
                                                        pageIndex = 1,
                                                        pageSize = 10,
                                                        keyword = '',
@@ -416,6 +418,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                     current: pageIndex,
                     pageSize,
                     showSizeChanger: !isSmallScreen,
+                    total: totalItems,
                     pageSizeOptions: ['5', '10', '20', '50'],
                     showQuickJumper: !isSmallScreen,
                     showTotal: (total, range) => (
