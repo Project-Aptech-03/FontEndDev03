@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Book } from '../@type/book';
 import { getProducts } from '../api/products.api';
@@ -5,7 +6,7 @@ import { getProducts } from '../api/products.api';
 const mapProductsToBooks = (products: any[]): Book[] => {
   return products.map((p) => ({
     id: p.id,
-    title: p.productName,           // productName → title
+    title: p.productName,
     author: p.author,
     price: p.price,
     originalPrice: undefined,
@@ -16,7 +17,7 @@ const mapProductsToBooks = (products: any[]): Book[] => {
     category: p.category?.categoryName,
     manufacturer: p.manufacturer?.manufacturerName,
     publisher: p.publisher?.publisherName,
-    image: p.photos?.[0]?.photoUrl || '', // ảnh đầu tiên làm image
+    image: p.photos?.[0]?.photoUrl || '',
     photos: p.photos?.map((photo: { photoUrl: string; }) => photo.photoUrl) || [],
     productCode: p.productCode,
     productType: p.productType,
@@ -28,7 +29,21 @@ const mapProductsToBooks = (products: any[]): Book[] => {
   }));
 };
 
-export const useBooks = (pageIndex: number = 1, pageSize: number = 20) => {
+interface UseBooksParams {
+  pageIndex?: number;
+  pageSize?: number;
+  keyword?: string;
+  categoriesId?: number;
+  manufacturerId?: number;
+}
+
+export const useBooks = (
+    pageIndex: number = 1,
+    pageSize: number = 20,
+    keyword?: string,
+    categoriesId?: number,
+    manufacturerId?: number
+) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +56,13 @@ export const useBooks = (pageIndex: number = 1, pageSize: number = 20) => {
         setLoading(true);
         setError(null);
 
-        const response = await getProducts(pageIndex, pageSize);
+        const response = await getProducts(
+            pageIndex,
+            pageSize,
+            keyword,
+            categoriesId,
+            manufacturerId
+        );
 
         if (response.success && response.data) {
           const mappedBooks = mapProductsToBooks(response.data.items);
@@ -63,7 +84,7 @@ export const useBooks = (pageIndex: number = 1, pageSize: number = 20) => {
     };
 
     fetchBooks();
-  }, [pageIndex, pageSize]);
+  }, [pageIndex, pageSize, keyword, categoriesId, manufacturerId]);
 
   return {
     books,

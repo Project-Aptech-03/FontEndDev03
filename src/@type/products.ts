@@ -41,8 +41,10 @@ export interface Products {
   author: string;
   productType: string;
   pages: number | null;
-  dimensions: string;
-  weight: number;
+  dimensionLength?: number | null;
+  dimensionWidth?: number | null;
+  dimensionHeight?: number | null;
+  weight?: number | null;
   price: number;
   stockQuantity: number;
   isActive: boolean;
@@ -62,9 +64,11 @@ export interface ProductFormData {
   description: string;
   author: string;
   productType: string;
-  pages: number;
-  dimensions: string;
-  weight: number;
+  pages?: number | null;
+  dimensionLength?: number | null;
+  dimensionWidth?: number | null;
+  dimensionHeight?: number | null;
+  weight?: number | null;
   price: number;
   stockQuantity: number;
   isActive: boolean;
@@ -86,7 +90,7 @@ export const toFormData = (data: ProductFormData): FormData => {
     if (value === undefined || value === null) return;
 
     if (Array.isArray(value)) {
-      // Nếu là array ảnh (photos)
+
       value.forEach((file: any) => {
         if (file.originFileObj) {
           formData.append(key, file.originFileObj);

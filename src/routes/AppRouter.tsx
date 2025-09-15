@@ -6,7 +6,6 @@ import Contact from "../pages/Contact";
 import About from "../pages/About";
 import Checkout from "../pages/Checkout";
 import Shop from "../pages/Shop";
-import DetailProduct from "../pages/DetailProduct";
 import Cart from "../pages/Cart";
 import NotFound from "../pages/NotFound";
 import Blog from "../pages/Blog";
@@ -17,7 +16,6 @@ import WishlistPage from "../pages/Wishlist";
 import Users from "../pages/admin/Users";
 import Dashboard from "../pages/admin/Dashboard";
 import Products from "../pages/admin/Products";
-import Manufacturers from "../pages/admin/Manufacturers";
 import Stocks from "../pages/admin/Stocks";
 import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
@@ -37,8 +35,10 @@ import FAQPage from "../pages/Faq";
 import FaqAdmin from "../pages/admin/FaqAdmin";
 import MyOrders from "../pages/MyOrders";
 import ProductAttributes from "../pages/admin/ProductAttributes";
+import ProductDetail from "../pages/ProductDetail";
+import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRouter";
 
-// import FaqAdmin from "../pages/admin/FaqAdmin";
 
 export const AppRouter = () => (
     <AuthProvider>
@@ -60,7 +60,7 @@ export const AppRouter = () => (
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:id" element={<BlogDetail />} />
-                <Route path="/detail-product/:id" element={<DetailProduct />} />
+                <Route path="/detail-product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/myorders" element={<MyOrders />} />
@@ -69,7 +69,11 @@ export const AppRouter = () => (
                 <Route path="/profile/edit" element={<EditProfile />} />
                 <Route path="*" element={<NotFound />} />
             </Route>
-            {/*<Route element={<AdminRoute />}>*/}
+            <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/edit" element={<EditProfile />} />
+            </Route>
+            <Route element={<AdminRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<Users />} />
@@ -81,6 +85,7 @@ export const AppRouter = () => (
                     <Route path="coupons" element={<Coupons />} />
                     <Route path="blog" element={<BlogAdmin />} />
                 </Route>
+            </Route>
             {/*</Route>*/}
             <Route path="*" element={<NotFound />} />
         </Routes>

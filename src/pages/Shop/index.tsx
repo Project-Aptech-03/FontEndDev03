@@ -1,76 +1,165 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import './BookStore.css';
 import { useBooks } from '../../hooks/useBooks';
 import { useWishlist } from '../../hooks/useWishlist';
-import { useFilters } from '../../hooks/useFilters';
-import { usePagination } from '../../hooks/usePagination';
 import HeroSection from '../../components/Shop/HeroSection';
 import FiltersSidebar from '../../components/Shop/FiltersSidebar';
 import BooksGrid from '../../components/Shop/BooksGrid';
-import Pagination from '../../components/Shop/Pagination';
 import LoadingSpinner from '../../components/Shop/LoadingSpinner';
+import { usePagination } from '../../hooks/usePagination';
+import {Category, Manufacturer} from "../../@type/products";
+import {getCategory} from "../../api/category.api";
+import {getManufacturers} from "../../api/manufacturer.api";
+
 
 const BookStore = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
-  
-  const { books, loading, error, totalCount, totalPages } = useBooks(currentPage, pageSize);
+  const [filters, setFilters] = useState({
+    keyword: '',
+    selectedCategories: [] as string[],
+    selectedPriceRange: '',
+    selectedManufacturers: [] as string[]
+  });
+  const [sortBy, setSortBy] = useState('title');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const pageSize = 6;
+
   const { handleWishlistToggle, isInWishlist } = useWishlist();
-  
-  const {
-    filteredBooks,
-    selectedCategories,
-    selectedPriceRange,
-    selectedManufacturers,
-    sortBy,
-    handleCategoryFilter,
-    handlePriceFilter,
-    handleManufacturerFilter,
-    handleSort
-  } = useFilters(books);
+  const { books, loading } = useBooks(1, 1000, filters.keyword);
 
-  const { currentBooks } = usePagination(filteredBooks, 9, totalPages);
+  // Fetch categories + manufacturers
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const categoryRes = await getCategory(1, 100);
+        setCategories(categoryRes.data.items);
 
-  const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+        const manufacturerRes = await getManufacturers(1, 100);
+        setManufacturers(manufacturerRes.data.items);
+      } catch (error) {
+        console.error('Error fetching filter options', error);
+      }
+    };
+    fetchFilters();
+  }, []);
+
+  // Filter + sort client-side
+  const filteredBooks = useMemo(() => {
+    let filtered = [...books];
+
+    if (filters.selectedCategories.length > 0) {
+      filtered = filtered.filter(book =>
+          filters.selectedCategories.includes(book.category || '')
+      );
+    }
+
+    if (filters.selectedManufacturers.length > 0) {
+      filtered = filtered.filter(book =>
+          filters.selectedManufacturers.includes(book.manufacturer || '')
+      );
+    }
+
+    if (filters.selectedPriceRange) {
+      const [min, max] = filters.selectedPriceRange.split('-').map(Number);
+      filtered = filtered.filter(book => {
+        const price = book.price;
+        if (max) return price >= min && price <= max;
+        return price >= min;
+      });
+    }
+
+    switch (sortBy) {
+      case 'price-asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'title':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'rating':
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+    }
+
+    return filtered;
+  }, [books, filters, sortBy]);
+
+  const { currentPage, currentBooks, totalPages, paginate, resetPagination } = usePagination({
+    books: filteredBooks,
+    booksPerPage: pageSize
+  });
+
+  const handleCategoryFilter = (category: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedCategories: prev.selectedCategories.includes(category)
+          ? prev.selectedCategories.filter(c => c !== category)
+          : [...prev.selectedCategories, category]
+    }));
+    resetPagination();
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  const handlePriceFilter = (range: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedPriceRange: prev.selectedPriceRange === range ? '' : range
+    }));
+    resetPagination();
+  };
+
+  const handleManufacturerFilter = (manufacturer: string) => {
+    setFilters(prev => ({
+      ...prev,
+      selectedManufacturers: prev.selectedManufacturers.includes(manufacturer)
+          ? prev.selectedManufacturers.filter(m => m !== manufacturer)
+          : [...prev.selectedManufacturers, manufacturer]
+    }));
+    resetPagination();
+  };
+
+  const handleSort = (sortType: string) => {
+    setSortBy(sortType);
+    resetPagination();
+  };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="bookstore">
-      <HeroSection />
+      <div>
+        <HeroSection />
+        <div className="mainContent">
+          <FiltersSidebar
+              selectedCategories={filters.selectedCategories}
+              selectedPriceRange={filters.selectedPriceRange}
+              selectedManufacturers={filters.selectedManufacturers}
+              onCategoryFilter={handleCategoryFilter}
+              onPriceFilter={handlePriceFilter}
+              onManufacturerFilter={handleManufacturerFilter}
+              categories={categories}
+              manufacturers={manufacturers}
+          />
 
-      <div className="mainContent">
-        <FiltersSidebar
-          selectedCategories={selectedCategories}
-          selectedPriceRange={selectedPriceRange}
-          selectedManufacturers={selectedManufacturers}
-          onCategoryFilter={handleCategoryFilter}
-          onPriceFilter={handlePriceFilter}
-          onManufacturerFilter={handleManufacturerFilter}
-        />
-
-        <BooksGrid
-          books={books}
-          filteredBooks={filteredBooks}
-          currentBooks={currentBooks}
-          sortBy={sortBy}
-          onSort={handleSort}
-          isInWishlist={isInWishlist}
-          onWishlistToggle={handleWishlistToggle}
-          totalCount={totalCount}
-        />
-        
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPaginate={handlePageChange}
-        />
+          <div className="booksSectionWrapper">
+            <div className="booksGridContainer">
+              <BooksGrid
+                  books={books}
+                  filteredBooks={filteredBooks}
+                  currentBooks={currentBooks}
+                  sortBy={sortBy}
+                  onSort={handleSort}
+                  isInWishlist={isInWishlist}
+                  onWishlistToggle={handleWishlistToggle}
+                  totalCount={filteredBooks.length}
+                  pageSize={pageSize}
+                  currentPage={currentPage}
+                  onPageChange={paginate}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
   );
 };
 

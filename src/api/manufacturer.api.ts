@@ -1,13 +1,16 @@
 import apiClient from "../services/api";
 import { ApiResponse, PagedResult } from "../@type/apiResponse";
-import {ManufacturerDto, ProductsResponseDto} from "../@type/productsResponse";
-import Manufacturers from "../pages/admin/Manufacturers";
+import {ManufacturerDto,} from "../@type/productsResponse";
+import {Manufacturer} from "../@type/products";
 
-// Lấy danh sách manufacturer (có phân trang)
-export const getManufacturers = async (pageIndex: number, pageSize: number) => {
-    const res = await apiClient.get<ApiResponse<PagedResult<ProductsResponseDto>>>(
+export const getManufacturers = async (
+    pageIndex: number,
+    pageSize: number,
+    keyword?: string
+) => {
+    const res = await apiClient.get<ApiResponse<PagedResult<Manufacturer>>>(
         "/manufacturers",
-        { params: { pageIndex, pageSize } }
+        { params: { pageNumber: pageIndex, pageSize, keyword } }
     );
     return res.data;
 };

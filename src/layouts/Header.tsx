@@ -207,7 +207,6 @@ const Header: React.FC = () => {
                 <span style={logoTextStyle}>MOON.</span>
             </div>
 
-            {/* Navigation Menu */}
             <Menu
                 mode="horizontal"
                 selectedKeys={[location.pathname]}
