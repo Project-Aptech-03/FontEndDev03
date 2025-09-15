@@ -1,6 +1,6 @@
 import { axiosInstance } from '../config/axios';
 import { endpoints } from '../config/endpoint';
-import { CartApiResponse, CartItem } from '../@type/cart';
+import { CartApiResponse, CartItem, SingleCartItemResponse } from '../@type/cart';
 
 export const cartApi = {
   // Get cart items
@@ -29,7 +29,7 @@ export const cartApi = {
   },
 
   // Update cart item quantity
-  updateCartItem: async (cartItemId: number, quantity: number): Promise<CartApiResponse> => {
+  updateCartItem: async (cartItemId: number, quantity: number): Promise<SingleCartItemResponse> => {
     try {
       const response = await axiosInstance.put(
         endpoints.updateCartItem.replace('{id}', cartItemId.toString()),
@@ -51,6 +51,17 @@ export const cartApi = {
       return response.data;
     } catch (error) {
       console.error('Error removing from cart:', error);
+      throw error;
+    }
+  },
+
+  // Clear entire cart
+  clearCart: async (): Promise<CartApiResponse> => {
+    try {
+      const response = await axiosInstance.delete(endpoints.clearCart);
+      return response.data;
+    } catch (error) {
+      console.error('Error clearing cart:', error);
       throw error;
     }
   }

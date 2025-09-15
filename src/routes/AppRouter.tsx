@@ -1,4 +1,6 @@
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Home from "../pages/Home";
 import Register from "../pages/Auth/Register";
 import Login from "../pages/Auth/Login";
@@ -87,5 +89,17 @@ export const AppRouter = () => (
             {/*</Route>*/}
             <Route path="*" element={<NotFound />} />
         </Routes>
+        <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+        />
     </AuthProvider>
 );

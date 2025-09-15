@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,  Phone,  Mail,  DollarSign,  ShoppingBag} from 'lucide-react';
 import './Orders.css';
-import { getAllOrders, updateOrder, Order as ApiOrder, UpdateOrderRequest } from '../../../api/orders.api';
+import { ApiOrder, UpdateOrderRequest, getProductImageUrl } from '../../../@type/Orders';
+import { getAllOrders, updateOrder } from '../../../api/orders.api';
 
 const Orders = () => {
   const [orders, setOrders] = useState<ApiOrder[]>([]);
@@ -552,7 +553,7 @@ const Orders = () => {
                     {selectedOrder.orderItems.map((item) => (
                       <div key={item.id} className="order-item-card">
                         <img
-                          src={item.product?.photos?.[0] || '/api/placeholder/60/80'}
+                          src={getProductImageUrl(item.product?.photos)}
                           alt={item.product?.productName || 'Product'}
                           className="order-item-img"
                         />

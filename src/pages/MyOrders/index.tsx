@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Eye, 
-  Truck, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  ShoppingBag,
-  RotateCcw,
-  Calendar,
-  ThumbsUp,
-  ImageOff
-} from 'lucide-react';
-import { Order, getMyOrders, cancelOrder, } from '../../api/orders.api';
+import {   Package, Eye, Truck, CheckCircle, XCircle, Clock,ShoppingBag, ArrowRight,  RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, DollarSign, AlertCircle} from 'lucide-react';
+import { ApiOrder as Order, CancelOrderRequest } from '../../@type/Orders';
+import { getMyOrders, cancelOrder } from '../../api/orders.api';
 import './MyOrder.css';
 
 const MyOrders = () => {
@@ -34,6 +23,8 @@ const MyOrders = () => {
       try {
         const response = await getMyOrders();
         if (response.success && response.result) {
+          console.log('Orders from API:', response.result.data);
+          console.log('Order statuses:', response.result.data.map(order => order.orderStatus));
           setOrders(response.result.data);
         } else {
           console.error('Failed to fetch orders:', response.error);
@@ -51,15 +42,17 @@ const MyOrders = () => {
   }, []);
 
   const getActiveOrders = () => {
-    return orders.filter(order => 
-      !['Delivered', 'Cancelled', 'Returned'].includes(order.orderStatus)
-    );
+    return orders.filter(order => {
+      const status = order.orderStatus.toLowerCase();
+      return !['delivered', 'cancelled', 'returned'].includes(status);
+    });
   };
 
   const getCompletedOrders = () => {
-    return orders.filter(order => 
-      ['Delivered', 'Cancelled', 'Returned'].includes(order.orderStatus)
-    );
+    return orders.filter(order => {
+      const status = order.orderStatus.toLowerCase();
+      return ['delivered', 'cancelled', 'returned'].includes(status);
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -87,14 +80,61 @@ const MyOrders = () => {
   const getStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       pending: 'Awaiting Confirmation',
-      confirmed: 'Confirmed',
-      processing: 'Processing',
-      shipped: 'Shipping',
+      confirmed: 'Order Confirmed',
+      processing: 'Preparing Order',
+      shipped: 'Out for Delivery',
       delivered: 'Delivered',
       cancelled: 'Cancelled',
       returned: 'Returned'
     };
     return statusMap[status.toLowerCase()] || status;
+  };
+
+  const getPaymentStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      pending: 'Payment Pending',
+      paid: 'Payment Complete',
+      unpaid: 'Payment Required',
+      refunded: 'Refunded',
+      failed: 'Payment Failed'
+    };
+    return statusMap[status.toLowerCase()] || status;
+  };
+
+  const getPaymentStatusIcon = (status: string) => {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'paid':
+        return <CheckCircle size={12} />;
+      case 'pending':
+        return <Clock size={12} />;
+      case 'unpaid':
+        return <AlertCircle size={12} />;
+      case 'refunded':
+        return <RotateCcw size={12} />;
+      case 'failed':
+        return <XCircle size={12} />;
+      default:
+        return <CreditCard size={12} />;
+    }
+  };
+
+  const getPaymentStatusClass = (status: string) => {
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'paid':
+        return 'payment-paid';
+      case 'pending':
+        return 'payment-pending';
+      case 'unpaid':
+        return 'payment-unpaid';
+      case 'refunded':
+        return 'payment-refunded';
+      case 'failed':
+        return 'payment-failed';
+      default:
+        return 'payment-unknown';
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -284,9 +324,15 @@ const MyOrders = () => {
                     <span className="order-number">#{order.orderNumber}</span>
                     <span className="order-date">{formatDate(order.orderDate)}</span>
                   </div>
-                  <div className={`order-status-compact status-${order.orderStatus.toLowerCase()}`}>
-                    {getStatusIcon(order.orderStatus)}
-                    <span>{getStatusText(order.orderStatus)}</span>
+                  <div className="order-status-row">
+                    <div className={`order-status-compact status-${order.orderStatus.toLowerCase()}`}>
+                      {getStatusIcon(order.orderStatus)}
+                      <span>{getStatusText(order.orderStatus)}</span>
+                    </div>
+                    <div className={`payment-status-compact ${getPaymentStatusClass(order.paymentStatus)}`}>
+                      {getPaymentStatusIcon(order.paymentStatus)}
+                      <span>{getPaymentStatusText(order.paymentStatus)}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -464,19 +510,6 @@ const MyOrders = () => {
               <div className="modal-header">
                 <h2 className="modal-title">Order Details #{selectedOrder.orderNumber}</h2>
                 <div className="modal-header-actions">
-                  {canCancelOrder(selectedOrder.orderStatus) && (
-                    <button 
-                      onClick={() => {
-                        setIsDetailModalOpen(false);
-                        handleCancelOrder(selectedOrder.id);
-                      }}
-                      className="action-btn-compact btn-cancel"
-                      style={{ marginRight: '10px' }}
-                    >
-                      <XCircle size={14} />
-                      Cancel Order
-                    </button>
-                  )}
                   <button 
                     onClick={() => setIsDetailModalOpen(false)}
                     className="close-btn"
