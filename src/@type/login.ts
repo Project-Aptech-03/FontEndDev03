@@ -3,7 +3,13 @@ export interface LoginForm {
     email: string;
     password: string;
 }
-
+export interface AuthUser {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+    token: string;
+}
 export interface LoginErrors {
     email: string;
     password: string;

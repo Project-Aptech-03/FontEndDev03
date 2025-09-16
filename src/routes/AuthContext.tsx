@@ -1,10 +1,10 @@
 import { createContext, useState, useEffect, ReactNode, useContext } from "react";
-import { User } from "../@type/UserResponseDto";
+import {AuthUser} from "../@type/login";
 
 interface AuthContextType {
     isLoggedIn: boolean;
-    user: User | null;
-    login: (token: string, user: User, rememberMe?: boolean) => void;
+    user: AuthUser | null;
+    login: (response: AuthUser, rememberMe?: boolean) => void;
     logout: () => void;
     loading: boolean;
 }
@@ -19,23 +19,19 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
         const savedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
 
-        if (token && savedUser && savedUser !== "undefined" && savedUser !== "false") {
+        if (token && savedUser) {
             try {
-                const parsed = JSON.parse(savedUser);
-                // đảm bảo parsed phải là object
-                if (parsed && typeof parsed === "object" && "role" in parsed) {
+                const parsed: AuthUser = JSON.parse(savedUser);
+                if (parsed?.token === token) {
                     setUser(parsed);
                     setIsLoggedIn(true);
-                } else {
-                    setUser(null);
-                    setIsLoggedIn(false);
                 }
             } catch {
                 setUser(null);
@@ -45,23 +41,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setLoading(false);
     }, []);
 
-    const login = (token: string, user: User, rememberMe: boolean = true) => {
+    const login = (response: AuthUser, rememberMe: boolean = true) => {
         if (rememberMe) {
-            localStorage.setItem("accessToken", token);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("accessToken", response.token);
+            localStorage.setItem("user", JSON.stringify(response));
         } else {
-            sessionStorage.setItem("accessToken", token);
-            sessionStorage.setItem("user", JSON.stringify(user));
+            sessionStorage.setItem("accessToken", response.token);
+            sessionStorage.setItem("user", JSON.stringify(response));
         }
         setIsLoggedIn(true);
-        setUser(user);
+        setUser(response);
     };
 
     const logout = () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        sessionStorage.removeItem("accessToken");
-        sessionStorage.removeItem("user");
+        localStorage.clear();
+        sessionStorage.clear();
         setIsLoggedIn(false);
         setUser(null);
     };

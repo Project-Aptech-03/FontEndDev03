@@ -21,18 +21,14 @@ import Products from "../pages/admin/Products";
 import Stocks from "../pages/admin/Stocks";
 import Orders from "../pages/admin/Orders";
 import Coupons from "../pages/admin/Coupons";
-
 import BlogAdmin from "../pages/admin/Blog";
 import BlogDetail from "../pages/Blog/BlogDetail";
-
 import Profile from "../pages/Profile";
 import VerifyOtp from "../pages/Auth/VerifyOtp";
 import { AuthProvider } from "./AuthContext";
 import EditProfile from "../pages/Profile/EditProfile/EditProfile";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
-
-
 import FAQPage from "../pages/Faq";
 import FaqAdmin from "../pages/admin/FaqAdmin";
 import MyOrders from "../pages/MyOrders";
@@ -41,10 +37,10 @@ import ProductDetail from "../pages/ProductDetail";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRouter";
 
-
 export const AppRouter = () => (
     <AuthProvider>
         <Routes>
+            {/* Public Auth Routes */}
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -53,11 +49,11 @@ export const AppRouter = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
             </Route>
 
+            {/* Public Routes */}
             <Route element={<MainLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
-                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/blog" element={<Blog />} />
@@ -65,20 +61,25 @@ export const AppRouter = () => (
                 <Route path="/detail-product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/wishlist" element={<WishlistPage />} />
-                <Route path="/myorders" element={<MyOrders />} />
                 <Route path="/faqs" element={<FAQPage />} />
-                <Route path="*" element={<NotFound />} />
+                <Route path="/myorders" element={<MyOrders />} />
             </Route>
+
+            {/* Protected Routes - cần đăng nhập */}
             <Route element={<ProtectedRoute />}>
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/profile/edit" element={<EditProfile />} />
+                <Route element={<MainLayout />}>
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile/edit" element={<EditProfile />} />
+                </Route>
             </Route>
             <Route element={<AdminRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<Dashboard />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="users" element={<Users />} />
                     <Route path="products" element={<Products />} />
-                    <Route path="productAttributes" element={<ProductAttributes />} />
+                    <Route path="productAttributes" element={<ProductAttributes/>}/>
                     <Route path="stocks" element={<Stocks />} />
                     <Route path="faqs" element={<FaqAdmin />} />
                     <Route path="orders" element={<Orders />} />
@@ -86,7 +87,8 @@ export const AppRouter = () => (
                     <Route path="blog" element={<BlogAdmin />} />
                 </Route>
             </Route>
-            {/*</Route>*/}
+
+            {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
         </Routes>
         <ToastContainer

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { loginApi } from "../../api/auth.api";
 import "./auth.css";
 import {INITIAL_FORM_DATA, INITIAL_FORM_ERRORS} from "../../constants/login.constants";
-import {LoginErrors, LoginForm} from "../../@type/login";
+import {AuthUser, LoginErrors, LoginForm,} from "../../@type/login";
 import {message, Modal, Typography} from "antd";
 import {useAuth} from "../../routes/AuthContext";
 import {ApiResponse} from "../../@type/apiResponse";
@@ -70,26 +70,23 @@ const Login: React.FC = () => {
     try {
       const res = await loginApi(formData);
       if (res.success) {
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
         const token = res.result?.data.token.token;
         const role = res.result?.data.role;
         const userName = res.result?.data.fullName;
-        if (token != null) {
-          if (rememberMe) {
-            localStorage.setItem("token", token);
-          } else {
-            sessionStorage.setItem("token", token);
-          }
-          login(token, rememberMe);
-        }
+        if (token) {
+          const userObject: AuthUser = {
+            id: res.result?.data.userId??"",
+            email: res.result?.data.email??"",
+            fullName: res.result?.data.fullName??"",
+            role: res.result?.data.role??"",
+            token: res.result?.data.token.token??"",
+          };
+          login(userObject, rememberMe);
 
-        if (res.success) {
           const messageText =
               role === "Admin"
-                  ? "Đăng nhập thành công! Chào mừng Admin: "+
-                  (userName ? ` ${userName}` : "") +"!"
+                  ? "Đăng nhập thành công! Chào mừng Admin: " +
+                  (userName ? ` ${userName}` : "") + "!"
                   : "Đăng nhập thành công! Chào mừng" +
                   (userName ? ` ${userName}` : "") +
                   "!";
@@ -100,20 +97,19 @@ const Login: React.FC = () => {
             setIsModalVisible(false);
             navigate(role === "Admin" ? "/admin/dashboard" : "/home");
           }, 2000);
-
-        } else {
-          showModal(res.error?.message || "Đăng nhập thất bại!");
-          setTimeout(() => setIsModalVisible(false), 2000);
         }
+      } else {
+        showModal(res.error?.message || "Đăng nhập thất bại!");
+        setTimeout(() => setIsModalVisible(false), 2000);
       }
-      } catch (err: any) {
-    const apiError = err?.response?.data as ApiResponse<string>;
-    if (apiError?.errors) {
-      Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
-    } else {
-      message.error(apiError?.message || "Lỗi hệ thống không xác định");
+    } catch (err: any) {
+      const apiError = err?.response?.data as ApiResponse<string>;
+      if (apiError?.errors) {
+        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+      } else {
+        message.error(apiError?.message || "Lỗi hệ thống không xác định");
+      }
     }
-  }
 };
 
   return (

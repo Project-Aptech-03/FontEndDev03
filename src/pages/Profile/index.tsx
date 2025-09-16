@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Avatar, message } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { Card, message } from "antd";
 import { UsersResponseDto } from "../../@type/UserResponseDto";
 import { getProfile } from "../../api/profile.api";
 import { useNavigate } from "react-router-dom";
@@ -45,7 +44,6 @@ const Profile: React.FC = () => {
     }, []);
 
     if (loading) return <p>Đang tải thông tin...</p>;
-    if (!user) return <p>Không tìm thấy thông tin user.</p>;
 
     return (
         <div
@@ -77,13 +75,10 @@ const Profile: React.FC = () => {
                     }}
                 />
 
-                {/* Header */}
                 <ProfileHeader user={user} />
 
-                {/* Tabs */}
                 <ProfileTabs user={user} />
 
-                {/* Actions */}
                 <ProfileActions navigate={navigate} handleLogout={handleLogout} />
             </Card>
         </div>
