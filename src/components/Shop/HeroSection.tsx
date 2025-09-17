@@ -21,7 +21,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onSearch }) => {
         <div className="heroContent">
           <h1 className="heroTitle">Accompanying you on every path</h1>
           <p className="heroSubtitle">
-              Explore our curated collection of books across all genres and categories
+              Explore our curated collection of products across all genres and categories
           </p>
           <div className="searchBar">
             <input

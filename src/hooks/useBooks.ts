@@ -1,5 +1,5 @@
-
-import { useState, useEffect } from 'react';
+// hooks/useBooks.ts
+import { useState, useEffect, useCallback } from 'react';
 import { Book } from '../@type/book';
 import { getProducts } from '../api/products.api';
 
@@ -9,16 +9,13 @@ const mapProductsToBooks = (products: any[]): Book[] => {
     title: p.productName,
     author: p.author,
     price: p.price,
-    originalPrice: undefined,
-    rating: undefined,
-    reviewCount: undefined,
     description: p.description,
     inStock: p.stockQuantity > 0,
     category: p.category?.categoryName,
     manufacturer: p.manufacturer?.manufacturerName,
     publisher: p.publisher?.publisherName,
     image: p.photos?.[0]?.photoUrl || '',
-    photos: p.photos?.map((photo: { photoUrl: string; }) => photo.photoUrl) || [],
+    photos: p.photos?.map((photo: { photoUrl: string }) => photo.photoUrl) || [],
     productCode: p.productCode,
     productType: p.productType,
     pages: p.pages,
@@ -29,68 +26,47 @@ const mapProductsToBooks = (products: any[]): Book[] => {
   }));
 };
 
-interface UseBooksParams {
-  pageIndex?: number;
-  pageSize?: number;
-  keyword?: string;
-  categoriesId?: number;
-  manufacturerId?: number;
-}
-
 export const useBooks = (
-    pageIndex: number = 1,
-    pageSize: number = 20,
-    keyword?: string,
-    categoriesId?: number,
-    manufacturerId?: number
+    initialKeyword = '',
+    initialCategoryId?: number,
+    initialManufacturerId?: number
 ) => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchBooks = useCallback(
+      async (keyword = initialKeyword, categoryId?: number, manufacturerId?: number) => {
+        try {
+          setLoading(true);
+          setError(null);
+          const response = await getProducts(1, 100, keyword, categoryId, manufacturerId);
 
-        const response = await getProducts(
-            pageIndex,
-            pageSize,
-            keyword,
-            categoriesId,
-            manufacturerId
-        );
-
-        if (response.success && response.data) {
-          const mappedBooks = mapProductsToBooks(response.data.items);
-          setBooks(mappedBooks);
-          setTotalCount(response.data.totalCount);
-          setTotalPages(response.data.totalPages);
-        } else {
-          throw new Error(response.message || 'API returned no data');
+          if (response.success && response.data) {
+            setBooks(mapProductsToBooks(response.data.items));
+          } else {
+            throw new Error(response.message || 'API returned no data');
+          }
+        } catch (err: any) {
+          console.error('Error fetching books:', err);
+          setError(err.message || 'Failed to fetch books');
+          setBooks([]);
+        } finally {
+          setLoading(false);
         }
-      } catch (err: any) {
-        console.error('Error fetching books:', err);
-        setError(err.message || 'Failed to fetch books');
-        setBooks([]);
-        setTotalCount(0);
-        setTotalPages(0);
-      } finally {
-        setLoading(false);
-      }
-    };
+      },
+      [initialKeyword, initialCategoryId, initialManufacturerId]
+  );
 
-    fetchBooks();
-  }, [pageIndex, pageSize, keyword, categoriesId, manufacturerId]);
+  // fetch ngay lần đầu
+  useEffect(() => {
+    fetchBooks(initialKeyword, initialCategoryId, initialManufacturerId);
+  }, [fetchBooks, initialKeyword, initialCategoryId, initialManufacturerId]);
 
   return {
     books,
     loading,
     error,
-    totalCount,
-    totalPages
+    fetchBooks, // ✅ trả về để BookStore gọi lại khi search
   };
 };

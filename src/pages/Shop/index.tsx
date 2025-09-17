@@ -24,14 +24,12 @@ const BookStore: React.FC = () => {
   const pageSize = 6;
 
   const { handleWishlistToggle, isInWishlist } = useWishlist();
-  const { books, loading, fetchBooks } = useBooks(1, pageSize, filters.keyword);
 
-  // Khi HeroSection search
+  const { books, loading, fetchBooks } = useBooks(filters.keyword);
   const handleSearch = (keyword: string) => {
     setFilters(prev => ({ ...prev, keyword }));
-    fetchBooks(1, pageSize, keyword); // gọi API với keyword mới
+    fetchBooks(keyword);
   };
-
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -47,7 +45,6 @@ const BookStore: React.FC = () => {
     fetchFilters();
   }, []);
 
-  // Filter + sort client-side
   const filteredBooks = useMemo(() => {
     let filtered = [...books];
 
@@ -90,13 +87,11 @@ const BookStore: React.FC = () => {
     return filtered;
   }, [books, filters, sortBy]);
 
-  // Pagination
   const { currentPage, currentBooks, paginate, resetPagination } = usePagination({
     books: filteredBooks,
     booksPerPage: pageSize
   });
 
-  // Filters handlers
   const handleCategoryFilter = (category: string) => {
     setFilters(prev => ({
       ...prev,
@@ -150,7 +145,7 @@ const BookStore: React.FC = () => {
           <div className="booksSectionWrapper">
             <div className="booksGridContainer">
               <BooksGrid
-                  books={books}
+                  books={currentBooks}
                   filteredBooks={filteredBooks}
                   currentBooks={currentBooks}
                   sortBy={sortBy}

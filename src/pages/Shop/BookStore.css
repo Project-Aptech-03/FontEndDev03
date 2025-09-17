@@ -30,7 +30,7 @@
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a202c;
   color: white;
   padding: 80px 40px;
   text-align: center;
@@ -38,7 +38,7 @@
 }
 
 .heroContent {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 

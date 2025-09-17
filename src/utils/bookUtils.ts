@@ -22,3 +22,10 @@ export const calculateDiscount = (originalPrice: number, currentPrice: number): 
   return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
 };
 
+export const getTop = <T>(
+    arr: T[],
+    compareFn: (a: T, b: T) => number,
+    count = 3
+): T[] => {
+  return [...arr].sort(compareFn).slice(0, count);
+};

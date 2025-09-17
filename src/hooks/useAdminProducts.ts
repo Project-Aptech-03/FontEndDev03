@@ -6,6 +6,8 @@ import {getCategory} from "../api/category.api";
 import {getManufacturers} from "../api/manufacturer.api";
 import {getPublishers} from "../api/publisher.api";
 import {createProduct, deleteProduct, getProducts, updateProduct} from "../api/products.api";
+import {ApiResponse} from "../@type/apiResponse";
+import {message} from "antd";
 
 const mapToAdminProduct = (product: ProductsResponseDto): Products => {
   return {
@@ -191,11 +193,14 @@ export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20, k
         await fetchProducts(pageIndex, pageSize, keyword);
         return { success: true };
       }
-
       return { success: false, error: "Failed to create product" };
-    } catch (err) {
-      console.error("Error creating product:", err);
-      return { success: false, error: "Failed to create product" };
+    }  catch (err: any) {
+      const apiError = err?.response?.data as ApiResponse<string>;
+      if (apiError?.errors) {
+        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+      } else {
+        message.error(apiError?.message || "Error creating product");
+      }
     }
   };
 

@@ -37,19 +37,21 @@ interface ResetPasswordDto {
     confirmPassword: string;
 }
 
-
-export const loginApi = async (data: LoginForm): Promise<{ success: boolean; data: LoginResultDto; errors?: any }> => {
+export const loginApi = async (data: LoginForm): Promise<LoginResultDto> => {
     try {
         const res = await apiClient.post("/auth/login", data);
-        return res.data;
+        return res.data as LoginResultDto;
     } catch (err: any) {
         return {
             success: false,
-            data: {} as LoginResultDto,
+            message: "Đăng nhập thất bại!",
+            data: {} as LoginData,
             errors: err?.response?.data?.errors || { message: err?.message },
+            statusCode: err?.response?.status || 500,
         };
     }
 };
+
 
 
 export const forgotPasswordApi = async (email: string) => {

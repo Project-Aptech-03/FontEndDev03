@@ -8,6 +8,7 @@ import ProductActions from './ProductActions';
 import ProductServices from './ProductServices';
 import ProductDetailTabs from './ProductDetailTabs';
 import {cartApi} from "../../api/cart.api";
+import {useNavigate} from "react-router-dom";
 
 interface ProductInfoProps {
     product: ProductsResponseDto;
@@ -15,10 +16,21 @@ interface ProductInfoProps {
 
 const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
     const [quantity, setQuantity] = useState<number>(1);
-
-    const handleBuyNow = () => {
-        alert(`Buying ${quantity} item(s) of ${product?.productName}`);
+    const navigate = useNavigate();
+    const handleBuyNow = async () => {
+        try {
+            const res = await cartApi.addToCart(product.id, quantity);
+            if (res.success) {
+                navigate("/cart");
+            } else {
+                message.error(res.message || "Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+            }
+        } catch (error) {
+            console.error("Add to cart error:", error);
+            message.error("Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+        }
     };
+
 
     const handleAddToCart = async () => {
         try {

@@ -12,7 +12,7 @@ import {
   FormInstance,
   Card,
   Space,
-  Avatar,
+  Avatar, Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
@@ -65,7 +65,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           console.log("Validate Failed:", info);
         });
   };
-
+  const categoryId = Form.useWatch("categoryId", form);
   const handleValuesChange = async (changedValues: any, allValues: any) => {
     const { categoryId, manufacturerId } = allValues;
 
@@ -110,6 +110,21 @@ const ProductModal: React.FC<ProductModalProps> = ({
     }
     return false;
   };
+
+  const selectedCategory = categories
+      .flatMap((c) =>
+          c.subCategories && c.subCategories.length > 0
+              ? c.subCategories.map((sub) => ({
+                id: sub.id,
+                name: `${c.categoryName} - ${sub.subCategoryName}`,
+              }))
+              : [{ id: c.id, name: c.categoryName }]
+      )
+      .find((cat) => cat.id === categoryId);
+
+  const isBook =
+      selectedCategory?.name?.toLowerCase().includes("book") ||
+      selectedCategory?.name?.toLowerCase().includes("magazine");
 
   return (
       <Modal
@@ -326,29 +341,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     </Select>
                   </Form.Item>
                 </Col>
-                <Col span={8}>
-                  <Form.Item
-                      name="publisherId"
-                      label={<Text strong>Publisher</Text>}
-                      tooltip="Optional - Select if applicable"
-                  >
-                    <Select
-                        placeholder="Select publisher (optional)"
-                        style={{ borderRadius: 6 }}
-                        allowClear
-                        showSearch
-                        filterOption={(input, option) =>
-                            (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
-                        }
-                    >
-                      {publishers.map((p) => (
-                          <Select.Option key={p.id} value={p.id}>
-                            {p.publisherName}
-                          </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
+
               </Row>
             </Card>
             <Card
@@ -419,7 +412,12 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   <Space>
                     <ToolOutlined style={{ color: '#722ed1' }} />
                     <span style={{ fontWeight: 600 }}>Additional Information</span>
-                    <Text type="secondary" style={{ fontSize: 12 }}>(Optional)</Text>
+
+                    <Tooltip title="Optional - Select if applicable">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Optional
+                      </Text>
+                    </Tooltip>
                   </Space>
                 }
                 style={{
@@ -433,31 +431,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 }}
             >
               <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Item
-                      name="productType"
-                      label={<Text strong>Product Type</Text>}
-                  >
-                    <Select
-                        placeholder="Select type (optional)"
-                        style={{ borderRadius: 6 }}
-                        allowClear
-                    >
-                      <Select.Option value="Book">Book</Select.Option>
-                      <Select.Option value="E-Book">E-Book</Select.Option>
-                      <Select.Option value="Audio Book">Audio Book</Select.Option>
-                      <Select.Option value="Magazine">Magazine</Select.Option>
-                      <Select.Option value="CD">CD</Select.Option>
-                      <Select.Option value="DVD">DVD</Select.Option>
-                      <Select.Option value="Utility">Utility</Select.Option>
-                      <Select.Option value="Art Supplies">Art Supplies</Select.Option>
-                      <Select.Option value="Toys">Toys</Select.Option>
-                      <Select.Option value="Educational Kit">Educational Kit</Select.Option>
-                      <Select.Option value="Gift">Gift</Select.Option>
-                      <Select.Option value="Other">Other</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
+                {isBook && (
                 <Col span={8}>
                   <Form.Item
                       name="author"
@@ -469,6 +443,32 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     />
                   </Form.Item>
                 </Col>
+                )}
+                {isBook && (
+                <Col span={8}>
+                  <Form.Item
+                      name="publisherId"
+                      label={<Text strong>Publisher</Text>}
+                  >
+                    <Select
+                        placeholder="Select publisher"
+                        style={{ borderRadius: 6 }}
+                        allowClear
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                        }
+                    >
+                      {publishers.map((p) => (
+                          <Select.Option key={p.id} value={p.id}>
+                            {p.publisherName}
+                          </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                )}
+                {isBook && (
                 <Col span={8}>
                   <Form.Item
                       name="pages"
@@ -482,8 +482,9 @@ const ProductModal: React.FC<ProductModalProps> = ({
                     />
                   </Form.Item>
                 </Col>
+                )}
               </Row>
-
+              {!isBook && (
               <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item
@@ -509,7 +510,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         <InputNumber
                             placeholder="Length"
                             min={0}
-                            precision={2}
+                            step={1}
                             style={{ width: "33%", borderRadius: 6 }}
                         />
                       </Form.Item>
@@ -517,7 +518,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         <InputNumber
                             placeholder="Width"
                             min={0}
-                            precision={2}
+                            step={1}
                             style={{ width: "33%", borderRadius: 6 }}
                         />
                       </Form.Item>
@@ -525,7 +526,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                         <InputNumber
                             placeholder="Height"
                             min={0}
-                            precision={2}
+                            step={1}
                             style={{ width: "33%", borderRadius: 6 }}
                         />
                       </Form.Item>
@@ -533,6 +534,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
                   </Form.Item>
                 </Col>
               </Row>
+                )}
 
               <Form.Item
                   name="photos"

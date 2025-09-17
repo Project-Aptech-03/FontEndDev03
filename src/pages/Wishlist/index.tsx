@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { FaTrash, FaStar,  } from 'react-icons/fa';
 import './WishlistPage.css';
 import {useEffect, useState} from "react";
@@ -72,6 +72,7 @@ const WishlistPage = () => {
 
     window.dispatchEvent(new Event("wishlistUpdated"));
   };
+  const navigate = useNavigate();
 
   const addToCart = async (item: WishlistItem) => {
     try {
@@ -80,8 +81,6 @@ const WishlistPage = () => {
         const updatedItems = wishlistItems.filter(i => i.id !== item.id);
         setWishlistItems(updatedItems);
         localStorage.setItem('Wishlist', JSON.stringify(updatedItems));
-
-        // Cập nhật Header và Cart count
         window.dispatchEvent(new Event("cartUpdated"));
         window.dispatchEvent(new Event("wishlistUpdated"));
 
@@ -112,7 +111,8 @@ const WishlistPage = () => {
       window.dispatchEvent(new Event("cartUpdated"));
       window.dispatchEvent(new Event("wishlistUpdated"));
 
-      alert("All items moved to cart!");
+      message.success("All items moved to cart!");
+      navigate("/cart");
     } catch (error) {
       message.error("Error moving items to cart, please try again.");
       console.error(error);
@@ -173,8 +173,8 @@ const WishlistPage = () => {
                         <div className="itemImage">
                           {item.photos && item.photos.length > 0 ? (
                               <img src={item.photos[0]} alt={item.title || "No title"}/>
-                          ) : item.image ? (
-                              <img src={item.image} alt={item.title || "No title"}/>
+                          ) : item.photos ? (
+                              <img src={item.photos} alt={item.title || "No title"}/>
                           ) : (
                               <div className="no-image">No Image</div>
                           )}

@@ -12,6 +12,7 @@ import Magazines from '../../../assets/image/Magazines.jpg';
 import CDsDVDs from '../../../assets/image/CDsDVDs.jpg';
 import {message} from "antd";
 import {cartApi} from "../../api/cart.api";
+import {getTop} from "../../utils/bookUtils";
 
 
 
@@ -19,7 +20,6 @@ import {cartApi} from "../../api/cart.api";
 const HomePage = () => {
   const { handleWishlistToggle, isInWishlist } = useWishlist();
 
-  // State for different book sections
   const [newBooks, setNewBooks] = useState<Book[]>([]);
   const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
   const [hotBooks, setHotBooks] = useState<Book[]>([]);
@@ -36,44 +36,54 @@ const HomePage = () => {
     totalQuantity
   });
 
+
+
   const fetchBooksData = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const productOrderStats = await getTopProducts();
-
-      const productsResponse = await getProducts(1, 5);
+      const [productOrderStats, productsResponse] = await Promise.all([
+        getTopProducts(),
+        getProducts(1, 100),
+      ]);
 
       if (!productsResponse.success || !productsResponse.data?.items) {
-        throw new Error('Failed to fetch products');
+        throw new Error("Failed to fetch products");
       }
 
       const allProducts = productsResponse.data.items.map(product =>
           transformProduct(product, productOrderStats[product.id] || 0)
       );
 
-      const newBooksData = [...allProducts]
-          .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
-          .slice(0, 3);
-      const saleBooksData = [...allProducts]
-          .sort((a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime())
-          .slice(0, 3);
-      const hotBooksData = [...allProducts]
-          .sort((a, b) => (b.totalQuantity || 0) - (a.totalQuantity || 0))
-          .slice(0, 3);
-      const featuredBooksData = [...allProducts]
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3);
+      const newBooksData = getTop(
+          allProducts,
+          (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+      );
 
+      const saleBooksData = getTop(
+          allProducts,
+          (a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
+      );
+
+      const hotBooksData = getTop(
+          allProducts,
+          (a, b) => (b.totalQuantity ?? 0) - (a.totalQuantity ?? 0)
+      );
+
+      const featuredBooksData = getTop(
+          allProducts,
+          () => Math.random() - 0.5
+      );
+
+      // Set state
       setNewBooks(newBooksData);
       setSaleBooks(saleBooksData);
       setHotBooks(hotBooksData);
       setFeaturedBooks(featuredBooksData);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
-      console.error('Error fetching products data:', err);
+      setError(err instanceof Error ? err.message : "An error occurred while fetching data");
+      console.error("Error fetching products data:", err);
     } finally {
       setLoading(false);
     }
@@ -83,12 +93,16 @@ const HomePage = () => {
     fetchBooksData();
   }, []);
 
+
+  useEffect(() => {
+    fetchBooksData();
+  }, []);
+
   const handleAddToCart = async (book: Book) => {
     try {
-      const response = await cartApi.addToCart(book.id, 1); // quantity = 1
+      const response = await cartApi.addToCart(book.id, 1);
       if (response.success) {
         message.success(`Added "${book.productName}" to cart!`);
-        // cập nhật header/cart count
         window.dispatchEvent(new Event("cartUpdated"));
       } else {
         message.error(response.message || "Failed to add to cart!");
@@ -267,14 +281,14 @@ const HomePage = () => {
         {/* New Books Section */}
         <section className="featuredSection">
           <div className="sectionHeader">
-            <h2 className="sectionTitle">New Books</h2>
+            <h2 className="sectionTitle">New Products</h2>
             <p className="sectionSubtitle">
               Latest additions to our collection - recently published books
             </p>
           </div>
           <div className="booksGrid">
             {newBooks.length > 0 ? newBooks.map(renderBookCard) : (
-                <p>No new books available at the moment.</p>
+                <p>No new products available at the moment.</p>
             )}
           </div>
         </section>
@@ -282,14 +296,14 @@ const HomePage = () => {
         {/* Featured Books Section */}
         <section className="featuredSection">
           <div className="sectionHeader">
-            <h2 className="sectionTitle">FEATURED BOOKS</h2>
+            <h2 className="sectionTitle">Featured Books</h2>
             <p className="sectionSubtitle">
-              Discover our handpicked collection of recommended books
+              Discover our handpicked collection of recommended products
             </p>
           </div>
           <div className="booksGrid">
             {featuredBooks.length > 0 ? featuredBooks.map(renderBookCard) : (
-                <p>No featured books available at the moment.</p>
+                <p>No featured products available at the moment.</p>
             )}
           </div>
         </section>
@@ -309,12 +323,11 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Sale Books Section */}
         <section className="featuredSection">
           <div className="sectionHeader">
-            <h2 className="sectionTitle">Classic Books</h2>
+            <h2 className="sectionTitle">Sale Products</h2>
             <p className="sectionSubtitle">
-              Timeless classics - books that have stood the test of time
+              Timeless classics - products that have stood the test of time
             </p>
           </div>
           <div className="booksGrid">

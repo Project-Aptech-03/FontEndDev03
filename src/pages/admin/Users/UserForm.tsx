@@ -4,7 +4,6 @@ import {
     Input,
     DatePicker,
     Select,
-    Divider,
     message,
     Row,
     Col,
@@ -19,8 +18,6 @@ import {
     MailOutlined,
     PhoneOutlined,
     CalendarOutlined,
-    HomeOutlined,
-    LockOutlined,
     UserOutlined,
     CrownOutlined,
     TeamOutlined
@@ -371,73 +368,6 @@ const UserForm: React.FC<UserFormProps> = ({
                             </Col>
                         </Row>
                     </Card>
-
-                    {/* Security Information - Only for new users */}
-                    {!editingUser && (
-                        <Card
-                            size="small"
-                            title={
-                                <Space>
-                                    <LockOutlined style={{ color: '#fa8c16' }} />
-                                    <span style={{ fontWeight: 600 }}>Security Settings</span>
-                                </Space>
-                            }
-                            style={{
-                                borderRadius: 8,
-                                border: '1px solid #f0f0f0',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                            }}
-                            headStyle={{
-                                background: '#fff7e6',
-                                borderRadius: '8px 8px 0 0'
-                            }}
-                        >
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Form.Item
-                                        name="password"
-                                        label={<Text strong>Password</Text>}
-                                        rules={[
-                                            { required: true, message: "Please enter password!" },
-                                            { min: 6, message: "Password must be at least 6 characters!" }
-                                        ]}
-                                    >
-                                        <Input.Password
-                                            placeholder="Enter password..."
-                                            style={{ borderRadius: 6 }}
-                                            prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-                                        />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item
-                                        name="confirmPassword"
-                                        label={<Text strong>Confirm Password</Text>}
-                                        dependencies={["password"]}
-                                        rules={[
-                                            { required: true, message: "Please confirm password!" },
-                                            ({ getFieldValue }) => ({
-                                                validator(_, value) {
-                                                    if (!value || getFieldValue("password") === value) {
-                                                        return Promise.resolve();
-                                                    }
-                                                    return Promise.reject(
-                                                        new Error("Passwords do not match!")
-                                                    );
-                                                },
-                                            }),
-                                        ]}
-                                    >
-                                        <Input.Password
-                                            placeholder="Confirm password..."
-                                            style={{ borderRadius: 6 }}
-                                            prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
-                                        />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Card>
-                    )}
                 </Form>
             </div>
 

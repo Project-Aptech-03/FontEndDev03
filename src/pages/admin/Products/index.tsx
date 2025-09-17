@@ -83,7 +83,6 @@ const Products = () => {
         setIsModalVisible(false);
         setEditingProduct(null);
         form.resetFields();
-        // Refresh current page with current filters
         handleRefreshData();
       } else {
         message.error({
@@ -93,10 +92,15 @@ const Products = () => {
       }
     } catch (err: any) {
       const apiError = err?.response?.data as ApiResponse<string>;
+
       if (apiError?.errors) {
-        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+        Object.values(apiError.errors)
+            .flat()
+            .forEach((msg: string) => message.error(msg));
+      } else if (apiError?.message) {
+        message.error(apiError.message);
       } else {
-        message.error(apiError?.message || "Lỗi hệ thống không xác định");
+        message.error("Error processing request. Please try again.");
       }
     } finally {
       setModalLoading(false);
@@ -124,7 +128,7 @@ const Products = () => {
       if (apiError?.errors) {
         Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
       } else {
-        message.error(apiError?.message || "Lỗi hệ thống không xác định");
+        message.error(apiError?.message || "Error processing request. Please try again.");
       }
     }
   };

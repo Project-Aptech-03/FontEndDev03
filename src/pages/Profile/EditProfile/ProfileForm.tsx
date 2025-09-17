@@ -18,7 +18,6 @@ import {
     CameraOutlined,
 } from "@ant-design/icons";
 import { UpdateProfileDto, UsersResponseDto } from "../../../@type/UserResponseDto";
-import "./ProfileForm.css";
 import { useState, useRef } from "react";
 import { uploadAvatar } from "../../../api/profile.api";
 import { updateUser } from "../../../api/user.api";

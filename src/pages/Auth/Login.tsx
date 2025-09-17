@@ -68,36 +68,33 @@ const Login: React.FC = () => {
 
     try {
       const res = await loginApi(formData);
+
       if (res.success) {
-        const token = res.data.token.token;
-        const role = res.data.role;
-        const userName = res.data.fullName;
+        const { token, role, fullName, userId, email } = res.data;
 
-        if (token) {
-          const userObject: AuthUser = {
-            id: res.data.userId ?? "",
-            email: res.data.email ?? "",
-            fullName: userName ?? "",
-            role: role ?? "",
-            token: token,
-          };
+        const userObject: AuthUser = {
+          id: userId ?? "",
+          email: email ?? "",
+          fullName: fullName ?? "",
+          role: role ?? "",
+          token: token.token,
+        };
 
-          login(userObject, rememberMe);
+        login(userObject, rememberMe);
 
-          const messageText =
-              role === "Admin"
-                  ? `Đăng nhập thành công! Chào mừng Admin: ${userName}!`
-                  : `Đăng nhập thành công! Chào mừng ${userName}!`;
+        const messageText =
+            role === "Admin"
+                ? `Đăng nhập thành công! Chào mừng Admin: ${fullName}!`
+                : `Đăng nhập thành công! Chào mừng ${fullName}!`;
 
-          showModal(messageText);
+        showModal(messageText);
 
-          setTimeout(() => {
-            setIsModalVisible(false);
-            navigate(role === "Admin" ? "/admin/dashboard" : "/home");
-          }, 2000);
-        }
+        setTimeout(() => {
+          setIsModalVisible(false);
+          navigate(role === "Admin" ? "/admin/dashboard" : "/home");
+        }, 2000);
       } else {
-        showModal(res.errors?.message || "Đăng nhập thất bại!");
+        showModal(res.errors?.message || res.message || "Đăng nhập thất bại!");
         setTimeout(() => setIsModalVisible(false), 2000);
       }
     } catch (err: any) {
