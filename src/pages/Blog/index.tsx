@@ -457,34 +457,7 @@ const Blog: React.FC = () => {
           </Row>
         )}
       </div>
-
-      {/* Newsletter Section */}
-      <div className="newsletter-section">
-        <Card className="newsletter-card">
-          <Row gutter={[24, 24]} align="middle">
-            <Col xs={24} md={16}>
-              <h3>Stay Updated with Book News</h3>
-              <p>Subscribe to our newsletter for the latest book reviews, reading recommendations, and literary insights delivered to your inbox.</p>
-            </Col>
-            <Col xs={24} md={8}>
-              <div className="newsletter-form">
-                <Input.Group compact>
-                  <Input
-                    placeholder="Enter your email"
-                    size="large"
-                    style={{ width: 'calc(100% - 100px)' }}
-                  />
-                  <Button type="primary" size="large">
-                    Subscribe
-                  </Button>
-                </Input.Group>
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      </div>
-
-      {/* Enhanced Write Blog Modal */}
+     {/* Enhanced Write Blog Modal */}
       <Modal
         title={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

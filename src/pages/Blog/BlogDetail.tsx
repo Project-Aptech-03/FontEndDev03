@@ -87,13 +87,137 @@ const BlogDetail: React.FC = () => {
 
   // Local state
   const [isFollowing, setIsFollowing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [followStatusChecked, setFollowStatusChecked] = useState(false);
+  const [commentValidation, setCommentValidation] = useState<{
+    isValid: boolean;
+    warnings: string[];
+    sentiment: 'positive' | 'negative' | 'neutral';
+    toxicityScore: number;
+  } | null>(null);
+  const [isValidatingComment, setIsValidatingComment] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Calculate reading time
   const calculateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
     return Math.ceil(words / wordsPerMinute);
+  };
+
+  // Check if user is following the author
+  const checkFollowStatus = async () => {
+    if (!blog?.authorId || followStatusChecked) return;
+    
+    try {
+      // Try to get the follow status by checking if the user is in the author's followers
+      const followers = await blogApi.getAuthorFollowers(blog.authorId, 1, 100);
+      // This is a simplified check - in a real implementation, you'd need a specific endpoint
+      // to check if the current user is following a specific author
+      setFollowStatusChecked(true);
+    } catch (error) {
+      console.log('Could not check follow status:', error);
+      setFollowStatusChecked(true);
+    }
+  };
+
+  // Check follow status when blog loads
+  useEffect(() => {
+    if (blog?.authorId && !followStatusChecked) {
+      checkFollowStatus();
+    }
+  }, [blog?.authorId, followStatusChecked]);
+
+  // AI Content Moderation - Simulate AI analysis
+  const validateCommentWithAI = async (content: string) => {
+    setIsValidatingComment(true);
+    
+    try {
+      // Simulate AI API call for content moderation
+      const response = await new Promise<{
+        isValid: boolean;
+        warnings: string[];
+        sentiment: 'positive' | 'negative' | 'neutral';
+        toxicityScore: number;
+      }>((resolve) => {
+        setTimeout(() => {
+          // Simple AI-like validation rules
+          const warnings: string[] = [];
+          let toxicityScore = 0;
+          let sentiment: 'positive' | 'negative' | 'neutral' = 'neutral';
+          
+          // Check for spam patterns
+          if (content.length < 10) {
+            warnings.push('Comment is too short. Please provide more meaningful feedback.');
+          }
+          
+          // Check for repeated characters (spam detection)
+          if (/(.)\1{4,}/.test(content)) {
+            warnings.push('Please avoid repetitive characters.');
+            toxicityScore += 0.3;
+          }
+          
+          // Check for excessive caps
+          const capsRatio = (content.match(/[A-Z]/g) || []).length / content.length;
+          if (capsRatio > 0.7 && content.length > 20) {
+            warnings.push('Please avoid excessive capitalization.');
+            toxicityScore += 0.2;
+          }
+          
+          // Check for toxic keywords (simplified)
+          const toxicWords = ['hate', 'stupid', 'idiot', 'dumb', 'ugly', 'kill', 'die'];
+          const foundToxicWords = toxicWords.filter(word => 
+            content.toLowerCase().includes(word)
+          );
+          
+          if (foundToxicWords.length > 0) {
+            warnings.push('Please use respectful language.');
+            toxicityScore += 0.5;
+          }
+          
+          // Sentiment analysis (simplified)
+          const positiveWords = ['good', 'great', 'awesome', 'amazing', 'love', 'like', 'excellent', 'wonderful'];
+          const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'horrible', 'worst'];
+          
+          const positiveCount = positiveWords.filter(word => 
+            content.toLowerCase().includes(word)
+          ).length;
+          const negativeCount = negativeWords.filter(word => 
+            content.toLowerCase().includes(word)
+          ).length;
+          
+          if (positiveCount > negativeCount) {
+            sentiment = 'positive';
+          } else if (negativeCount > positiveCount) {
+            sentiment = 'negative';
+          }
+          
+          // Check for URL spam
+          if ((content.match(/https?:\/\/[^\s]+/g) || []).length > 2) {
+            warnings.push('Please avoid excessive links.');
+            toxicityScore += 0.4;
+          }
+          
+          const isValid = warnings.length === 0 && toxicityScore < 0.7;
+          
+          resolve({
+            isValid,
+            warnings,
+            sentiment,
+            toxicityScore: Math.min(toxicityScore, 1)
+          });
+        }, 1000); // Simulate API delay
+      });
+      
+      setCommentValidation(response);
+      return response;
+    } catch (error) {
+      console.error('AI validation error:', error);
+      message.error('Failed to validate comment. Please try again.');
+      return null;
+    } finally {
+      setIsValidatingComment(false);
+    }
   };
 
   // Handle blog like
@@ -118,44 +242,67 @@ const BlogDetail: React.FC = () => {
     }
   };
 
-  // Handle comment submit
-  const handleCommentSubmit = async (values: any) => {
-    const result = await createComment({
-      content: values.comment,
-      parentCommentId: undefined
-    });
+  // Handle comment submit with AI validation and retry mechanism
+  const handleCommentSubmit = async (values: any, retryAttempt = 0) => {
+    const maxRetries = 3;
     
-    if (result) {
-      form.resetFields();
-      message.success('Comment posted successfully!');
+    try {
+      // First validate with AI
+      const validation = await validateCommentWithAI(values.comment);
+      
+      if (!validation) {
+        message.error('Failed to validate comment. Please try again.');
+        return;
+      }
+      
+      if (!validation.isValid) {
+        message.warning('Please review the following issues:');
+        validation.warnings.forEach(warning => {
+          message.warning(warning);
+        });
+        return;
+      }
+      
+      // If validation passes, submit comment
+      const result = await createComment({
+        content: values.comment,
+        parentCommentId: undefined
+      });
+      
+      if (result) {
+        form.resetFields();
+        setCommentValidation(null);
+        setRetryCount(0);
+        message.success('Comment posted successfully!');
+      } else {
+        throw new Error('Comment creation failed');
+      }
+    } catch (error) {
+      console.error('Comment submission error:', error);
+      
+      if (retryAttempt < maxRetries) {
+        setIsRetrying(true);
+        setRetryCount(retryAttempt + 1);
+        
+        message.warning(`Attempt ${retryAttempt + 1} failed. Retrying...`);
+        
+        // Exponential backoff: wait longer between retries
+        const delay = Math.pow(2, retryAttempt) * 1000;
+        setTimeout(async () => {
+          await handleCommentSubmit(values, retryAttempt + 1);
+          setIsRetrying(false);
+        }, delay);
+      } else {
+        message.error(`Failed to post comment after ${maxRetries} attempts. Please try again later.`);
+        setRetryCount(0);
+        setIsRetrying(false);
+      }
     }
   };
 
   // Handle author follow
   const handleFollowAuthor = async () => {
     if (!blog) return;
-
-    // Test endpoint first (for debugging)
-    console.log('Testing follow endpoint...');
-    try {
-      const testResult = await blogApi.testFollowEndpoint(blog.authorId);
-      console.log('Testing generic follow approach...');
-      const genericResult = await blogApi.tryGenericFollow(blog.authorId);
-      
-      setDebugInfo({
-        authorId: blog.authorId,
-        testResult: testResult,
-        genericResult: genericResult,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.log('Endpoint test failed:', error);
-      setDebugInfo({
-        authorId: blog.authorId,
-        testError: error,
-        timestamp: new Date().toISOString()
-      });
-    }
     
     try {
       let success = false;
@@ -235,8 +382,10 @@ const BlogDetail: React.FC = () => {
     <div className="blog-detail-container">
       <BackTop />
       
-      {/* Header */}
-      <div className="blog-detail-header">
+      {/* Blog Content Wrapper - Target for Affix */}
+      <div className="blog-content-wrapper" id="blog-content-wrapper">
+        {/* Header */}
+        <div className="blog-detail-header">
         <Button 
           type="text" 
           icon={<LeftOutlined />} 
@@ -370,11 +519,70 @@ const BlogDetail: React.FC = () => {
                   <TextArea 
                     rows={4} 
                     placeholder="Share your thoughts about this article..."
+                    onChange={async (e) => {
+                      const content = e.target.value;
+                      if (content.length > 20) {
+                        // Debounce AI validation
+                        setTimeout(async () => {
+                          await validateCommentWithAI(content);
+                        }, 1000);
+                      } else {
+                        setCommentValidation(null);
+                      }
+                    }}
                   />
                 </Form.Item>
+                
+                {/* AI Validation Results */}
+                {commentValidation && (
+                  <div className="ai-validation-results" style={{ marginBottom: 16 }}>
+                    <Alert
+                      message={
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                            <span>AI Analysis:</span>
+                            <Tag color={commentValidation.isValid ? 'green' : 'red'}>
+                              {commentValidation.isValid ? 'Valid' : 'Issues Found'}
+                            </Tag>
+                            <Tag color={
+                              commentValidation.sentiment === 'positive' ? 'green' : 
+                              commentValidation.sentiment === 'negative' ? 'red' : 'blue'
+                            }>
+                              {commentValidation.sentiment} sentiment
+                            </Tag>
+                            <Tag color={commentValidation.toxicityScore > 0.5 ? 'red' : 'green'}>
+                              Toxicity: {Math.round(commentValidation.toxicityScore * 100)}%
+                            </Tag>
+                          </div>
+                          {commentValidation.warnings.length > 0 && (
+                            <div>
+                              <Text strong>Warnings:</Text>
+                              <ul style={{ margin: '4px 0 0 20px' }}>
+                                {commentValidation.warnings.map((warning, index) => (
+                                  <li key={index} style={{ color: '#ff4d4f' }}>{warning}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      }
+                      type={commentValidation.isValid ? 'success' : 'warning'}
+                      showIcon
+                    />
+                  </div>
+                )}
+                
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" size="large" loading={commentsLoading}>
-                    Post Comment
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    size="large" 
+                    loading={commentsLoading || isValidatingComment || isRetrying}
+                    disabled={commentValidation ? !commentValidation.isValid : false}
+                  >
+                    {isValidatingComment ? 'Validating...' : 
+                     isRetrying ? `Retrying... (${retryCount}/${3})` : 
+                     'Post Comment'}
                   </Button>
                 </Form.Item>
               </Form>
@@ -425,7 +633,7 @@ const BlogDetail: React.FC = () => {
 
         {/* Sidebar */}
         <Col xs={24} lg={8}>
-          <Affix offsetTop={20}>
+          <Affix offsetTop={20} target={() => document.getElementById('blog-content-wrapper')}>
             <div className="blog-sidebar">
               {/* Author Info */}
               <Card className="author-card">
@@ -443,7 +651,9 @@ const BlogDetail: React.FC = () => {
                     <Button 
                       type={isFollowing ? "default" : "primary"} 
                       block
+                      loading={followLoading}
                       onClick={handleFollowAuthor}
+                      disabled={!followStatusChecked}
                     >
                       {isFollowing ? "Following" : "Follow Author"}
                     </Button>
@@ -472,45 +682,11 @@ const BlogDetail: React.FC = () => {
                   </div>
                 ))}
               </Card>
-
-              {/* Newsletter */}
-              <Card className="newsletter-sidebar">
-                <Title level={4}>Stay Updated</Title>
-                <Paragraph>
-                  Subscribe to our newsletter for the latest book reviews and literary insights.
-                </Paragraph>
-                <Input.Group compact>
-                  <Input
-                    placeholder="Enter your email"
-                    style={{ width: 'calc(100% - 80px)' }}
-                  />
-                  <Button type="primary">Subscribe</Button>
-                </Input.Group>
-              </Card>
             </div>
           </Affix>
         </Col>
       </Row>
-      
-      {/* Debug Panel - Remove in production */}
-      {debugInfo && (
-        <Card 
-          title="Debug Information" 
-          style={{ marginTop: '20px', backgroundColor: '#f5f5f5' }}
-          size="small"
-        >
-          <pre style={{ fontSize: '12px', maxHeight: '200px', overflow: 'auto' }}>
-            {JSON.stringify(debugInfo, null, 2)}
-          </pre>
-          <Button 
-            size="small" 
-            onClick={() => setDebugInfo(null)}
-            style={{ marginTop: '10px' }}
-          >
-            Clear Debug Info
-          </Button>
-        </Card>
-      )}
+      </div>
     </div>
   );
 };
