@@ -1,10 +1,10 @@
 import apiClient from "../services/api";
 import { ApiResponse } from "../@type/apiResponse";
-import { 
-  ApiOrder, 
-  CheckoutRequest, 
-  UpdateOrderRequest, 
-  CancelOrderRequest 
+import {
+    ApiOrder,
+    CheckoutRequest,
+    UpdateOrderRequest,
+    CancelOrderRequest, TopProduct
 } from "../@type/Orders";
 
 export const getMyOrders = async (): Promise<{ success: boolean; result?: ApiResponse<ApiOrder[]>; error?: any }> => {
@@ -22,6 +22,17 @@ export const getMyOrders = async (): Promise<{ success: boolean; result?: ApiRes
 export const getAllOrders = async (): Promise<{ success: boolean; result?: ApiResponse<ApiOrder[]>; error?: any }> => {
     try {
         const response = await apiClient.get<ApiResponse<ApiOrder[]>>("/orders");
+        return { success: true, result: response.data };
+    } catch (error: any) {
+        return {
+            success: false,
+            error: error.response?.data || { message: "Unknown error" },
+        };
+    }
+};
+export const getTopProducts = async (): Promise<{ success: boolean; result?: ApiResponse<TopProduct[]>; error?: any }> => {
+    try {
+        const response = await apiClient.get<ApiResponse<TopProduct[]>>("/order/top-products");
         return { success: true, result: response.data };
     } catch (error: any) {
         return {

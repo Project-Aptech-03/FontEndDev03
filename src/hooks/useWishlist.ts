@@ -1,35 +1,37 @@
 import { useState, useEffect } from 'react';
-import { Book } from '../@type/book';
+import { Book } from "../@type/book";
 
 export const useWishlist = () => {
-  const [wishlist, setWishlist] = useState<Book[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<Book[]>([]);
 
   useEffect(() => {
-    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
-    setWishlist(savedWishlist);
+    const savedWishlist = JSON.parse(localStorage.getItem("Wishlist") || "[]");
+    setWishlistItems(savedWishlist);
   }, []);
 
   const handleWishlistToggle = (book: Book) => {
-    setWishlist(prev => {
-      const isInWishlist = prev.some(item => item.id === book.id);
-      let updatedWishlist;
-      
-      if (isInWishlist) {
-        updatedWishlist = prev.filter(item => item.id !== book.id);
-      } else {
-        updatedWishlist = [...prev, book];
-      }
-      
-      // Save to localStorage
-      localStorage.setItem('Wishlist', JSON.stringify(updatedWishlist));
-      
-      return updatedWishlist;
-    });
+    let updatedWishlist: Book[];
+
+    if (wishlistItems.find(item => item.id === book.id)) {
+      updatedWishlist = wishlistItems.filter(item => item.id !== book.id);
+    } else {
+      updatedWishlist = [...wishlistItems, book];
+    }
+
+    setWishlistItems(updatedWishlist);
+    localStorage.setItem("Wishlist", JSON.stringify(updatedWishlist));
+
+    // Dispatch event để Header cập nhật count
+    window.dispatchEvent(new Event("wishlistUpdated"));
   };
 
   const isInWishlist = (bookId: number) => {
-    return wishlist.some(item => item.id === bookId);
+    return wishlistItems.some(item => item.id === bookId);
   };
 
-  return { wishlist, handleWishlistToggle, isInWishlist };
+  return {
+    wishlistItems,
+    handleWishlistToggle,
+    isInWishlist
+  };
 };

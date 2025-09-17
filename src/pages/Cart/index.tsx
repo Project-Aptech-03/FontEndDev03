@@ -618,7 +618,7 @@ const CartPage = () => {
                             <div className="item-image">
                               {item.product?.photos && item.product.photos.length > 0 ? (
                                 <img
-                                  src={item.product.photos[0].imageUrl || item.product.photos[0]}
+                                  src={item.product.photos[0].photoUrl || item.product.photos[0]}
                                   alt={item.product.productName}
                                   onError={(e) => {
                                     const target = e.target as HTMLImageElement;

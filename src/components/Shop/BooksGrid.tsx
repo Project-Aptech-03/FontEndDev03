@@ -28,6 +28,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({
                                                  currentPage,
                                                  onPageChange
                                              }) => {
+
     return (
         <main className="booksSection">
             {/* Sort and Results */}

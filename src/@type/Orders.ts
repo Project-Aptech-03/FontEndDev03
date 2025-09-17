@@ -16,7 +16,12 @@ export interface BaseProduct {
   productName: string;
   price: number;
   stockQuantity?: number;
-  photos?: Array<{ imageUrl: string } | string>;
+  photos?: Array<{
+    id: number;
+    photoUrl: string;
+    isActive: boolean;
+    createdDate: string;
+  }>;
 }
 
 // Base address interface (can be extended for different use cases)
@@ -74,6 +79,9 @@ export interface ApiAddress extends BaseAddress {
   postalCode: string;
   distanceKm: number;
   createdDate: string;
+  displayShippingFee: string;
+  displayContactInfo: string;
+  displayDistance: string;
 }
 
 export interface ApiOrderItem {
@@ -87,6 +95,11 @@ export interface ApiOrderItem {
   totalPrice: number;
   notes: string;
   product: ApiProduct;
+}
+export interface TopProduct {
+  productId: number;
+  productName: string;
+  totalQuantity: number;
 }
 
 export interface ApiOrder {

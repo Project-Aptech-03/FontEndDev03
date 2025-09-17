@@ -469,7 +469,7 @@ const CategoryTab: React.FC = () => {
                                     <label style={{ fontWeight: 500, marginBottom: 8, display: 'block' }}>
                                         Subcategories
                                     </label>
-                                    {fields.map((field, index) => (
+                                    {fields.slice(0, 1).map((field, index) => (
                                         <Space key={field.key} align="baseline" style={{ width: '100%' }}>
                                             <Form.Item
                                                 {...field}
@@ -491,11 +491,14 @@ const CategoryTab: React.FC = () => {
                                             </Button>
                                         </Space>
                                     ))}
-                                    <Form.Item>
-                                        <Button type="dashed" onClick={() => add()} block>
-                                            + Add Subcategory
-                                        </Button>
-                                    </Form.Item>
+
+                                    {fields.length < 1 && (
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => add()} block>
+                                                + Add Subcategory
+                                            </Button>
+                                        </Form.Item>
+                                    )}
                                 </div>
                             )}
                         </Form.List>

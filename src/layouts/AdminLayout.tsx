@@ -7,7 +7,6 @@ import {
   ProductOutlined,
   QuestionCircleOutlined,
   LogoutOutlined,
-  SettingOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   HomeOutlined,
@@ -83,25 +82,21 @@ const AdminLayout: React.FC = () => {
 
   const userMenuItems: MenuProps["items"] = [
     {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Hồ sơ",
-      onClick: () => navigate("/profile")
-    },
-    {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: "Cài đặt",
-    },
-    {
-      type: "divider",
-    },
-    {
       key: "home",
       icon: <HomeOutlined />,
       label: "Về trang chủ",
       onClick: () => navigate("/"),
     },
+    {
+      type: "divider",
+    },
+      {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "Hồ sơ",
+      onClick: () => navigate("/profile")
+    },
+
     {
       type: "divider",
     },

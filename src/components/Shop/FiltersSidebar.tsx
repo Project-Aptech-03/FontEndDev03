@@ -27,18 +27,27 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                                            onManufacturerFilter
                                                        }) => {
 
+    const sortedCategories = Array.from(
+        new Map(categories.map(cat => [cat.categoryName, cat])).values()
+    ).sort((a, b) => {
+        if (a.categoryName.toLowerCase() === "books") return -1; // "books" lên đầu
+        if (b.categoryName.toLowerCase() === "books") return 1;
+        return 0;
+    });
+
+    const uniqueManufacturers = Array.from(
+        new Map(manufacturers.map(m => [m.manufacturerName, m])).values()
+    );
 
     return (
         <aside className="filters">
             <div className="filterSection">
                 <h3 className="filterTitle">
-                    <FaFilter /> Filters
+                    <FaFilter/> Filters
                 </h3>
-
-                {/* Categories */}
                 <div className="filterGroup">
                     <h4 className="filterGroupTitle">Categories</h4>
-                    {categories.map(category => (
+                    {sortedCategories.map(category => (
                         <label key={category.id} className="filterOption">
                             <input
                                 type="checkbox"
@@ -49,6 +58,21 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                         </label>
                     ))}
                 </div>
+                {/* Manufacturers */}
+                <div className="filterGroup">
+                    <h4 className="filterGroupTitle">Manufacturer</h4>
+                    {uniqueManufacturers.map(manufacturer => (
+                        <label key={manufacturer.id} className="filterOption">
+                            <input
+                                type="checkbox"
+                                checked={selectedManufacturers.includes(manufacturer.manufacturerName)}
+                                onChange={() => onManufacturerFilter(manufacturer.manufacturerName)}
+                            />
+                            {manufacturer.manufacturerName}
+                        </label>
+                    ))}
+                </div>
+
 
                 {/* Price Range */}
                 <div className="filterGroup">
@@ -63,21 +87,6 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                 onChange={() => onPriceFilter(range.value)}
                             />
                             {range.label}
-                        </label>
-                    ))}
-                </div>
-
-                {/* Manufacturers */}
-                <div className="filterGroup">
-                    <h4 className="filterGroupTitle">Manufacturer</h4>
-                    {manufacturers.map(manufacturer => (
-                        <label key={manufacturer.id} className="filterOption">
-                            <input
-                                type="checkbox"
-                                checked={selectedManufacturers.includes(manufacturer.manufacturerName)}
-                                onChange={() => onManufacturerFilter(manufacturer.manufacturerName)}
-                            />
-                            {manufacturer.manufacturerName}
                         </label>
                     ))}
                 </div>

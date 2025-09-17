@@ -71,8 +71,7 @@ const Profile: React.FC = () => {
                 <div
                     style={{
                         height: 200,
-                        backgroundImage:
-                            "url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1200&q=80')",
+                        backgroundImage: `url("/assets/image/backgroundLogin.jpg")`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                     }}

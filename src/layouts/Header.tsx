@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Menu, Layout, Dropdown, Badge, Avatar, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import {
@@ -8,9 +8,11 @@ import {
     ShoppingCartOutlined,
     HomeOutlined,
     ShopOutlined,
+    LogoutOutlined,
     InfoCircleOutlined,
     PhoneOutlined,
     ReadOutlined,
+    DashboardOutlined, SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from  '../routes/AuthContext'
@@ -21,12 +23,25 @@ const { Text } = Typography;
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { isLoggedIn, logout } = useAuth();
+    const { isLoggedIn, logout, user } = useAuth();
 
     const handleLogout = () => {
         logout();
         navigate('/login');
     };
+
+    const [wishlistCount, setWishlistCount] = useState(0);
+    useEffect(() => {
+        const updateWishlistCount = () => {
+            const savedWishlist = JSON.parse(localStorage.getItem("Wishlist") || "[]");
+            setWishlistCount(savedWishlist.length);
+        };
+        updateWishlistCount();
+        window.addEventListener("wishlistUpdated", updateWishlistCount);
+        return () => {
+            window.removeEventListener("wishlistUpdated", updateWishlistCount);
+        };
+    }, []);
 
     const menuItems = [
         { 
@@ -60,12 +75,22 @@ const Header: React.FC = () => {
             icon: <InfoCircleOutlined />,
         }
     ];
-
     const userMenuItems: MenuProps['items'] = isLoggedIn
         ? [
+            // Nếu là admin thì thêm Dashboard
+            ...(user?.role === 'Admin' ? [
+                {
+                    key: 'dashboard',
+                    label: 'Dashboard',
+                    icon: <DashboardOutlined />,
+                    onClick: () => navigate('admin/dashboard'),
+                },
+                { type: 'divider' as const, key: 'divider-admin' },
+            ] : []),
             {
                 key: 'profile',
                 label: "Profile",
+                icon: <UserOutlined />,
                 onClick: () => navigate('/profile'),
             },
             {
@@ -76,17 +101,14 @@ const Header: React.FC = () => {
             {
                 key: 'settings',
                 label: 'Settings',
+                icon: <SettingOutlined/>,
                 onClick: () => navigate('/settings'),
             },
-            { 
-                type: 'divider' as const,
-                key: 'divider-1',
-            },
+            { type: 'divider' as const, key: 'divider-1' },
             {
                 key: 'logout',
-                label: (
-                    <Text type="danger">Logout</Text>
-                ),
+                label: <Text type="danger">Logout</Text>,
+                icon: <LogoutOutlined style={{ color: 'red' }} />,
                 onClick: handleLogout,
             },
         ]
@@ -102,6 +124,7 @@ const Header: React.FC = () => {
                 onClick: () => navigate('/register'),
             },
         ];
+
 
     const headerStyle: React.CSSProperties = {
         display: 'flex',
@@ -201,9 +224,9 @@ const Header: React.FC = () => {
                         fontWeight: 'bold',
                     }}
                 >
-                    M
+                    SBT
                 </div>
-                <span style={logoTextStyle}>MOON.</span>
+                <span style={logoTextStyle}>SHRADHA</span>
             </div>
 
             <Menu
@@ -267,7 +290,7 @@ const Header: React.FC = () => {
                 </Dropdown>
 
                 {/* Wishlist Icon */}
-                <Badge count={0} showZero={false}>
+                <Badge count={wishlistCount} showZero={false}>
                     <HeartOutlined
                         style={location.pathname === '/wishlist' ? activeIconStyle : iconStyle}
                         onClick={() => navigate('/wishlist')}

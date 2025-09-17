@@ -321,8 +321,6 @@ const Blog: React.FC = () => {
           </Col>
         </Row>
       </div>
-
-      {/* Featured Article */}
       {featuredPost && (
         <div className="featured-article">
           <Card className="featured-card">

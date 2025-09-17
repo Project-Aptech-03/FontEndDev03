@@ -14,8 +14,15 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({ product }) => (
     <div style={{ marginBottom: 24 }}>
         <Space size="small" wrap style={{ marginBottom: 12 }}>
             <Tag color="blue" style={{ borderRadius: 12, padding: '4px 12px' }}>
-                {product.productType}
+                {Array.isArray(product.category?.subCategories) && product.category.subCategories.length > 0
+                    ? product.category.subCategories
+                        .filter(sc => sc?.subCategoryName)
+                        .map(sc => sc.subCategoryName)
+                        .join(', ')
+                    : 'General'}
             </Tag>
+
+
             {product.category && (
                 <Tag color="purple" style={{ borderRadius: 12, padding: '4px 12px' }}>
                     {product.category.categoryName}

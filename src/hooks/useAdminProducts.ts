@@ -32,8 +32,16 @@ const mapToAdminProduct = (product: ProductsResponseDto): Products => {
           isActive: product.category.isActive,
           createdDate: product.category.createdDate,
           productCount: product.category.productCount,
+          subCategories: product.category.subCategories?.map(sub => ({
+            id: sub.id,
+            subCategoryCode: sub.subCategoryCode,
+            subCategoryName: sub.subCategoryName,
+            isActive: sub.isActive,
+            createdDate: sub.createdDate,
+          })) || [],
         }
         : null,
+
     manufacturer: product.manufacturer
         ? {
           id: product.manufacturer.id,
@@ -72,8 +80,16 @@ const mapToCategory = (dto: any): Category => {
     isActive: dto.isActive,
     createdDate: dto.createdDate,
     productCount: dto.productCount,
+    subCategories: dto.subCategories?.map((sub: any) => ({
+      id: sub.id,
+      subCategoryCode: sub.subCategoryCode,
+      subCategoryName: sub.subCategoryName,
+      isActive: sub.isActive,
+      createdDate: sub.createdDate,
+    })) || [],
   };
 };
+
 
 const mapToManufacturer = (dto: any): Manufacturer => ({
   id: dto.id,

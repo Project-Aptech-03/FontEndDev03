@@ -8,29 +8,53 @@ import {message} from "antd";
 interface WishlistItem {
   id: number;
   title: string;
-  author: string;
+  author?: string | null;
   price: number;
   originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  description: string;
-  category: string;
-  manufacturer: string;  
-  image: string;
-} 
+  rating?: number;
+  reviewCount?: number;
+  description?: string;
+  category?: string;
+  manufacturer?: string;
+  photos?: string[];
+}
+
+function normalizeProduct(product: any): WishlistItem {
+  return {
+    id: product.id,
+    title: product.title || product.productName || "Untitled",
+    author: product.author || null,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    rating: product.rating || 0,
+    reviewCount: product.reviewCount || 0,
+    description: product.description,
+    category: typeof product.category === "string"
+        ? product.category
+        : product.category?.categoryName,
+    manufacturer: typeof product.manufacturer === "string"
+        ? product.manufacturer
+        : product.manufacturer?.manufacturerName,
+    photos: Array.isArray(product.photos)
+        ? product.photos.map((p: any) => typeof p === "string" ? p : p.photoUrl)
+        : product.image ? [product.image] : []
+  };
+}
+
+
 
 const WishlistPage = () => {
-  console.log('WishlistPage component is loading...'); // Debug log
-  
+  console.log('WishlistPage component is loading...');
+
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  console.log(wishlistItems);
 
   useEffect(() => {
-    console.log('WishlistPage useEffect running...'); // Debug log
-    // Load Wishlist data from localStorage
-    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
-    console.log('Loaded Wishlist:', savedWishlist); // Debug log
-    setWishlistItems(savedWishlist);
+    const savedWishlist = JSON.parse(localStorage.getItem("Wishlist") || "[]");
+    const normalized = savedWishlist.map((p: any) => normalizeProduct(p));
+    setWishlistItems(normalized);
+    window.dispatchEvent(new Event("wishlistUpdated"));
     setLoading(false);
   }, []);
 
@@ -38,21 +62,29 @@ const WishlistPage = () => {
     const updatedItems = wishlistItems.filter(item => item.id !== itemId);
     setWishlistItems(updatedItems);
     localStorage.setItem('Wishlist', JSON.stringify(updatedItems));
+
+    window.dispatchEvent(new Event("wishlistUpdated"));
   };
 
   const clearWishlist = () => {
     setWishlistItems([]);
     localStorage.removeItem('Wishlist');
+
+    window.dispatchEvent(new Event("wishlistUpdated"));
   };
 
   const addToCart = async (item: WishlistItem) => {
     try {
       const response = await cartApi.addToCart(item.id, 1);
       if (response.success) {
-        // Trigger cart counter update
-        window.dispatchEvent(new Event("cartUpdated"));
+        const updatedItems = wishlistItems.filter(i => i.id !== item.id);
+        setWishlistItems(updatedItems);
+        localStorage.setItem('Wishlist', JSON.stringify(updatedItems));
 
-        // Show success message
+        // Cập nhật Header và Cart count
+        window.dispatchEvent(new Event("cartUpdated"));
+        window.dispatchEvent(new Event("wishlistUpdated"));
+
         message.success(`Added "${item.title}" to cart!`);
       } else {
         message.error(response.message || "Failed to add item to cart!");
@@ -62,7 +94,6 @@ const WishlistPage = () => {
       console.error(error);
     }
   };
-
 
   const moveAllToCart = async () => {
     if (wishlistItems.length === 0) {
@@ -75,12 +106,11 @@ const WishlistPage = () => {
         await cartApi.addToCart(item.id, 1);
       }
 
-      // Trigger cart counter update
-      window.dispatchEvent(new Event("cartUpdated"));
-
-      // Clear Wishlist
       setWishlistItems([]);
       localStorage.removeItem("Wishlist");
+
+      window.dispatchEvent(new Event("cartUpdated"));
+      window.dispatchEvent(new Event("wishlistUpdated"));
 
       alert("All items moved to cart!");
     } catch (error) {
@@ -91,10 +121,10 @@ const WishlistPage = () => {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
-        <p>Loading wishlist...</p>
-      </div>
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Loading wishlist...</p>
+        </div>
     );
   }
 
@@ -139,78 +169,95 @@ const WishlistPage = () => {
                 
                 <div className="wishlistList">
                   {wishlistItems.map(item => (
-                    <div key={item.id} className="wishlistItem">
-                      <div className="itemImage">
-                        <img src={item.image} alt={item.title} />
-                      </div>
-                      
-                      <div className="itemDetails">
-                        <h3 className="itemName">{item.title}</h3>
-                        <p className="itemAuthor">by {item.author}</p>
-                        <div className="itemRating">
-                          <div className="stars">
-                            {[...Array(5)].map((_, i) => (
-                              <FaStar 
-                                key={i} 
-                                className={i < Math.floor(item.rating) ? 'star filled' : 'star'} 
-                              />
-                            ))}
-                          </div>
-                          <span className="ratingText">({item.reviewCount} reviews)</span>
+                      <div key={item.id} className="wishlistItem">
+                        <div className="itemImage">
+                          {item.photos && item.photos.length > 0 ? (
+                              <img src={item.photos[0]} alt={item.title || "No title"}/>
+                          ) : item.image ? (
+                              <img src={item.image} alt={item.title || "No title"}/>
+                          ) : (
+                              <div className="no-image">No Image</div>
+                          )}
                         </div>
-                        <p className="itemDescription">{item.description}</p>
-                        <div className="itemMeta">
-                          <span className="itemCategory">{item.category}</span>
-                          <span className="itemManufacturer">{item.manufacturer}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="itemPrice">
-                        <span className="currentPrice">${item.price}</span>
-                        {item.originalPrice && item.originalPrice > item.price && (
-                          <span className="originalPrice">${item.originalPrice}</span>
-                        )}
-                      </div>
 
-                      <div className="itemActions">
+                        <div className="itemDetails">
+                          {item.title && <h3 className="itemName">{item.title}</h3>}
+                          {item.author && <p className="itemAuthor">by {item.author}</p>}
+
+                          {item.rating !== undefined && (
+                              <div className="itemRating">
+                                <div className="stars">
+                                  {[...Array(5)].map((_, i) => (
+                                      <FaStar
+                                          key={i}
+                                          className={i < Math.floor(item.rating || 0) ? "star filled" : "star"}
+                                      />
+                                  ))}
+                                </div>
+                                {item.reviewCount !== undefined && (
+                                    <span className="ratingText">({item.reviewCount} reviews)</span>
+                                )}
+                              </div>
+                          )}
+
+                          {item.description && (
+                              <p className="itemDescription">{item.description}</p>
+                          )}
+
+                          <div className="itemMeta">
+                            {item.category && <span className="itemCategory">{item.category}</span>}
+                            {item.manufacturer && (
+                                <span className="itemManufacturer">{item.manufacturer}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="itemPrice">
+                          <span className="currentPrice">${item.price}</span>
+                          {item.originalPrice && item.originalPrice > item.price && (
+                              <span className="originalPrice">${item.originalPrice}</span>
+                          )}
+                        </div>
+
+                        <div className="itemActions">
+                          <button
+                              className="addToCartBtn"
+                              onClick={() => addToCart(item)}
+                          >
+                            ADD TO CART
+                          </button>
+                        </div>
+
                         <button
-                          className="addToCartBtn"
-                          onClick={() => addToCart(item)}
+                            className="removeItemBtn"
+                            onClick={() => removeFromWishlist(item.id)}
                         >
-                          ADD TO CART
+                          <FaTrash/>
                         </button>
                       </div>
-
-                      <button
-                        className="removeItemBtn"
-                        onClick={() => removeFromWishlist(item.id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
                   ))}
                 </div>
-                
+
 
               </>
             )}
           </div>
           {wishlistItems.length > 0 && (
-            <div className="wishlistSummary">
-              <h2 className="summaryTitle">Wishlist Summary</h2>
-              <div className="summaryContent">
-                <div className="summaryRow">
-                  <span className="summaryLabel">Total Items</span>
-                  <span className="summaryValue">{wishlistItems.length}</span>
-                </div>
-                <div className="summaryRow">
-                  <span className="summaryLabel">Total Value</span>
-                  <span className="summaryValue">
+              <div className="wishlistSummary">
+                <h2 className="summaryTitle">Wishlist Summary</h2>
+                <div className="summaryContent">
+                  <div className="summaryRow">
+                    <span className="summaryLabel">Total Items</span>
+                    <span className="summaryValue">{wishlistItems.length}</span>
+                  </div>
+                  <div className="summaryRow">
+                    <span className="summaryLabel">Total Value</span>
+                    <span className="summaryValue">
                     ${wishlistItems.reduce((sum, item) => sum + item.price, 0).toFixed(2)}
                   </span>
-                </div>
-                <div className="summaryRow">
-                  <span className="summaryLabel">Average Rating</span>
+                  </div>
+                  <div className="summaryRow">
+                    <span className="summaryLabel">Average Rating</span>
                   <span className="summaryValue">
                     {wishlistItems.length > 0 
                       ? (wishlistItems.reduce((sum, item) => sum + item.rating, 0) / wishlistItems.length).toFixed(1)

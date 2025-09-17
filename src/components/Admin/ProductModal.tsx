@@ -13,7 +13,6 @@ import {
   Card,
   Space,
   Avatar,
-  Divider
 } from 'antd';
 import {
   PlusOutlined,
@@ -189,7 +188,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
               requiredMark={false}
               onValuesChange={handleValuesChange}
           >
-            {/* Basic Information Card */}
             <Card
                 size="small"
                 title={
@@ -256,8 +254,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 />
               </Form.Item>
             </Card>
-
-            {/* Category & Classification Card */}
             <Card
                 size="small"
                 title={
@@ -292,11 +288,19 @@ const ProductModal: React.FC<ProductModalProps> = ({
                             (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
                         }
                     >
-                      {categories.map((c) => (
-                          <Select.Option key={c.id} value={c.id}>
-                            {c.categoryName}
-                          </Select.Option>
-                      ))}
+                      {categories.map((c) =>
+                          c.subCategories && c.subCategories.length > 0
+                              ? c.subCategories.map((sub) => (
+                                  <Select.Option key={sub.id} value={sub.id}>
+                                    {`${c.categoryName} - ${sub.subCategoryName}`}
+                                  </Select.Option>
+                              ))
+                              : (
+                                  <Select.Option key={c.id} value={c.id}>
+                                    {c.categoryName}
+                                  </Select.Option>
+                              )
+                      )}
                     </Select>
                   </Form.Item>
                 </Col>
@@ -347,8 +351,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
                 </Col>
               </Row>
             </Card>
-
-            {/* Pricing & Stock Card */}
             <Card
                 size="small"
                 title={

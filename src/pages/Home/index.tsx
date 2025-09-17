@@ -1,403 +1,329 @@
-
 import { Link } from 'react-router-dom';
 import { FaStar, FaHeart } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 import './Home.css';
-import {useEffect, useState} from "react";
+import { useWishlist } from "../../hooks/useWishlist";
+import { getTopProducts } from "../../api/orders.api";
+import { getProducts } from "../../api/products.api";
+import imageHome from '../../../assets/image/imageHome.jpg';
+import book from '../../../assets/image/book.jpg';
+import stationery from '../../../assets/image/stationery.jpg';
+import Magazines from '../../../assets/image/Magazines.jpg';
+import CDsDVDs from '../../../assets/image/CDsDVDs.jpg';
+import {message} from "antd";
+import {cartApi} from "../../api/cart.api";
 
 
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  price: number;
-  originalPrice: number;
-  rating: number;
-  reviewCount: number;
-  category: string;
-  manufacturer: string;
-  image: string;
-  description: string;
-  inStock: boolean;
-}
+
 
 const HomePage = () => {
-  const [wishlist, setWishlist] = useState<Book[]>([]);
+  const { handleWishlistToggle, isInWishlist } = useWishlist();
 
-  // Mock books data for different sections
-  const newBooks = [
-    {
-      id: 1,
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      price: 24.99,
-      originalPrice: 29.99,
-      rating: 4.5,
-      reviewCount: 128,
-      category: "Fiction",
-      manufacturer: "Classic Literature",
-      image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
-      description: "A literary classic exploring themes of decadence, idealism, and the American Dream.",
-      inStock: true
-    },
-    {
-      id: 2,
-      title: "To Kill a Mockingbird",
-      author: "Harper Lee",
-      price: 21.99,
-      originalPrice: 27.99,
-      rating: 4.8,
-      reviewCount: 256,
-      category: "Fiction",
-      manufacturer: "Classic Literature",
-      image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
-      description: "A powerful story of racial injustice and the loss of innocence in the American South.",
-      inStock: true
-    },
-    {
-      id: 3,
-      title: "1984",
-      author: "George Orwell",
-      price: 22.99,
-      originalPrice: 24.99,
-      rating: 4.6,
-      reviewCount: 189,
-      category: "Fiction",
-      manufacturer: "Dystopian",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
-      description: "A chilling vision of a totalitarian society and the power of surveillance.",
-      inStock: true
-    }
-  ];
+  // State for different book sections
+  const [newBooks, setNewBooks] = useState<Book[]>([]);
+  const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
+  const [hotBooks, setHotBooks] = useState<Book[]>([]);
+  const [saleBooks, setSaleBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const featuredBooks = [
-    {
-      id: 4,
-      title: "Pride and Prejudice",
-      author: "Jane Austen",
-      price: 21.99,
-      originalPrice: 26.99,
-      rating: 4.7,
-      reviewCount: 203,
-      category: "Fiction",
-      manufacturer: "Romance",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
-      description: "A timeless romance exploring love, marriage, and social class in Georgian England.",
-      inStock: true
-    },
-    {
-      id: 5,
-      title: "The Hobbit",
-      author: "J.R.R. Tolkien",
-      price: 28.99,
-      originalPrice: 33.99,
-      rating: 4.9,
-      reviewCount: 312,
-      category: "Fiction",
-      manufacturer: "Fantasy",
-      image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
-      description: "An epic fantasy adventure following Bilbo Baggins on his journey with thirteen dwarves.",
-      inStock: true
-    },
-    {
-      id: 6,
-      title: "The Catcher in the Rye",
-      author: "J.D. Salinger",
-      price: 20.99,
-      originalPrice: 25.99,
-      rating: 4.3,
-      reviewCount: 167,
-      category: "Fiction",
-      manufacturer: "Coming of Age",
-      image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
-      description: "A classic coming-of-age story about teenage alienation and loss of innocence.",
-      inStock: true
-    }
-  ];
 
-  const hotBooks = [
-    {
-      id: 7,
-      title: "Lord of the Flies",
-      author: "William Golding",
-      price: 18.99,
-      originalPrice: 23.99,
-      rating: 4.4,
-      reviewCount: 145,
-      category: "Fiction",
-      manufacturer: "Allegory",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
-      description: "A powerful allegory about the dark side of human nature and civilization.",
-      inStock: true
-    },
-    {
-      id: 8,
-      title: "Animal Farm",
-      author: "George Orwell",
-      price: 16.99,
-      originalPrice: 21.99,
-      rating: 4.5,
-      reviewCount: 178,
-      category: "Fiction",
-      manufacturer: "Political Satire",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
-      description: "A satirical allegory about the Russian Revolution and the rise of Stalinism.",
-      inStock: true
-    },
-    {
-      id: 9,
-      title: "Brave New World",
-      author: "Aldous Huxley",
-      price: 23.99,
-      originalPrice: 28.99,
-      rating: 4.6,
-      reviewCount: 201,
-      category: "Fiction",
-      manufacturer: "Dystopian",
-      image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
-      description: "A dystopian novel about a future society controlled by technology and conditioning.",
-      inStock: true
-    }
-  ];
+  const transformProduct = (product: any, totalQuantity: number = 0): Book => ({
+    ...product,
+    rating: Math.random() * 1 + 4,
+    reviewCount: Math.floor(Math.random() * 200) + 50,
+    originalPrice: product.price * 1.2,
+    totalQuantity
+  });
 
-  const saleBooks = [
-    {
-      id: 10,
-      title: "The Alchemist",
-      author: "Paulo Coelho",
-      price: 15.99,
-      originalPrice: 24.99,
-      rating: 4.2,
-      reviewCount: 89,
-      category: "Fiction",
-      manufacturer: "Philosophical",
-      image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
-      description: "A magical story about following your dreams and listening to your heart.",
-      inStock: true
-    },
-    {
-      id: 11,
-      title: "The Little Prince",
-      author: "Antoine de Saint-Exupéry",
-      price: 12.99,
-      originalPrice: 19.99,
-      rating: 4.8,
-      reviewCount: 234,
-      category: "Fiction",
-    manufacturer: "Children's Literature",
-      image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
-      description: "A poetic tale about a young prince who visits various planets in space.",
-      inStock: true
-    },
-    {
-      id: 12,
-      title: "The Old Man and the Sea",
-      author: "Ernest Hemingway",
-      price: 14.99,
-      originalPrice: 22.99,
-      rating: 4.4,
-      reviewCount: 156,
-      category: "Fiction",
-      manufacturer: "Literary Fiction",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
-      description: "A story about an aging fisherman's struggle with a giant marlin.",
-      inStock: true
+  const fetchBooksData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const productOrderStats = await getTopProducts();
+
+      const productsResponse = await getProducts(1, 5);
+
+      if (!productsResponse.success || !productsResponse.data?.items) {
+        throw new Error('Failed to fetch products');
+      }
+
+      const allProducts = productsResponse.data.items.map(product =>
+          transformProduct(product, productOrderStats[product.id] || 0)
+      );
+
+      const newBooksData = [...allProducts]
+          .sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime())
+          .slice(0, 3);
+      const saleBooksData = [...allProducts]
+          .sort((a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime())
+          .slice(0, 3);
+      const hotBooksData = [...allProducts]
+          .sort((a, b) => (b.totalQuantity || 0) - (a.totalQuantity || 0))
+          .slice(0, 3);
+      const featuredBooksData = [...allProducts]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+
+      setNewBooks(newBooksData);
+      setSaleBooks(saleBooksData);
+      setHotBooks(hotBooksData);
+      setFeaturedBooks(featuredBooksData);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching data');
+      console.error('Error fetching products data:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    // Load Wishlist from localStorage
-    const savedWishlist = JSON.parse(localStorage.getItem('Wishlist') || '[]');
-    setWishlist(savedWishlist);
+    fetchBooksData();
   }, []);
 
-  const handleAddToCart = (book: Book) => {
-    // Add to cart logic here
-    console.log('Added to cart:', book);
-  };
-
-  const handleWishlistToggle = (book: Book) => {
-    setWishlist(prev => {
-      const isInWishlist = prev.some(item => item.id === book.id);
-      let updatedWishlist;
-      
-      if (isInWishlist) {
-        updatedWishlist = prev.filter(item => item.id !== book.id);
+  const handleAddToCart = async (book: Book) => {
+    try {
+      const response = await cartApi.addToCart(book.id, 1); // quantity = 1
+      if (response.success) {
+        message.success(`Added "${book.productName}" to cart!`);
+        // cập nhật header/cart count
+        window.dispatchEvent(new Event("cartUpdated"));
       } else {
-        updatedWishlist = [...prev, book];
+        message.error(response.message || "Failed to add to cart!");
       }
-      
-      // Save to localStorage
-      localStorage.setItem('Wishlist', JSON.stringify(updatedWishlist));
-      
-      return updatedWishlist;
-    });
+    } catch (error) {
+      message.error("Error adding to cart, please try again.");
+      console.error("Add to cart failed:", error);
+    }
   };
-
-  const isInWishlist = (bookId: number) => {
-    return wishlist.some(item => item.id === bookId);
-  };
-
   const renderBookCard = (book: Book) => (
-    <div key={book.id} className="bookCard">
-      <div className="bookImage">
-        <Link to={`/product/${book.id}`} className="bookImageLink">
-          <img src={book.image} alt={book.title} />
-        </Link>
-        <div className="bookOverlay">
-          <button 
-            className="addToCartBtn"
-            onClick={() => handleAddToCart(book)}
+      <div key={book.id} className="bookCard">
+        <div className="bookImage">
+          <Link to={`/product/${book.id}`} className="bookImageLink">
+            <img
+                src={book.photos?.[0]?.photoUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop'}
+                alt={book.productName}
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop';
+                }}
+            />
+          </Link>
+          <div className="bookOverlay">
+            <button
+                className="addToCartBtn"
+                onClick={() => handleAddToCart(book)}
+                disabled={book.stockQuantity <= 0}
+            >
+              {book.stockQuantity > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
+            </button>
+          </div>
+          <button
+              className={`wishlistBtn ${isInWishlist(book.id) ? 'active' : ''}`}
+              onClick={() => handleWishlistToggle(book)}
+              title={isInWishlist(book.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
           >
-            ADD TO CART
+            <FaHeart />
           </button>
         </div>
-        <button 
-          className={`wishlistBtn ${isInWishlist(book.id) ? 'active' : ''}`}
-          onClick={() => handleWishlistToggle(book)}
-          title={isInWishlist(book.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
-        >
-          <FaHeart />
-        </button>
-      </div>
-      <div className="bookInfo">
-        <Link to={`/product/${book.id}`} className="bookTitleLink">
-          <h3 className="bookTitle">{book.title}</h3>
-        </Link>
-        <p className="bookAuthor">by {book.author}</p>
-        <div className="bookRating">
-          <div className="stars">
-            {[...Array(5)].map((_, i) => (
-              <FaStar 
-                key={i} 
-                className={i < Math.floor(book.rating) ? 'star filled' : 'star'} 
-              />
-            ))}
+        <div className="bookInfo">
+          <Link to={`/product/${book.id}`} className="bookTitleLink">
+            <h3 className="bookTitle">{book.productName}</h3>
+          </Link>
+          <p className="bookAuthor">by {book.author || book.publisher?.publisherName || book.manufacturer?.manufacturerName || 'Unknown Author'}</p>
+          <div className="bookRating">
+            <div className="stars">
+              {[...Array(5)].map((_, i) => (
+                  <FaStar
+                      key={i}
+                      className={i < Math.floor(book.rating || 0) ? 'star filled' : 'star'}
+                  />
+              ))}
+            </div>
+            <span className="ratingText">({book.reviewCount || 0} reviews)</span>
           </div>
-          <span className="ratingText">({book.reviewCount} reviews)</span>
-        </div>
-        <div className="bookPrice">
-          <span className="currentPrice">${book.price}</span>
-          {book.originalPrice > book.price && (
-            <span className="originalPrice">${book.originalPrice}</span>
+          <div className="bookPrice">
+            <span className="currentPrice">${book.price}</span>
+            {book.originalPrice && book.originalPrice > book.price && (
+                <span className="originalPrice">${book.originalPrice}</span>
+            )}
+          </div>
+          <p className="bookDescription">
+            {book.description || 'No description available.'}
+          </p>
+          <div className="bookMeta">
+            <span className="bookCategory">{book.category?.categoryName || 'Unknown'}</span>
+            <span className="bookManufacturer">{book.manufacturer?.manufacturerName || 'Unknown'}</span>
+          </div>
+          {book.totalQuantity !== undefined && book.totalQuantity > 0 && (
+              <div className="orderCount">
+                <small>Total Sales: {book.totalQuantity}</small>
+              </div>
           )}
         </div>
-        <p className="bookDescription">{book.description}</p>
-        <div className="bookMeta">
-          <span className="bookCategory">{book.category}</span>
-              <span className="bookManufacturer">{book.manufacturer}</span>
-        </div>
       </div>
-    </div>
   );
 
+  if (loading) {
+    return (
+        <div className="loading-container" style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          fontSize: '18px'
+        }}>
+          Loading books...
+        </div>
+    );
+  }
+
+  if (error) {
+    return (
+        <div className="error-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          color: 'red'
+        }}>
+          <h3>Error loading books</h3>
+          <p>{error}</p>
+          <button
+              onClick={fetchBooksData}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+          >
+            Try Again
+          </button>
+        </div>
+    );
+  }
+
   return (
-    <>
-      {/* Hero Section */}
-      <section className="heroSection">
-        <div className="heroLeft">
-          <div className="heroIcon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
-              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(45 12 12)" />
-              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(90 12 12)" />
-              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(135 12 12)" />
-            </svg>
-          </div>
-          <p className="heroSubtitle">Discover amazing stories since 1990</p>
-          <h1 className="heroTitle">BESTSELLING BOOKS</h1>
-          <Link to="/bookstore" className="shopNowButton">
-            SHOP NOW
-          </Link>
-        </div>
-        <div className="heroRight">
-          <div className="heroImage">
-            <img src={'./src/assets/img/Lang_On_Ao.webp'} alt="The Great Gatsby" className="heroImage" />
-          </div>
-        </div>
-      </section>
-
-      {/* Category Section */}
-      <section className="categorySection">
-        <div className="categoryGrid">
-          <div className="categoryCard">
-            <div className="categoryImage">
-              <img src={'./src/assets/img/cay-cam-ngot-cua-toi.jpg'} alt="The Great Gatsby" className="productImage" />
+      <>
+        {/* Hero Section */}
+        <section className="heroSectionHome">
+          <div className="heroLeftHome">
+            <div className="heroIcon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(45 12 12)" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(90 12 12)" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(135 12 12)" />
+              </svg>
             </div>
-            <h3 className="categoryTitle">FICTION</h3>
+            <p className="heroSubtitle">"Knowledge is power." - Francis Bacon</p>
+            <h1 className="heroTitle">Shradha BookStore</h1>
+            <Link to="/shop" className="shopNowButton">
+              SHOP NOW
+            </Link>
           </div>
-          <div className="categoryCard">
-            <div className="categoryImage">
-              <img src={'./src/assets/img/cay-cam-ngot-cua-toi.jpg'} alt="The Great Gatsby" className="productImage" />
+          <div className="heroRight">
+            <div className="heroImageWrapper">
+              <img src={imageHome} alt="Featured Book" className="heroImage"/>
             </div>
-            <h3 className="categoryTitle">NON-FICTION</h3>
           </div>
-          <div className="categoryCard">
-            <div className="categoryImage">
-              <img src={'./src/assets/img/cay-cam-ngot-cua-toi.jpg'} alt="The Great Gatsby" className="productImage" />
+        </section>
+
+        {/* Category Section */}
+        <section className="categorySection">
+          <div className="categoryGrid">
+            <div className="categoryCard">
+              <div className="categoryImage">
+                <img src={book} alt="BOOKS" className="productImage"/>
+              </div>
+              <h3 className="categoryTitle">BOOKS</h3>
             </div>
-            <h3 className="categoryTitle">SCIENCE</h3>
-          </div>
-          <div className="categoryCard">
-            <div className="categoryImage">
-              <img src={'./src/assets/img/cay-cam-ngot-cua-toi.jpg'} alt="The Great Gatsby" className="productImage" />
+            <div className="categoryCard">
+              <div className="categoryImage">
+                <img src={stationery} alt="STATIONERY" className="productImage" />
+              </div>
+              <h3 className="categoryTitle">STATIONERY</h3>
             </div>
-            <h3 className="categoryTitle">HISTORY</h3>
+            <div className="categoryCard">
+              <div className="categoryImage">
+                <img src={Magazines} alt="Magazines" className="productImage" />
+              </div>
+              <h3 className="categoryTitle">MAGAZINES</h3>
+            </div>
+            <div className="categoryCard">
+              <div className="categoryImage">
+                <img src={CDsDVDs} alt="CDsDVDs" className="productImage" />
+              </div>
+              <h3 className="categoryTitle">CD and DVDs</h3>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* New Books Section */}
-      <section className="featuredSection">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">New Books</h2>
-          <p className="sectionSubtitle">
-            Discover our handpicked collection of bestselling books
-          </p>
-        </div>
-        <div className="booksGrid">
-          {newBooks.map(renderBookCard)}
-        </div>
-      </section>
+        {/* New Books Section */}
+        <section className="featuredSection">
+          <div className="sectionHeader">
+            <h2 className="sectionTitle">New Books</h2>
+            <p className="sectionSubtitle">
+              Latest additions to our collection - recently published books
+            </p>
+          </div>
+          <div className="booksGrid">
+            {newBooks.length > 0 ? newBooks.map(renderBookCard) : (
+                <p>No new books available at the moment.</p>
+            )}
+          </div>
+        </section>
 
-      {/* Featured Books Section */}
-      <section className="featuredSection">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">FEATURED BOOKS</h2>
-          <p className="sectionSubtitle">
-            Discover our handpicked collection of bestselling books
-          </p>
-        </div>
-        <div className="booksGrid">
-          {featuredBooks.map(renderBookCard)}
-        </div>
-      </section>
+        {/* Featured Books Section */}
+        <section className="featuredSection">
+          <div className="sectionHeader">
+            <h2 className="sectionTitle">FEATURED BOOKS</h2>
+            <p className="sectionSubtitle">
+              Discover our handpicked collection of recommended books
+            </p>
+          </div>
+          <div className="booksGrid">
+            {featuredBooks.length > 0 ? featuredBooks.map(renderBookCard) : (
+                <p>No featured books available at the moment.</p>
+            )}
+          </div>
+        </section>
 
-      {/* Hot Books Section */}
-      <section className="featuredSection">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Hot Books</h2>
-          <p className="sectionSubtitle">
-            Discover our handpicked collection of bestselling books
-          </p>
-        </div>
-        <div className="booksGrid">
-          {hotBooks.map(renderBookCard)}
-        </div>
-      </section>
+        {/* Hot Books Section */}
+        <section className="featuredSection">
+          <div className="sectionHeader">
+            <h2 className="sectionTitle">Hot Products</h2>
+            <p className="sectionSubtitle">
+              Most popular products - bestsellers based on customer orders
+            </p>
+          </div>
+          <div className="booksGrid">
+            {hotBooks.length > 0 ? hotBooks.map(renderBookCard) : (
+                <p>No hot products available at the moment.</p>
+            )}
+          </div>
+        </section>
 
-      {/* Sale Books Section */}
-      <section className="featuredSection">
-        <div className="sectionHeader">
-          <h2 className="sectionTitle">Sale Books</h2>
-          <p className="sectionSubtitle">
-            Discover our handpicked collection of bestselling books
-          </p>
-        </div>
-        <div className="booksGrid">
-          {saleBooks.map(renderBookCard)}
-        </div>
-      </section>
-    </>
+        {/* Sale Books Section */}
+        <section className="featuredSection">
+          <div className="sectionHeader">
+            <h2 className="sectionTitle">Classic Books</h2>
+            <p className="sectionSubtitle">
+              Timeless classics - books that have stood the test of time
+            </p>
+          </div>
+          <div className="booksGrid">
+            {saleBooks.length > 0 ? saleBooks.map(renderBookCard) : (
+                <p>No classic books available at the moment.</p>
+            )}
+          </div>
+        </section>
+      </>
   );
 };
 

@@ -1,17 +1,18 @@
 /* Hero Section */
-.heroSection {
+.heroSectionHome {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 80px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 80px 100px;
+  /*background-image: url("/assets/image/imageHome1.jpg");*/
   color: white;
+  background: #1a202c;
   margin: -20px -20px 60px -20px;
   min-height: 500px;
 }
 
-.heroLeft {
-  flex: 1;
+.heroLeftHome {
+  flex: 2;
   max-width: 500px;
 }
 
@@ -66,10 +67,16 @@
   align-items: center;
 }
 
-.heroImage {
-  max-width: 400px;
+.heroImageWrapper {
+  max-width: 1000px; /* tăng kích thước lớn hơn */
   border-radius: 10px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
 }
 
 .heroImage img {
@@ -364,24 +371,23 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .heroSection {
+  .heroSectionHome {
     flex-direction: column;
     text-align: center;
     padding: 40px 20px;
   }
 
-  .heroLeft {
-    max-width: 100%;
-    margin-bottom: 30px;
+  .heroLeftHome {
+    flex: 2;
+    max-width: 500px;
+    margin-left: 50px;
   }
+
 
   .heroTitle {
     font-size: 32px;
   }
 
-  .heroImage {
-    max-width: 300px;
-  }
 
   .categoryGrid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -399,7 +405,7 @@
 }
 
 @media (max-width: 480px) {
-  .heroSection {
+  .heroSectionHome {
     padding: 30px 15px;
   }
 

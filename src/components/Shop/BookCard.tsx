@@ -11,6 +11,8 @@ interface BookCardProps {
 }
 
 const BookCard: React.FC<BookCardProps> = ({ book, isInWishlist, onWishlistToggle }) => {
+
+
   return (
     <div className="bookCard">
       <div className="bookImage">
@@ -37,7 +39,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, isInWishlist, onWishlistToggl
         <Link to={`/detail-product/${book.id}`} className="bookTitleLink">
           <h3 className="bookTitle">{book.title}</h3>
         </Link>
-        <p className="bookAuthor">by {book.author}</p>
+        <p className="bookAuthor">by {book.manufacturer}</p>
         <div className="bookRating">
           <div className="stars">
             {[...Array(5)].map((_, i) => (

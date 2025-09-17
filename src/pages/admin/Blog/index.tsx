@@ -191,24 +191,17 @@ const BlogAdmin: React.FC = () => {
   // Handle image upload
   const handleImageUpload = async (info: any) => {
     const { file, fileList } = info;
-    
-    // Only process if there are files and we're not in uploading state
     if (fileList && fileList.length > 0) {
       const selectedFile = fileList[fileList.length - 1];
       const actualFile = selectedFile.originFileObj || selectedFile;
-      
-      // Check if it's an image file
       const isImage = actualFile.type?.startsWith('image/');
       if (!isImage) {
         message.error('Chỉ được tải lên file ảnh!');
         return;
       }
-      
-      // Set uploading state
       setUploading(true);
       
       try {
-        // Upload image to server
         const uploadResponse = await blogApi.uploadBlogImage(actualFile);
         
         if (uploadResponse && uploadResponse.url) {
@@ -226,8 +219,6 @@ const BlogAdmin: React.FC = () => {
       }
     }
   };
-
-  // Validate form before submit
   const validateForm = () => {
     const values = form.getFieldsValue();
     const errors = [];
@@ -247,8 +238,6 @@ const BlogAdmin: React.FC = () => {
 
     return errors;
   };
-
-  // Calculate reading time
   const calculateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
@@ -458,11 +447,9 @@ const BlogAdmin: React.FC = () => {
         featuredImage: fullBlog.featuredImageUrl,
         tags: (fullBlog as any).tags ? (fullBlog as any).tags.join(", ") : "",
       };
-      
-      // Set form values
+
       form.setFieldsValue(formData);
-      
-      // Set preview data từ blog đang edit
+
       setPreviewData({
         title: fullBlog.title,
         content: fullBlog.content || "",

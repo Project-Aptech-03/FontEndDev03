@@ -1,4 +1,11 @@
-import {ProductFormData, ProductPhoto} from "./products";
+import { ProductPhoto} from "./products";
+export interface SubCategoryDto {
+    id: number;
+    subCategoryCode: string;
+    subCategoryName: string;
+    isActive: boolean;
+    createdDate: string;
+}
 
 export interface CategoryDto {
     id: number;
@@ -7,6 +14,7 @@ export interface CategoryDto {
     isActive: boolean;
     createdDate: string;
     productCount: number;
+    subCategories?: SubCategoryDto[];
 }
 
 export interface ManufacturerDto {
