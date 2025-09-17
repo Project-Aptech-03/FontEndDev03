@@ -1,10 +1,11 @@
-import { createContext, useState, useEffect, ReactNode, useContext } from "react";
-import {AuthUser} from "../@type/login";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { AuthUser } from "../@type/login";
+import apiClient from "../services/api";
 
 interface AuthContextType {
     isLoggedIn: boolean;
     user: AuthUser | null;
-    login: (response: AuthUser, rememberMe?: boolean) => void;
+    login: (user: AuthUser, rememberMe?: boolean) => void;
     logout: () => void;
     loading: boolean;
 }
@@ -24,40 +25,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     useEffect(() => {
         const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-        const savedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
-
-        if (token && savedUser) {
-            try {
-                const parsed: AuthUser = JSON.parse(savedUser);
-                if (parsed?.token === token) {
-                    setUser(parsed);
+        if (token) {
+            apiClient.get("/auth/me")
+                .then(res => {
+                    const userData: AuthUser = {
+                        id: res.data.data.userId,
+                        email: res.data.data.email,
+                        fullName: res.data.data.fullName,
+                        role: res.data.data.role,
+                        token: token,
+                    };
+                    setUser(userData);
                     setIsLoggedIn(true);
-                }
-            } catch {
-                setUser(null);
-                setIsLoggedIn(false);
-            }
-        }
-        setLoading(false);
+                })
+                .catch(() => logout())
+                .finally(() => setLoading(false));
+        } else setLoading(false);
     }, []);
 
-    const login = (response: AuthUser, rememberMe: boolean = true) => {
+    const login = (userData: AuthUser, rememberMe: boolean = true) => {
         if (rememberMe) {
-            localStorage.setItem("accessToken", response.token);
-            localStorage.setItem("user", JSON.stringify(response));
+            localStorage.setItem("accessToken", userData.token);
+            localStorage.setItem("refreshToken", userData.refreshToken ?? "");
+            localStorage.setItem("user", JSON.stringify(userData));
         } else {
-            sessionStorage.setItem("accessToken", response.token);
-            sessionStorage.setItem("user", JSON.stringify(response));
+            sessionStorage.setItem("accessToken", userData.token);
+            sessionStorage.setItem("refreshToken", userData.refreshToken ?? "");
+            sessionStorage.setItem("user", JSON.stringify(userData));
         }
+        setUser(userData);
         setIsLoggedIn(true);
-        setUser(response);
     };
 
     const logout = () => {
         localStorage.clear();
         sessionStorage.clear();
-        setIsLoggedIn(false);
         setUser(null);
+        setIsLoggedIn(false);
     };
 
     return (

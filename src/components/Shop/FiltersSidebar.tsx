@@ -15,6 +15,7 @@ interface FiltersSidebarProps {
     onManufacturerFilter: (manufacturer: string) => void;
 }
 
+
 const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                                            categories,
                                                            manufacturers,
@@ -25,6 +26,8 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                                            onPriceFilter,
                                                            onManufacturerFilter
                                                        }) => {
+
+
     return (
         <aside className="filters">
             <div className="filterSection">

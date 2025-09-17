@@ -182,7 +182,6 @@ const MyOrders = () => {
   };
 
   const handleReorder = (order: Order) => {
-    // Logic để thêm lại các sản phẩm vào giỏ hàng
     alert(`Added ${order.orderItems.length} items to cart!`);
   };
 

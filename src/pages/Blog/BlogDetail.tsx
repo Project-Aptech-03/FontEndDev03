@@ -134,15 +134,7 @@ const BlogDetail: React.FC = () => {
   // Handle author follow
   const handleFollowAuthor = async () => {
     if (!blog) return;
-    
-    // Check if user is authenticated
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      message.warning('Vui lòng đăng nhập để theo dõi tác giả');
-      navigate('/login');
-      return;
-    }
-    
+
     // Test endpoint first (for debugging)
     console.log('Testing follow endpoint...');
     try {

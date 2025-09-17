@@ -1,7 +1,7 @@
 import apiClient from "../services/api";
 import {ApiResponse} from "../@type/apiResponse";
 import {UsersResponseDto} from "../@type/UserResponseDto";
-import {UploadResponse} from "../@type/upload";
+
 
 export const getProfile = async () => {
     const res = await apiClient.get<ApiResponse<UsersResponseDto>>("user/profile");

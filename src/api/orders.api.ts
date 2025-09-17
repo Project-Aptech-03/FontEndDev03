@@ -19,7 +19,6 @@ export const getMyOrders = async (): Promise<{ success: boolean; result?: ApiRes
     }
 };
 
-// Admin APIs
 export const getAllOrders = async (): Promise<{ success: boolean; result?: ApiResponse<ApiOrder[]>; error?: any }> => {
     try {
         const response = await apiClient.get<ApiResponse<ApiOrder[]>>("/orders");

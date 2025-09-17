@@ -1,20 +1,19 @@
-import { axiosInstance } from '../config/axios';
+
 import { endpoints } from '../config/endpoint';
-import { 
-  Coupon, 
-  CreateCouponRequest, 
-  UpdateCouponRequest, 
+import {
+  CreateCouponRequest,
   CouponApiResponse, 
   CouponsApiResponse,
   ApplyCouponRequest,
   ApplyCouponResponse
 } from '../@type/coupon';
+import apiClient from "../services/api";
 
 export const couponApi = {
   // Get all coupons
   getCoupons: async (): Promise<CouponsApiResponse> => {
     try {
-      const response = await axiosInstance.get(endpoints.getCoupons);
+      const response = await apiClient.get(endpoints.getCoupons);
       return response.data;
     } catch (error) {
       console.error('Error fetching coupons:', error);
@@ -25,7 +24,7 @@ export const couponApi = {
   // Get coupon by ID
   getCouponById: async (id: number): Promise<CouponApiResponse> => {
     try {
-      const response = await axiosInstance.get(
+      const response = await apiClient.get(
         endpoints.getCouponById.replace('{id}', id.toString())
       );
       return response.data;
@@ -38,7 +37,7 @@ export const couponApi = {
   // Create new coupon
   createCoupon: async (couponData: CreateCouponRequest): Promise<CouponApiResponse> => {
     try {
-      const response = await axiosInstance.post(endpoints.createCoupon, couponData);
+      const response = await apiClient.post(endpoints.createCoupon, couponData);
       return response.data;
     } catch (error) {
       console.error('Error creating coupon:', error);
@@ -49,7 +48,7 @@ export const couponApi = {
   // Update coupon
   updateCoupon: async (id: number, couponData: CreateCouponRequest): Promise<CouponApiResponse> => {
     try {
-      const response = await axiosInstance.put(
+      const response = await apiClient.put(
         endpoints.updateCoupon.replace('{id}', id.toString()),
         couponData
       );
@@ -63,7 +62,7 @@ export const couponApi = {
   // Delete coupon
   deleteCoupon: async (id: number): Promise<CouponApiResponse> => {
     try {
-      const response = await axiosInstance.delete(
+      const response = await apiClient.delete(
         endpoints.deleteCoupon.replace('{id}', id.toString())
       );
       return response.data;
@@ -73,10 +72,9 @@ export const couponApi = {
     }
   },
 
-  // Apply coupon
   applyCoupon: async (request: ApplyCouponRequest): Promise<ApplyCouponResponse> => {
     try {
-      const response = await axiosInstance.post(endpoints.applyCoupon, request);
+      const response = await apiClient.post(endpoints.applyCoupon, request);
       return response.data;
     } catch (error) {
       console.error('Error applying coupon:', error);

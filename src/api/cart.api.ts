@@ -1,12 +1,11 @@
-import { axiosInstance } from '../config/axios';
 import { endpoints } from '../config/endpoint';
-import { CartApiResponse, CartItem, SingleCartItemResponse } from '../@type/cart';
+import { CartApiResponse, SingleCartItemResponse } from '../@type/cart';
+import apiClient from "../services/api";
 
 export const cartApi = {
-  // Get cart items
   getCart: async (): Promise<CartApiResponse> => {
     try {
-      const response = await axiosInstance.get(endpoints.getCart);
+      const response = await apiClient.get(endpoints.getCart);
       return response.data;
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -17,7 +16,7 @@ export const cartApi = {
   // Add item to cart
   addToCart: async (productId: number, quantity: number): Promise<CartApiResponse> => {
     try {
-      const response = await axiosInstance.post(endpoints.addToCart, {
+      const response = await apiClient.post(endpoints.addToCart, {
         productId,
         quantity
       });
@@ -31,7 +30,7 @@ export const cartApi = {
   // Update cart item quantity
   updateCartItem: async (cartItemId: number, quantity: number): Promise<SingleCartItemResponse> => {
     try {
-      const response = await axiosInstance.put(
+      const response = await apiClient.put(
         endpoints.updateCartItem.replace('{id}', cartItemId.toString()),
         { quantity }
       );
@@ -45,7 +44,7 @@ export const cartApi = {
   // Remove item from cart
   removeFromCart: async (cartItemId: number): Promise<CartApiResponse> => {
     try {
-      const response = await axiosInstance.delete(
+      const response = await apiClient.delete(
         endpoints.removeFromCart.replace('{id}', cartItemId.toString())
       );
       return response.data;
@@ -58,7 +57,7 @@ export const cartApi = {
   // Clear entire cart
   clearCart: async (): Promise<CartApiResponse> => {
     try {
-      const response = await axiosInstance.delete(endpoints.clearCart);
+      const response = await apiClient.delete(endpoints.clearCart);
       return response.data;
     } catch (error) {
       console.error('Error clearing cart:', error);

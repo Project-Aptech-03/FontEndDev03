@@ -1,4 +1,4 @@
-import { api } from '../config/axios';
+
 import {
   BlogResponseDto,
   BlogListResponseDto,
@@ -11,116 +11,117 @@ import {
   UpdateCommentDto,
   AuthorFollowDto
 } from '../@type/blog';
+import apiClient from "../services/api";
 
 export const blogApi = {
   // Blog CRUD operations
   getBlogs: async (query: BlogQueryDto): Promise<PagedResultDto<BlogListResponseDto>> => {
-    const response = await api.get('/Blog', { params: query });
+    const response = await apiClient.get('/Blog', { params: query });
     return response.data;
   },
 
   getFeaturedBlogs: async (count: number = 5): Promise<BlogListResponseDto[]> => {
-    const response = await api.get(`/Blog/featured?count=${count}`);
+    const response = await apiClient.get(`/Blog/featured?count=${count}`);
     return response.data;
   },
 
   getRecentBlogs: async (count: number = 5): Promise<BlogListResponseDto[]> => {
-    const response = await api.get(`/Blog/recent?count=${count}`);
+    const response = await apiClient.get(`/Blog/recent?count=${count}`);
     return response.data;
   },
 
   searchBlogs: async (searchTerm: string, page: number = 1, pageSize: number = 10): Promise<BlogListResponseDto[]> => {
-    const response = await api.get('/Blog/search', {
+    const response = await apiClient.get('/Blog/search', {
       params: { searchTerm, page, pageSize }
     });
     return response.data;
   },
 
   getBlogById: async (id: number): Promise<BlogResponseDto> => {
-    const response = await api.get(`/Blog/${id}`);
+    const response = await apiClient.get(`/Blog/${id}`);
     return response.data;
   },
 
   getBlogBySlug: async (slug: string): Promise<BlogResponseDto> => {
-    const response = await api.get(`/Blog/slug/${slug}`);
+    const response = await apiClient.get(`/Blog/slug/${slug}`);
     return response.data;
   },
 
   getBlogsByAuthor: async (authorId: string, page: number = 1, pageSize: number = 10): Promise<BlogListResponseDto[]> => {
-    const response = await api.get(`/Blog/author/${authorId}`, {
+    const response = await apiClient.get(`/Blog/author/${authorId}`, {
       params: { page, pageSize }
     });
     return response.data;
   },
 
   getBlogsByCategory: async (categoryId: number, page: number = 1, pageSize: number = 10): Promise<BlogListResponseDto[]> => {
-    const response = await api.get(`/Blog/category/${categoryId}`, {
+    const response = await apiClient.get(`/Blog/category/${categoryId}`, {
       params: { page, pageSize }
     });
     return response.data;
   },
 
   createBlog: async (blogData: CreateBlogDto): Promise<BlogResponseDto> => {
-    const response = await api.post('/Blog', blogData);
+    const response = await apiClient.post('/Blog', blogData);
     return response.data;
   },
 
   updateBlog: async (id: number, blogData: UpdateBlogDto): Promise<BlogResponseDto> => {
-    const response = await api.put(`/Blog/${id}`, blogData);
+    const response = await apiClient.put(`/Blog/${id}`, blogData);
     return response.data;
   },
 
   deleteBlog: async (id: number): Promise<void> => {
-    await api.delete(`/Blog/${id}`);
+    await apiClient.delete(`/Blog/${id}`);
   },
 
   // Blog likes
   likeBlog: async (id: number): Promise<void> => {
-    await api.post(`/Blog/${id}/like`);
+    await apiClient.post(`/Blog/${id}/like`);
   },
 
   unlikeBlog: async (id: number): Promise<void> => {
-    await api.delete(`/Blog/${id}/like`);
+    await apiClient.delete(`/Blog/${id}/like`);
   },
 
   // Comments
   getBlogComments: async (blogId: number): Promise<CommentResponseDto[]> => {
-    const response = await api.get(`/Blog/${blogId}/comments`);
+    const response = await apiClient.get(`/Blog/${blogId}/comments`);
     return response.data;
   },
 
   createComment: async (blogId: number, commentData: CreateCommentDto): Promise<CommentResponseDto> => {
-    const response = await api.post(`/Blog/${blogId}/comments`, commentData);
+    const response = await apiClient.post(`/Blog/${blogId}/comments`, commentData);
     return response.data;
   },
 
   updateComment: async (commentId: number, commentData: UpdateCommentDto): Promise<CommentResponseDto> => {
-    const response = await api.put(`/Blog/comments/${commentId}`, commentData);
+    const response = await apiClient.put(`/Blog/comments/${commentId}`, commentData);
     return response.data;
   },
 
   deleteComment: async (commentId: number): Promise<void> => {
-    await api.delete(`/Blog/comments/${commentId}`);
+    await apiClient.delete(`/Blog/comments/${commentId}`);
   },
 
   likeComment: async (commentId: number): Promise<void> => {
-    await api.post(`/Blog/comments/${commentId}/like`);
+    await apiClient.post(`/Blog/comments/${commentId}/like`);
   },
 
   unlikeComment: async (commentId: number): Promise<void> => {
-    await api.delete(`/Blog/comments/${commentId}/like`);
+    await apiClient.delete(`/Blog/comments/${commentId}/like`);
   },
 
   // Author follows
   getAuthorFollowers: async (authorId: string, page: number = 1, pageSize: number = 10): Promise<AuthorFollowDto[]> => {
-    const response = await api.get(`/Blog/authors/${authorId}/followers`, {
+    const response = await apiClient.get(`/Blog/authors/${authorId}/followers`, {
       params: { page, pageSize }
     });
     return response.data;
   },
 
   getAuthorFollowing: async (authorId: string, page: number = 1, pageSize: number = 10): Promise<AuthorFollowDto[]> => {
-    const response = await api.get(`/Blog/authors/${authorId}/following`, {
+    const response = await apiClient.get(`/Blog/authors/${authorId}/following`, {
       params: { page, pageSize }
     });
     return response.data;
@@ -129,11 +130,11 @@ export const blogApi = {
   followAuthor: async (authorId: string): Promise<void> => {
     console.log('Following author:', authorId);
     console.log('Request URL:', `/Blog/authors/${authorId}/follow`);
-    console.log('Request headers:', api.defaults.headers);
+    console.log('Request headers:', apiClient.defaults.headers);
     
     try {
       // Try with empty body first
-      const response = await api.post(`/Blog/authors/${authorId}/follow`, {});
+      const response = await apiClient.post(`/Blog/authors/${authorId}/follow`, {});
       console.log('Follow response:', response);
       return response.data;
     } catch (error: any) {
@@ -145,7 +146,7 @@ export const blogApi = {
       // Try alternative approaches
       try {
         console.log('Trying alternative approach...');
-        const altResponse = await api.post(`/Blog/authors/${authorId}/follow`, {
+        const altResponse = await apiClient.post(`/Blog/authors/${authorId}/follow`, {
           authorId: authorId
         });
         console.log('Alternative follow response:', altResponse);
@@ -160,10 +161,10 @@ export const blogApi = {
   unfollowAuthor: async (authorId: string): Promise<void> => {
     console.log('Unfollowing author:', authorId);
     console.log('Request URL:', `/Blog/authors/${authorId}/follow`);
-    console.log('Request headers:', api.defaults.headers);
+    console.log('Request headers:', apiClient.defaults.headers);
     
     try {
-      const response = await api.delete(`/Blog/authors/${authorId}/follow`);
+      const response = await apiClient.delete(`/Blog/authors/${authorId}/follow`);
       console.log('Unfollow response:', response);
       return response.data;
     } catch (error: any) {
@@ -176,7 +177,7 @@ export const blogApi = {
   },
 
   getSuggestedAuthors: async (count: number = 5): Promise<AuthorFollowDto[]> => {
-    const response = await api.get(`/Blog/authors/suggested?count=${count}`);
+    const response = await apiClient.get(`/Blog/authors/suggested?count=${count}`);
     return response.data;
   },
 
@@ -186,7 +187,7 @@ export const blogApi = {
     formData.append("file", file);
     formData.append("folderName", "blogs");
 
-    const response = await api.post("/upload/single?folderName=blogs", formData, {
+    const response = await apiClient.post("/upload/single?folderName=blogs", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -237,7 +238,7 @@ export const blogApi = {
     for (const endpoint of possibleEndpoints) {
       try {
         console.log('Trying GET endpoint:', endpoint);
-        const response = await api.get(endpoint);
+        const response = await apiClient.get(endpoint);
         console.log('GET endpoint exists:', endpoint, response.status);
         results.push({ endpoint, method: 'GET', status: response.status, exists: true });
       } catch (error: any) {
@@ -249,7 +250,7 @@ export const blogApi = {
       if (endpoint.includes('follow') && !endpoint.includes('followers') && !endpoint.includes('following')) {
         try {
           console.log('Trying POST endpoint:', endpoint);
-          const response = await api.post(endpoint, { authorId });
+          const response = await apiClient.post(endpoint, { authorId });
           console.log('POST endpoint exists:', endpoint, response.status);
           results.push({ endpoint, method: 'POST', status: response.status, exists: true });
         } catch (error: any) {
@@ -293,13 +294,13 @@ export const blogApi = {
         console.log(`Trying ${endpoint.method} ${endpoint.url} with data:`, endpoint.data);
         let response;
         if (endpoint.method.toLowerCase() === 'post') {
-          response = await api.post(endpoint.url, endpoint.data);
+          response = await apiClient.post(endpoint.url, endpoint.data);
         } else if (endpoint.method.toLowerCase() === 'put') {
-          response = await api.put(endpoint.url, endpoint.data);
+          response = await apiClient.put(endpoint.url, endpoint.data);
         } else if (endpoint.method.toLowerCase() === 'delete') {
-          response = await api.delete(endpoint.url);
+          response = await apiClient.delete(endpoint.url);
         } else {
-          response = await api.get(endpoint.url);
+          response = await apiClient.get(endpoint.url);
         }
         console.log('Success:', endpoint.url, response.status);
         results.push({ 

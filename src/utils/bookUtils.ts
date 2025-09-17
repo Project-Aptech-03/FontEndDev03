@@ -1,8 +1,17 @@
 import { Book } from '../@type/book';
+import {cartApi} from "../api/cart.api";
+import {message} from "antd";
 
-export const handleAddToCart = (book: Book) => {
-  // Add to cart logic here
-  console.log('Added to cart:', book);
+
+export const handleAddToCart = async (book: Book) => {
+  try {
+    const res = await cartApi.addToCart(book.id, 1);
+    message.success("Thêm vào giỏ hàng thành công!");
+    console.log("Cart API response:", res);
+  } catch (error) {
+    message.error("Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+    console.error("Add to cart error:", error);
+  }
 };
 
 export const formatPrice = (price: number): string => {
@@ -13,10 +22,3 @@ export const calculateDiscount = (originalPrice: number, currentPrice: number): 
   return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
 };
 
-export const getUniqueCategories = (books: Book[]): string[] => {
-  return [...new Set(books.map(book => book.category))];
-};
-
-export const getUniqueManufacturers = (books: Book[]): string[] => {
-  return [...new Set(books.map(book => book.manufacturer).filter((manufacturer): manufacturer is string => manufacturer !== undefined))];
-};

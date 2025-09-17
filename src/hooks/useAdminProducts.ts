@@ -133,9 +133,9 @@ export const useAdminProducts = (pageIndex: number = 1, pageSize: number = 20, k
   const fetchReferenceData = async () => {
     try {
       const [categoriesRes, manufacturersRes, publishersRes] = await Promise.all([
-        getCategory(1, 100), // Get all categories
-        getManufacturers(1, 100), // Get all manufacturers
-        getPublishers(1, 100) // Get all publishers
+        getCategory(1, 100),
+        getManufacturers(1, 100),
+        getPublishers(1, 100)
       ]);
 
       if (categoriesRes.success && categoriesRes.data?.items) {

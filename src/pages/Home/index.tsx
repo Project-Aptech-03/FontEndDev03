@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { FaStar, FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { FaStar, FaHeart } from 'react-icons/fa';
 import './Home.css';
 import {useEffect, useState} from "react";
 

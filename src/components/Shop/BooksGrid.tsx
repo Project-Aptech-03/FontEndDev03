@@ -1,7 +1,6 @@
 // src/components/Shop/BooksGrid.tsx
 import React from 'react';
 import { Book } from '../../@type/book';
-import { SORT_OPTIONS } from '../../constants/filterOptions';
 import BookCard from './BookCard';
 import { Pagination } from 'antd';
 
@@ -20,11 +19,8 @@ interface BooksGridProps {
 }
 
 const BooksGrid: React.FC<BooksGridProps> = ({
-                                                 books,
                                                  filteredBooks,
                                                  currentBooks,
-                                                 sortBy,
-                                                 onSort,
                                                  isInWishlist,
                                                  onWishlistToggle,
                                                  totalCount,
@@ -41,20 +37,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({
                         Showing {currentBooks.length} of {totalCount || filteredBooks.length} books
                     </p>
                 </div>
-                <div className="sortOptions">
-                    <span>Sort by:</span>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => onSort(e.target.value)}
-                        className="sortSelect"
-                    >
-                        {SORT_OPTIONS.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+
             </div>
 
             {/* Books Grid */}

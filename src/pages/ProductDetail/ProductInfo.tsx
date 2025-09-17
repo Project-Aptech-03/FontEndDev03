@@ -1,12 +1,13 @@
 // ===========================
 import React, { useState } from 'react';
-import { Card } from 'antd';
+import {Card, message} from 'antd';
 import { ProductsResponseDto } from '../../../@type/productsResponse';
 import ProductHeader from './ProductHeader';
 import ProductPricing from './ProductPricing';
 import ProductActions from './ProductActions';
 import ProductServices from './ProductServices';
 import ProductDetailTabs from './ProductDetailTabs';
+import {cartApi} from "../../api/cart.api";
 
 interface ProductInfoProps {
     product: ProductsResponseDto;
@@ -19,9 +20,18 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
         alert(`Buying ${quantity} item(s) of ${product?.productName}`);
     };
 
-    const handleAddToCart = () => {
-        alert(`Added ${quantity} item(s) to cart`);
+    const handleAddToCart = async () => {
+        try {
+            const res = await cartApi.addToCart(product.id, quantity);
+            message.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+            console.log("Cart API response:", res);
+        } catch (error) {
+            console.error("Add to cart error:", error);
+            message.error("Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+        }
     };
+
+
 
     return (
         <Card

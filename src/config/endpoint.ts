@@ -19,7 +19,7 @@ export const endpoints = {
   updateUser: "/users/{id}",
   deleteUser: "/users/{id}",
   getCart: "/cart",
-  addToCart: "/cart",
+  addToCart: "/cart/add",
   updateCartItem: "/cart/{id}",
   removeFromCart: "/cart/{id}",
   clearCart: "/cart/clear",

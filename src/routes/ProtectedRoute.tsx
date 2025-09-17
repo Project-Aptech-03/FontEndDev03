@@ -7,7 +7,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
-    const { isLoggedIn, user } = useAuth();
+    const { isLoggedIn, user, loading } = useAuth();
+
+    if (loading) return <div>Đang tải...</div>;
 
     if (!isLoggedIn || !user) {
         message.warning("Bạn cần đăng nhập để truy cập trang này!");

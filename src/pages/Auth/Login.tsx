@@ -62,7 +62,6 @@ const Login: React.FC = () => {
       }));
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -70,26 +69,25 @@ const Login: React.FC = () => {
     try {
       const res = await loginApi(formData);
       if (res.success) {
-        const token = res.result?.data.token.token;
-        const role = res.result?.data.role;
-        const userName = res.result?.data.fullName;
+        const token = res.data.token.token;
+        const role = res.data.role;
+        const userName = res.data.fullName;
+
         if (token) {
           const userObject: AuthUser = {
-            id: res.result?.data.userId??"",
-            email: res.result?.data.email??"",
-            fullName: res.result?.data.fullName??"",
-            role: res.result?.data.role??"",
-            token: res.result?.data.token.token??"",
+            id: res.data.userId ?? "",
+            email: res.data.email ?? "",
+            fullName: userName ?? "",
+            role: role ?? "",
+            token: token,
           };
+
           login(userObject, rememberMe);
 
           const messageText =
               role === "Admin"
-                  ? "Đăng nhập thành công! Chào mừng Admin: " +
-                  (userName ? ` ${userName}` : "") + "!"
-                  : "Đăng nhập thành công! Chào mừng" +
-                  (userName ? ` ${userName}` : "") +
-                  "!";
+                  ? `Đăng nhập thành công! Chào mừng Admin: ${userName}!`
+                  : `Đăng nhập thành công! Chào mừng ${userName}!`;
 
           showModal(messageText);
 
@@ -99,18 +97,19 @@ const Login: React.FC = () => {
           }, 2000);
         }
       } else {
-        showModal(res.error?.message || "Đăng nhập thất bại!");
+        showModal(res.errors?.message || "Đăng nhập thất bại!");
         setTimeout(() => setIsModalVisible(false), 2000);
       }
     } catch (err: any) {
-      const apiError = err?.response?.data as ApiResponse<string>;
+      const apiError = err?.response?.data;
       if (apiError?.errors) {
         Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
       } else {
         message.error(apiError?.message || "Lỗi hệ thống không xác định");
       }
     }
-};
+  };
+
 
   return (
       <div className="auth-page">

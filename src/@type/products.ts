@@ -1,12 +1,30 @@
+// export interface Category {
+//   id: number;
+//   categoryCode: string;
+//   categoryName: string;
+//   isActive: boolean;
+//   createdDate: string;
+//   productCount: number;
+// }
+
 export interface Category {
   id: number;
   categoryCode: string;
   categoryName: string;
+  subCategories?: SubCategoryResponseDto[];
   isActive: boolean;
   createdDate: string;
   productCount: number;
 }
+export interface SubCategoryResponseDto {
+    id: number;
+    subCategoryCode: string;
+    subCategoryName: string;
+    isActive: boolean;
+    createdDate: string;
+    categoryId: number;
 
+}
 export interface Manufacturer {
   id: number;
   manufacturerCode: string;

@@ -38,7 +38,6 @@ const ProfileHeader: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
     };
 
 
-
     return (
         <div style={{ padding: "0 24px", marginTop: -50, textAlign: "center" }}>
             <AvatarUpload avatarUrl={avatarUrl} onUpload={handleUpload} loading={loading} />

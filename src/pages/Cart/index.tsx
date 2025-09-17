@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { customerAddressApi } from '../../api/customerAddress.api';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaTrash, FaMinus, FaPlus, FaImage, FaShoppingBag, FaMapMarkerAlt, FaTag, FaCheck, FaHeart, FaStar, FaPhone, FaEdit, FaStickyNote, FaHome, FaUser } from 'react-icons/fa';
+import { FaTrash, FaMinus, FaPlus, FaImage, FaShoppingBag, FaMapMarkerAlt, FaTag, FaCheck, FaPhone, FaEdit, FaStickyNote, FaHome, FaUser } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { cartApi } from '../../api/cart.api';
 import { couponApi } from '../../api/coupon.api';
@@ -411,11 +411,8 @@ const CartPage = () => {
       toast.error('Vui lòng chọn địa chỉ nhận hàng');
       return;
     }
-
-    // Lọc chỉ những sản phẩm đã được tích chọn
     const selectedProducts = cartItems.filter(item => selectedItems.includes(item.id));
 
-    // Check stock availability for selected products
     const outOfStockItems = selectedProducts.filter(item =>
       (item.product?.stockQuantity || 0) === 0
     );

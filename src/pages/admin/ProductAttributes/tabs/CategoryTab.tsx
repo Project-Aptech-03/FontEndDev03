@@ -13,7 +13,7 @@ import {
     Tooltip,
 } from "antd";
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Category } from "../../../../@type/products";
+import {Category, SubCategoryResponseDto} from "../../../../@type/products";
 import { ApiResponse, PagedResult } from "../../../../@type/apiResponse";
 import {
     getCategory,
@@ -81,11 +81,22 @@ const CategoryTab: React.FC = () => {
         setPagination(prev => ({ ...prev, current: 1 }));
         setKeyword(search);
     };
-
     const openModal = (category?: Category) => {
         if (category) {
             setEditingCategory(category);
-            form.setFieldsValue(category);
+            const subCategoriesArray = category.subCategories
+                ? category.subCategories.map(s => ({
+                    id: s.id, // nếu có
+                    subCategoryName: s.subCategoryName
+                }))
+                : [];
+
+            form.setFieldsValue({
+                categoryCode: category.categoryCode,
+                categoryName: category.categoryName,
+                subCategories: subCategoriesArray
+            });
+
         } else {
             setEditingCategory(null);
             form.resetFields();
@@ -96,26 +107,35 @@ const CategoryTab: React.FC = () => {
     const handleSave = async () => {
         try {
             const values = await form.validateFields();
+            const cleanSubCategories = (values.subCategories || [])
+                .filter((sub: any) => sub && sub.subCategoryName?.trim() !== "")
+                .map((sub: any) => ({
+                    id: sub.id || 0, 
+                    subCategoryName: sub.subCategoryName
+                }));
 
+            const payload = {
+                categoryCode: values.categoryCode,
+                categoryName: values.categoryName,
+                subCategories: cleanSubCategories
+            };
+            let res;
             if (editingCategory) {
-                const res = await updateCategory(editingCategory.id, values);
-                if (res.success) {
-                    message.success("Category updated successfully");
-                } else {
-                    message.error(res.message || "Update failed");
-                }
+                res = await updateCategory(editingCategory.id, payload);
+                if (res.success) message.success("Category updated successfully");
+                else message.error(res.message || "Update failed");
             } else {
-                const res = await createCategory(values);
-                if (res.success) {
-                    message.success("Category created successfully");
-                } else {
-                    message.error(res.message || "Create failed");
-                }
+                res = await createCategory(payload);
+                if (res.success) message.success("Category created successfully");
+                else message.error(res.message || "Create failed");
             }
 
             setIsModalOpen(false);
+            setEditingCategory(null);
+            form.resetFields();
             fetchCategories(pagination.current, pagination.pageSize, keyword);
         } catch (err: any) {
+            console.error('Error in handleSave:', err);
             const apiError = err?.response?.data as ApiResponse<string>;
             if (apiError?.errors) {
                 Object.values(apiError.errors)
@@ -126,6 +146,8 @@ const CategoryTab: React.FC = () => {
             }
         }
     };
+
+
 
     const handleDelete = async (id: number) => {
         try {
@@ -152,114 +174,133 @@ const CategoryTab: React.FC = () => {
         }
     };
 
-    const columns: ColumnsType<Category> = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-            width: 60,
-            sorter: true,
-        },
-        {
-            title: "Code",
-            dataIndex: "categoryCode",
-            key: "categoryCode",
-            width: 80,
-            render: (code: string) => (
-                <Tag
-                    color="purple"
-                    style={{
-                        fontFamily: "monospace",
-                        fontWeight: "bold",
-                        fontSize: "14px",
-                        minWidth: 40,
-                        textAlign: "center",
-                        borderRadius: 6
-                    }}
-                >
-                    {code}
-                </Tag>
-            ),
-        },
-        {
-            title: "Category Name",
-            dataIndex: "categoryName",
-            key: "categoryName",
-            ellipsis: {
-                showTitle: false,
+        const columns: ColumnsType<Category> = [
+            {
+                title: "ID",
+                dataIndex: "id",
+                key: "id",
+                width: 60,
+                sorter: true,
             },
-            render: (name: string) => (
-                <Tooltip placement="topLeft" title={name}>
-                    <span style={{ fontWeight: 500, fontSize: "14px" }}>{name}</span>
-                </Tooltip>
-            ),
-        },
-        {
-            title: "Products",
-            dataIndex: "productCount",
-            key: "productCount",
-            width: 100,
-            align: "center",
-            render: (count: number) => (
-                <Tag
-                    color={count > 0 ? "green" : "default"}
-                    style={{
-                        minWidth: 50,
-                        textAlign: "center",
-                        fontWeight: 500,
-                        fontSize: "13px"
-                    }}
-                >
-                    {count} items
-                </Tag>
-            ),
-        },
-        {
-            title: "Actions",
-            key: "actions",
-            width: 120,
-            align: "center",
-            render: (_: any, record: Category) => (
-                <Space size="small">
-                    <Tooltip title="Edit Category">
-                        <Button
-                            type="text"
-                            icon={<EditOutlined />}
-                            onClick={() => openModal(record)}
-                            style={{
-                                color: "#1890ff",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }}
-                        />
-                    </Tooltip>
-                    <Popconfirm
-                        title="Delete Category"
-                        description="Are you sure you want to delete this category?"
-                        onConfirm={() => handleDelete(record.id)}
-                        okText="Delete"
-                        cancelText="Cancel"
-                        okButtonProps={{ danger: true }}
+            {
+                title: "Code",
+                dataIndex: "categoryCode",
+                key: "categoryCode",
+                width: 80,
+                render: (code: string) => (
+                    <Tag
+                        color="purple"
+                        style={{
+                            fontFamily: "monospace",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            minWidth: 40,
+                            textAlign: "center",
+                            borderRadius: 6
+                        }}
                     >
-                        <Tooltip title="Delete Category">
+                        {code}
+                    </Tag>
+                ),
+            },
+            {
+                title: "Category Name",
+                dataIndex: "categoryName",
+                key: "categoryName",
+                ellipsis: {
+                    showTitle: false,
+                },
+                render: (name: string) => (
+                    <Tooltip placement="topLeft" title={name}>
+                        <span style={{ fontWeight: 500, fontSize: "14px" }}>{name}</span>
+                    </Tooltip>
+                ),
+            },
+            {
+                title: "SubCategories",
+                dataIndex: "subCategories",
+                key: "subCategories",
+                render: (subs: SubCategoryResponseDto[] | undefined) => (
+                    <>
+                        {subs && subs.length > 0 ? (
+                            subs.map((s, i) => (
+                                <Tag color="blue" key={i} style={{ marginBottom: 4 }}>
+                                    {s.subCategoryName}
+                                </Tag>
+                            ))
+                        ) : (
+                            <Tag color="default">None</Tag>
+                        )}
+                    </>
+                ),
+            },
+
+            {
+                title: "Products",
+                dataIndex: "productCount",
+                key: "productCount",
+                width: 100,
+                align: "center",
+                render: (count: number) => (
+                    <Tag
+                        color={count > 0 ? "green" : "default"}
+                        style={{
+                            minWidth: 50,
+                            textAlign: "center",
+                            fontWeight: 500,
+                            fontSize: "13px"
+                        }}
+                    >
+                        {count} items
+                    </Tag>
+                ),
+            },
+            {
+                title: "Actions",
+                key: "actions",
+                width: 120,
+                align: "center",
+                render: (_: any, record: Category) => (
+                    <Space size="small">
+                        <Tooltip title="Edit Category">
                             <Button
                                 type="text"
-                                icon={<DeleteOutlined />}
-                                loading={deletingId === record.id}
-                                danger
+                                icon={<EditOutlined />}
+                                onClick={() => openModal(record)}
                                 style={{
+                                    color: "#1890ff",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center"
                                 }}
                             />
                         </Tooltip>
-                    </Popconfirm>
-                </Space>
-            ),
-        },
-    ];
+                        <Popconfirm
+                            title="Delete Category"
+                            description="Are you sure you want to delete this category?"
+                            onConfirm={() => handleDelete(record.id)}
+                            okText="Delete"
+                            cancelText="Cancel"
+                            okButtonProps={{ danger: true }}
+                        >
+                            <Tooltip title="Delete Category">
+                                <Button
+                                    type="text"
+                                    icon={<DeleteOutlined />}
+                                    loading={deletingId === record.id}
+                                    danger
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center"
+                                    }}
+                                />
+                            </Tooltip>
+                        </Popconfirm>
+                    </Space>
+                ),
+            },
+        ];
 
     return (
         <Card
@@ -372,6 +413,7 @@ const CategoryTab: React.FC = () => {
             >
                 <div style={{ padding: "20px 0 10px" }}>
                     <Form form={form} layout="vertical" requiredMark={false}>
+                        {/* Category Code */}
                         <Form.Item
                             label={<span style={{ fontWeight: 500 }}>Category Code</span>}
                             name="categoryCode"
@@ -406,6 +448,7 @@ const CategoryTab: React.FC = () => {
                             />
                         </Form.Item>
 
+                        {/* Category Name */}
                         <Form.Item
                             label={<span style={{ fontWeight: 500 }}>Category Name</span>}
                             name="categoryName"
@@ -420,9 +463,48 @@ const CategoryTab: React.FC = () => {
                                 style={{ borderRadius: 6, height: 36 }}
                             />
                         </Form.Item>
+                        <Form.List name="subCategories">
+                            {(fields, { add, remove }) => (
+                                <div>
+                                    <label style={{ fontWeight: 500, marginBottom: 8, display: 'block' }}>
+                                        Subcategories
+                                    </label>
+                                    {fields.map((field, index) => (
+                                        <Space key={field.key} align="baseline" style={{ width: '100%' }}>
+                                            <Form.Item
+                                                {...field}
+                                                name={[field.name, "subCategoryName"]}
+                                                fieldKey={[field.fieldKey, "subCategoryName"]}
+                                                style={{ flex: 1, marginBottom: 0 }}
+                                                rules={[
+                                                    { required: true, message: "Please enter subcategory" },
+                                                    { min: 2, message: "Subcategory must be at least 2 characters" }
+                                                ]}
+                                            >
+                                                <Input
+                                                    placeholder={`Subcategory ${index + 1}`}
+                                                    style={{ borderRadius: 6, height: 36 }}
+                                                />
+                                            </Form.Item>
+                                            <Button type="text" danger onClick={() => remove(field.name)}>
+                                                Remove
+                                            </Button>
+                                        </Space>
+                                    ))}
+                                    <Form.Item>
+                                        <Button type="dashed" onClick={() => add()} block>
+                                            + Add Subcategory
+                                        </Button>
+                                    </Form.Item>
+                                </div>
+                            )}
+                        </Form.List>
+
+
                     </Form>
                 </div>
             </Modal>
+
 
             <style jsx>{`
                 .table-row-light {

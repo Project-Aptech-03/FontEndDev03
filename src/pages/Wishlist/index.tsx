@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
-import { FaTrash, FaStar, FaHeart } from 'react-icons/fa';
+import { FaTrash, FaStar,  } from 'react-icons/fa';
 import './WishlistPage.css';
 import {useEffect, useState} from "react";
+import {cartApi} from "../../api/cart.api";
+import {message} from "antd";
 
 interface WishlistItem {
   id: number;
@@ -43,80 +45,48 @@ const WishlistPage = () => {
     localStorage.removeItem('Wishlist');
   };
 
-  const addToCart = (item: WishlistItem) => {
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // Check if item already exists in cart
-    const existingItem = existingCart.find((cartItem: any) => cartItem.id === item.id);
-    
-    if (existingItem) {
-      // Update quantity if item already exists
-      existingItem.quantity += 1;
-      existingItem.subtotal = existingItem.price * existingItem.quantity;
-    } else {
-      // Add new item to cart
-      const cartItem = {
-        id: item.id,
-        name: item.title,
-        price: item.price,
-        quantity: 1,
-        image: item.image,
-        subtotal: item.price
-      };
-      existingCart.push(cartItem);
+  const addToCart = async (item: WishlistItem) => {
+    try {
+      const response = await cartApi.addToCart(item.id, 1);
+      if (response.success) {
+        // Trigger cart counter update
+        window.dispatchEvent(new Event("cartUpdated"));
+
+        // Show success message
+        message.success(`Added "${item.title}" to cart!`);
+      } else {
+        message.error(response.message || "Failed to add item to cart!");
+      }
+    } catch (error) {
+      message.error("Error adding to cart, please try again.");
+      console.error(error);
     }
-    
-    // Save updated cart to localStorage
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    
-    // Trigger cart counter update
-    window.dispatchEvent(new Event('cartUpdated'));
-    
-    // Show success message
-    alert(`Added "${item.title}" to cart!`);
   };
 
-  const moveAllToCart = () => {
+
+  const moveAllToCart = async () => {
     if (wishlistItems.length === 0) {
-      alert('Your Wishlist is empty!');
+      message.success("Your Wishlist is empty!");
       return;
     }
 
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // Add all Wishlist items to cart
-    wishlistItems.forEach(item => {
-      const existingItem = existingCart.find((cartItem: any) => cartItem.id === item.id);
-      
-      if (existingItem) {
-        existingItem.quantity += 1;
-        existingItem.subtotal = existingItem.price * existingItem.quantity;
-      } else {
-        const cartItem = {
-          id: item.id,
-          name: item.title,
-          price: item.price,
-          quantity: 1,
-          image: item.image,
-          subtotal: item.price
-        };
-        existingCart.push(cartItem);
+    try {
+      for (const item of wishlistItems) {
+        await cartApi.addToCart(item.id, 1);
       }
-    });
-    
-    // Save updated cart to localStorage
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    
-    // Trigger cart counter update
-    window.dispatchEvent(new Event('cartUpdated'));
-    
-    // Clear Wishlist
-    setWishlistItems([]);
-    localStorage.removeItem('Wishlist');
-    
-    alert('All items moved to cart!');
+
+      // Trigger cart counter update
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      // Clear Wishlist
+      setWishlistItems([]);
+      localStorage.removeItem("Wishlist");
+
+      alert("All items moved to cart!");
+    } catch (error) {
+      message.error("Error moving items to cart, please try again.");
+      console.error(error);
+    }
   };
 
   if (loading) {
@@ -201,17 +171,17 @@ const WishlistPage = () => {
                           <span className="originalPrice">${item.originalPrice}</span>
                         )}
                       </div>
-                      
+
                       <div className="itemActions">
-                        <button 
+                        <button
                           className="addToCartBtn"
                           onClick={() => addToCart(item)}
                         >
                           ADD TO CART
                         </button>
                       </div>
-                      
-                      <button 
+
+                      <button
                         className="removeItemBtn"
                         onClick={() => removeFromWishlist(item.id)}
                       >
@@ -221,27 +191,10 @@ const WishlistPage = () => {
                   ))}
                 </div>
                 
-                <div className="wishlistActions">
-                  <div className="wishlistInfo">
-                    <span className="wishlistCount">{wishlistItems.length} items in wishlist</span>
-                  </div>
-                  <div className="wishlistButtons">
-                    <button 
-                      className="moveAllToCartBtn"
-                      onClick={moveAllToCart}
-                    >
-                      MOVE ALL TO CART
-                    </button>
-                    <Link to="/shop" className="continueShoppingBtn">
-                      CONTINUE SHOPPING
-                    </Link>
-                  </div>
-                </div>
+
               </>
             )}
           </div>
-
-          {/* Right Side - Wishlist Summary */}
           {wishlistItems.length > 0 && (
             <div className="wishlistSummary">
               <h2 className="summaryTitle">Wishlist Summary</h2>

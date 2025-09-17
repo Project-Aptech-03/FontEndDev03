@@ -49,7 +49,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
     const handleTableChange = (pagination: any) => {
         if (onPageChange) {
             onPageChange(pagination.current, pagination.pageSize);
-        }
+                    }
     };
 
     const getStockColor = (stock: number) => {
@@ -257,22 +257,28 @@ const ProductTable: React.FC<ProductTableProps> = ({
             ),
         },
         {
-            title: "Type",
-            dataIndex: "productType",
-            key: "productType",
-            width: 100,
-            render: (type: string) => (
-                <Tag
-                    color={getTypeColor(type)}
-                    style={{
-                        borderRadius: 12,
-                        fontSize: 11,
-                        fontWeight: 500,
-                        textTransform: 'capitalize'
-                    }}
-                >
-                    {type}
-                </Tag>
+            title: "SubCategories",
+            dataIndex: "category",
+            key: "subCategories",
+            width: 200,
+            render: (category: any) => (
+                <>
+                    {category?.subCategories?.map((sub: any) => (
+                        <Tag
+                            key={sub.id}
+                            color="blue"
+                            style={{
+                                borderRadius: 12,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                textTransform: 'capitalize',
+                                marginBottom: 4,
+                            }}
+                        >
+                            {sub.subCategoryName}
+                        </Tag>
+                    ))}
+                </>
             ),
         },
         {

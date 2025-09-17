@@ -6,9 +6,4 @@ export const PRICE_RANGES = [
   { label: 'Over $50', value: '50-1000' }
 ];
 
-export const SORT_OPTIONS = [
-  { label: 'Name', value: 'name' },
-  { label: 'Price: Low to High', value: 'price-low' },
-  { label: 'Price: High to Low', value: 'price-high' },
-  { label: 'Rating', value: 'rating' }
-];
+

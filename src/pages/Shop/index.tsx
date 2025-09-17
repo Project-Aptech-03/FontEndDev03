@@ -7,15 +7,14 @@ import FiltersSidebar from '../../components/Shop/FiltersSidebar';
 import BooksGrid from '../../components/Shop/BooksGrid';
 import LoadingSpinner from '../../components/Shop/LoadingSpinner';
 import { usePagination } from '../../hooks/usePagination';
-import {Category, Manufacturer} from "../../@type/products";
-import {getCategory} from "../../api/category.api";
-import {getManufacturers} from "../../api/manufacturer.api";
+import { Category, Manufacturer } from "../../@type/products";
+import { getCategory } from "../../api/category.api";
+import { getManufacturers } from "../../api/manufacturer.api";
 
-
-const BookStore = () => {
+const BookStore: React.FC = () => {
   const [filters, setFilters] = useState({
     keyword: '',
-    selectedCategories: [] as string[],
+    selectedCategories: ['Books'] as string[],
     selectedPriceRange: '',
     selectedManufacturers: [] as string[]
   });
@@ -25,9 +24,14 @@ const BookStore = () => {
   const pageSize = 6;
 
   const { handleWishlistToggle, isInWishlist } = useWishlist();
-  const { books, loading } = useBooks(1, 1000, filters.keyword);
+  const { books, loading, fetchBooks } = useBooks(1, pageSize, filters.keyword);
 
-  // Fetch categories + manufacturers
+  // Khi HeroSection search
+  const handleSearch = (keyword: string) => {
+    setFilters(prev => ({ ...prev, keyword }));
+    fetchBooks(1, pageSize, keyword); // gọi API với keyword mới
+  };
+
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -86,11 +90,13 @@ const BookStore = () => {
     return filtered;
   }, [books, filters, sortBy]);
 
-  const { currentPage, currentBooks, totalPages, paginate, resetPagination } = usePagination({
+  // Pagination
+  const { currentPage, currentBooks, paginate, resetPagination } = usePagination({
     books: filteredBooks,
     booksPerPage: pageSize
   });
 
+  // Filters handlers
   const handleCategoryFilter = (category: string) => {
     setFilters(prev => ({
       ...prev,
@@ -128,7 +134,7 @@ const BookStore = () => {
 
   return (
       <div>
-        <HeroSection />
+        <HeroSection onSearch={handleSearch} />
         <div className="mainContent">
           <FiltersSidebar
               selectedCategories={filters.selectedCategories}

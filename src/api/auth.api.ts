@@ -1,28 +1,34 @@
 import apiClient from "../services/api";
+import {LoginForm} from "../@type/login";
 
 
-interface LoginData {
-    email: string;
-    password: string;
+
+export interface TokenDto {
+    token: string;
+    refreshToken: string;
+    expiresAt: string;
+    expiresIn: number;
 }
-interface LoginResponse {
+
+export interface LoginData {
+    success: boolean;
+    userId: string;
+    email: string;
+    fullName: string;
+    role: string;
+    errorMessage?: string | null;
+    token: TokenDto;
+    refreshToken: string;
+}
+
+export interface LoginResultDto {
     success: boolean;
     message: string;
-    data: {
-        success: boolean;
-        userId: string;
-        email: string;
-        fullName: string;
-        role: string;
-        token: {
-            token: string;
-            expiresAt: string;
-            expiresIn: number;
-        };
-    };
-    errors: any;
+    data: LoginData;
+    errors?: any;
     statusCode: number;
 }
+
 
 interface ResetPasswordDto {
     email: string;
@@ -31,10 +37,20 @@ interface ResetPasswordDto {
     confirmPassword: string;
 }
 
-export const loginApi = async (data: LoginData): Promise<{ success: boolean; result?: LoginResponse; error?: any }> => {
-        const response = await apiClient.post<LoginResponse>("/auth/login", data);
-        return { success: true, result: response.data };
+
+export const loginApi = async (data: LoginForm): Promise<{ success: boolean; data: LoginResultDto; errors?: any }> => {
+    try {
+        const res = await apiClient.post("/auth/login", data);
+        return res.data;
+    } catch (err: any) {
+        return {
+            success: false,
+            data: {} as LoginResultDto,
+            errors: err?.response?.data?.errors || { message: err?.message },
+        };
+    }
 };
+
 
 export const forgotPasswordApi = async (email: string) => {
     const response = await apiClient.post("/auth/forgot-password", { email });

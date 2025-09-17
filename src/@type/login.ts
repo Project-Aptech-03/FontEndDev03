@@ -8,8 +8,10 @@ export interface AuthUser {
     email: string;
     fullName: string;
     role: string;
-    token: string;
+    token: string;          // access token
+    refreshToken?: string;  // refresh token
 }
+
 export interface LoginErrors {
     email: string;
     password: string;

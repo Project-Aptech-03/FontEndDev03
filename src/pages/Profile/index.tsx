@@ -6,18 +6,19 @@ import { useNavigate } from "react-router-dom";
 
 import ProfileHeader from "./ProfileHeader";
 import ProfileTabs from "./ProfileTabs";
-import ProfileActions from "./ProfileActions";
-import {ApiResponse} from "../../@type/apiResponse";
+import { ApiResponse } from "../../@type/apiResponse";
+import {useAuth} from "../../routes/AuthContext";
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState<UsersResponseDto | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-
-    const handleLogout = (): void => {
-        localStorage.removeItem("accessToken");
-        window.location.href = "/login";
+    const { logout } = useAuth();
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
     };
+
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -31,7 +32,9 @@ const Profile: React.FC = () => {
             } catch (err: any) {
                 const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
                 if (apiError?.errors) {
-                    Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+                    Object.values(apiError.errors)
+                        .flat()
+                        .forEach((msg: string) => message.error(msg));
                 } else {
                     message.error(apiError?.message || "Lỗi hệ thống không xác định");
                 }
@@ -75,11 +78,15 @@ const Profile: React.FC = () => {
                     }}
                 />
 
-                <ProfileHeader user={user} />
+                <ProfileHeader user={user!} />
 
-                <ProfileTabs user={user} />
+                <ProfileTabs
+                    user={user!}
+                    navigate={navigate}
+                    handleLogout={handleLogout}
+                />
 
-                <ProfileActions navigate={navigate} handleLogout={handleLogout} />
+
             </Card>
         </div>
     );

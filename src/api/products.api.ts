@@ -25,8 +25,6 @@ export const getProducts = async (
     return res.data;
 };
 
-
-// Create new product (multipart/form-data + endpoint /Products/create)
 export const createProduct = async (formData: FormData) => {
     const res = await apiClient.post<ApiResponse<ProductsResponseDto>>(
         "/Products/create",
