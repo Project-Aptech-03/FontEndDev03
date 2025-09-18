@@ -3,7 +3,14 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  min-height: 100vh;
+  /* min-height: 100vh; */
+}
+
+/* Blog Content Wrapper - Target for Affix */
+.blog-content-wrapper {
+  position: relative;
+  min-height: calc(100vh - 200px); /* Đảm bảo có đủ chiều cao cho Affix hoạt động */
+  padding-bottom: 40px; /* Khoảng cách với Footer */
 }
 
 /* Header & Hero Section */
@@ -120,6 +127,8 @@
 /* Main Content */
 .blog-detail-content {
   margin-top: 40px;
+  display: flex;
+  align-items: flex-start;
 }
 
 .blog-content-card {
@@ -216,6 +225,46 @@
   color: #333;
 }
 
+/* Styling for images in article content */
+.article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.article-content img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Center images that are not too wide */
+.article-content img:not([width]) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Style for images with captions */
+.article-content figure {
+  margin: 30px 0;
+  text-align: center;
+}
+
+.article-content figure img {
+  margin: 0;
+}
+
+.article-content figcaption {
+  font-size: 14px;
+  color: #666;
+  font-style: italic;
+  margin-top: 8px;
+  padding: 0 20px;
+}
+
 .article-content h2 {
   font-size: 28px;
   font-weight: 700;
@@ -285,6 +334,52 @@
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   border: none;
+}
+
+/* AI Validation Results */
+.ai-validation-results {
+  margin: 16px 0;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-validation-results .ant-alert {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-validation-results .ant-alert-message {
+  font-size: 14px;
+}
+
+.ai-validation-results .ant-tag {
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  margin: 0 4px;
+}
+
+.ai-validation-results ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.ai-validation-results li {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 4px;
 }
 
 .comments-section .ant-card-head {
@@ -371,13 +466,15 @@
 .blog-sidebar {
   position: sticky;
   top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
 }
 
 .author-card {
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   border: none;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   overflow: hidden;
 }
 
@@ -404,7 +501,7 @@
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   border: none;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .related-articles .ant-card-head {
@@ -454,6 +551,7 @@
   margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -581,6 +679,21 @@
     font-size: 20px;
   }
   
+  /* Responsive images for mobile */
+  .article-content img {
+    border-radius: 8px;
+    margin: 15px 0;
+  }
+  
+  .article-content figure {
+    margin: 20px 0;
+  }
+  
+  .article-content figcaption {
+    font-size: 12px;
+    padding: 0 10px;
+  }
+  
   .add-comment {
     padding: 20px 15px;
   }
@@ -589,6 +702,12 @@
   .related-articles .ant-card-body,
   .newsletter-sidebar .ant-card-body {
     padding: 20px 15px;
+  }
+  
+  .blog-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
   }
   
   .comments-section .ant-card-body {
@@ -635,6 +754,16 @@
   .social-share {
     justify-content: center;
     width: 100%;
+  }
+  
+  /* Extra small screens - further optimize images */
+  .article-content img {
+    border-radius: 6px;
+    margin: 12px 0;
+  }
+  
+  .article-content figure {
+    margin: 15px 0;
   }
 }
 
