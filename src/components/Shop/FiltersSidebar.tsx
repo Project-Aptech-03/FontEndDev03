@@ -84,7 +84,7 @@ const FiltersSidebar: React.FC<FiltersSidebarProps> = ({
                                 name="priceRange"
                                 value={range.value}
                                 checked={selectedPriceRange === range.value}
-                                onChange={() => onPriceFilter(range.value)}
+                                onClick={() => onPriceFilter(range.value)}
                             />
                             {range.label}
                         </label>

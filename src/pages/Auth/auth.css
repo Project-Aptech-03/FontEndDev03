@@ -44,7 +44,7 @@
 }
 
 .auth-card {
-    background: rgba(255, 255, 255, 0.19);
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 16px;
@@ -380,6 +380,12 @@ input[type="date"]::placeholder {
 
 .auth-button.loading {
     opacity: 0.8;
+}
+.error-message-login {
+    color: red;       /* chữ màu đỏ */
+    font-size: 12px;  /* chữ nhỏ */
+    font-weight: normal; /* bình thường, không cần đậm */
+    font-family: sans-serif; /* font đơn giản, dễ đọc */
 }
 
 .spinner {

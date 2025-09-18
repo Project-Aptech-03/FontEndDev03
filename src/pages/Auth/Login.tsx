@@ -1,4 +1,4 @@
-import { useState} from "react";
+import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { loginApi } from "../../api/auth.api";
 import "./auth.css";
@@ -27,23 +27,20 @@ const Login: React.FC = () => {
   const validateForm = (): boolean => {
     let isValid = true;
     const newErrors: LoginErrors = { email: "", password: "", general: "" };
-
     if (!formData.email) {
-      newErrors.email = "Email không được để trống";
+      newErrors.email = "Email cannot be empty";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ";
+      newErrors.email = "Invalid email address";
       isValid = false;
     }
-
     if (!formData.password) {
-      newErrors.password = "Mật khẩu không được để trống";
+      newErrors.password = "Password cannot be empty";
       isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      newErrors.password = "Password must be at least 6 characters";
       isValid = false;
     }
-
     setErrors(newErrors);
     return isValid;
   };
@@ -81,28 +78,24 @@ const Login: React.FC = () => {
         };
 
         login(userObject, rememberMe);
-
         const messageText =
             role === "Admin"
-                ? `Đăng nhập thành công! Chào mừng Admin: ${fullName}!`
-                : `Đăng nhập thành công! Chào mừng ${fullName}!`;
-
-        showModal(messageText);
+                ? `Login successful! Welcome Admin: ${fullName}!`
+                : `Login successful! Welcome ${fullName}!`;
+        message.success(messageText);
 
         setTimeout(() => {
           setIsModalVisible(false);
           navigate(role === "Admin" ? "/admin/dashboard" : "/home");
         }, 2000);
       } else {
-        showModal(res.errors?.message || res.message || "Đăng nhập thất bại!");
+        showModal(res.errors?.message || res.message || "Login failed!");
         setTimeout(() => setIsModalVisible(false), 2000);
       }
     } catch (err: any) {
-      const apiError = err?.response?.data;
+      const apiError = err?.response?.data as ApiResponse<string>;
       if (apiError?.errors) {
         Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
-      } else {
-        message.error(apiError?.message || "Lỗi hệ thống không xác định");
       }
     }
   };
@@ -112,22 +105,59 @@ const Login: React.FC = () => {
       <div className="auth-page">
         <div className="auth-container">
           <div className="auth-card">
-            <div className="auth-header">
-              <div className="logo">
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <circle cx="20" cy="20" r="20" fill="#4361EE"/>
-                  <path d="M26 16L18 24L14 20" stroke="white" strokeWidth="2" strokeLinecap="round"
-                        strokeLinejoin="round"/>
-                </svg>
-                <span>Shradha BookStore</span>
+            <div
+                className="auth-header"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  gap: '16px',
+                }}
+            >
+              <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s',
+                  }}
+                  onClick={() => navigate('/')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+              >
+                <div
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '8px',
+                      background: 'linear-gradient(45deg, #1890ff, #722ed1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                    }}
+                >
+                  S
+                </div>
+                <span style={logoTextStyle}>Shrada Book Store</span>
               </div>
 
-              <h2>Chào mừng bạn trở lại !</h2>
-              <p>"Sách không chỉ giúp ta hiểu thêm về thế giới, sách giúp ta hiểu rõ hơn về chính mình."</p>
+              <h2>Welcome Back!</h2>
+              <p>"Books not only help us understand the world better, they also help us understand ourselves more
+                deeply."</p>
             </div>
+
             <form className="auth-form" onSubmit={handleSubmit} noValidate>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+              <label htmlFor="email">Email</label>
                 <div className="input-container">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="input-icon">
                     <path
@@ -142,15 +172,15 @@ const Login: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       className={errors.email ? "error" : ""}
-                      placeholder="Nhập địa chỉ email"
+                      placeholder="Enter your email..."
                   />
                 </div>
                 {errors.email && (
-                    <span className="error-message">{errors.email}</span>
+                    <span className="error-message-login">{errors.email}</span>
                 )}
               </div>
               <div className="form-group">
-                <label htmlFor="password">Mật khẩu</label>
+                <label htmlFor="password">Password</label>
                 <div className="input-container">
                   <svg
                       width="20"
@@ -182,7 +212,7 @@ const Login: React.FC = () => {
                       value={formData.password}
                       onChange={handleInputChange}
                       className={errors.password ? "error" : ""}
-                      placeholder="Nhập mật khẩu"
+                      placeholder="Enter password..."
                   />
                   <button
                       type="button"
@@ -215,7 +245,7 @@ const Login: React.FC = () => {
                 </div>
 
                 {errors.password && (
-                    <span className="error-message">{errors.password}</span>
+                    <span className="error-message-login">{errors.password}</span>
                 )}
               </div>
               <div className="form-options">
@@ -228,25 +258,27 @@ const Login: React.FC = () => {
                     />
                     <span className="checkmark"></span>
                   </div>
-                  <span>Ghi nhớ đăng nhập</span>
+                  <span>Remember me</span>
                 </label>
                 <Link
                     onClick={() => navigate("/forgot-password")}
+                    style={{ color: '#1890ff', textDecoration: 'underline' }}
                 >
-                  Quên mật khẩu?
+                  Forgot password ?
                 </Link>
+
               </div>
               <button
                   type="submit"
                   className= "auth-button"
               >
-                Đăng nhập
+                Sign In
 
               </button>
             </form>
             <div className="auth-divider">
               <div className="line"></div>
-              <span>Hoặc tiếp tục với</span>
+              <span>Or continue with</span>
               <div className="line"></div>
             </div>
             <div className="social-auth">
@@ -285,8 +317,7 @@ const Login: React.FC = () => {
                 Facebook
               </button>
             </div>
-            <div className="link">
-              Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+            <div className="link">  Don't have an account? <a style={{color: '#1890ff'}} href="/register">Sign Up</a>
             </div>
           </div>
         </div>
@@ -303,3 +334,11 @@ const Login: React.FC = () => {
   );
 };
 export default Login;
+const logoTextStyle: React.CSSProperties = {
+  fontSize: '24px',
+  fontWeight: 700,
+  color: '#1890ff', // màu xanh trực tiếp
+  marginLeft: '8px',
+  letterSpacing: '-0.5px',
+};
+

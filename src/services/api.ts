@@ -14,7 +14,11 @@ apiClient.interceptors.request.use((config) => {
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
+export const authClient = axios.create({
+    baseURL: API_BASE_URL,
+    headers: { "Content-Type": "application/json" },
 
+});
 // Response interceptor: auto refresh token
 apiClient.interceptors.response.use(
     (response) => response,
@@ -56,5 +60,6 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export default apiClient;

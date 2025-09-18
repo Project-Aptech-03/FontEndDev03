@@ -5,37 +5,38 @@ const AboutPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const teamMembers = [
-    {
-      name: "Sinh",
-      role: "Founder & CEO",
-      description: "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/Image/user.png"
-    },
-    {
-      name: "Phúc",
-      role: "Founder & CEO", 
-      description: "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/Image/user.png"
-    },
-    {
-      name: "Đạt",
-      role: "Founder & CEO",
-      description: "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/Image/user.png"
-    },
-    {
-      name: "Cường",
-      role: "Creative Director",
-      description: "Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      image: "/assets/Image/user.png"
-    },
-    {
-      name: "Tín",
-      role: "Head of Production",
-      description: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-      image: "/assets/Image/user.png"
-    }
-  ];
+      {
+        name: "Sinh",
+        role: "Founder & CEO",
+        description: "Sinh co-founded SHRADHA BOOK STORE to provide a wide range of books and educational products for everyone.",
+        image: "/assets/Image/user.png"
+      },
+      {
+        name: "Phúc",
+        role: "Founder & CEO",
+        description: "Phúc co-founded SHRADHA BOOK STORE, focusing on providing a convenient shopping experience.",
+        image: "/assets/Image/user.png"
+      },
+      {
+        name: "Đạt",
+        role: "Founder & CEO",
+        description: "Đạt co-founded SHRADHA BOOK STORE to make it a trusted destination for books, stationery, and educational products.",
+        image: "/assets/Image/user.png"
+      },
+      {
+        name: "Cường",
+        role: "Creative Director",
+        description: "Cường leads the creative direction, ensuring SHRADHA BOOK STORE maintains a modern and appealing look for customers.",
+        image: "/assets/Image/user.png"
+      },
+      {
+        name: "Tín",
+        role: "Head of Production",
+        description: "Tín manages production and supply, ensuring all products at SHRADHA BOOK STORE are of high quality and delivered on time.",
+        image: "/assets/Image/user.png"
+      }
+    ];
+
 
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   
@@ -78,9 +79,9 @@ const AboutPage = () => {
     <>
 
       <section className="headerSection">
-        <h1 className="mainTitle">ABOUT MOON</h1>
+        <h1 className="mainTitle">ABOUT SHRADHA BOOK STORE</h1>
         <p className="subtitle">
-          With the motto “Books are soul mates”, Moon always strives to provide a warm,
+          With the motto “Books are soul mates”, Shradha always strives to provide a warm,
           modern reading space and dedicated service, helping each page of the book get closer to the hearts of readers.
         </p>
       </section>
@@ -92,7 +93,7 @@ const AboutPage = () => {
           <div className="timelineText">
             <h2 className="year">2000</h2>
             <p className="timelineDescription">
-              Moon Bookstore was established in 2000 with the mission of bringing knowledge closer to everyone.
+              Shradha Bookstore was established in 2000 with the mission of bringing knowledge closer to everyone.
               Over a journey of more than 20 years, Moon has become a familiar destination for book lovers.
             </p>
           </div>

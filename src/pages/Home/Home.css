@@ -1,19 +1,29 @@
-/* Hero Section */
 .heroSectionHome {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 80px 100px;
-  /*background-image: url("/assets/image/imageHome1.jpg");*/
   color: white;
-  background: #1a202c;
-  margin: -20px -20px 60px -20px;
-  min-height: 500px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100vw; /* full màn hình */
+  padding: 80px 100px;
+  box-sizing: border-box;
 }
+.heroSectionHome {
+  max-width: 1800px; /* hoặc container của bạn */
+  margin: 0 auto;
+}
+
 
 .heroLeftHome {
   flex: 2;
   max-width: 500px;
+}
+.heroRight {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .heroIcon {
@@ -28,31 +38,13 @@
   height: 100%;
 }
 
-.heroSubtitle {
+.heroSubtitleHome {
   font-size: 18px;
   margin-bottom: 10px;
   opacity: 0.9;
 }
 
-.heroTitle {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 30px;
-  line-height: 1.2;
-}
 
-.shopNowButton {
-  display: inline-block;
-  padding: 15px 30px;
-  background-color: #ffd700;
-  color: #333;
-  text-decoration: none;
-  border-radius: 5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-}
 
 .shopNowButton:hover {
   background-color: #ffed4e;
@@ -66,28 +58,103 @@
   justify-content: center;
   align-items: center;
 }
+.heroIcon svg {
+  width: 60px;
+  height: 60px;
+  color: #FFD700; /* màu vàng */
+  margin-bottom: 20px;
+}
+
+.heroSubtitleHome {
+  font-size: 1.2rem;
+  color: #fff; /* chữ trắng */
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.heroTitleHome {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 30px;
+}
+
+
 
 .heroImageWrapper {
-  max-width: 300px; /* tăng kích thước lớn hơn */
-  border-radius: 10px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 350px; /* kích thước ảnh */
+  width: 100%;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 12px;
 }
 
 .heroImage {
   width: 100%;
   height: auto;
-  border-radius: 10px;
+  border-radius: 12px;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.heroImage img {
+.heroImageWrapper:hover .heroImage {
+  transform: scale(1.05); /* zoom nhẹ */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5); /* bóng đổ nổi bật hơn */
+}
+
+.heroImage {
   width: 100%;
   height: auto;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 992px) {
+  .heroSectionHome {
+    flex-direction: column-reverse;
+    text-align: center;
+    padding: 40px 5%;
+  }
+
+  .heroLeftHome {
+    align-items: center;
+  }
+
+  .heroTitleHome {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitleHome {
+    font-size: 1.1rem;
+  }
+
+  .heroImageWrapper {
+    max-width: 80%;
+    margin-bottom: 30px;
+  }
+}
+
+
+.shopNowButton {
+  display: inline-block;
+  padding: 12px 30px;
+  background: #FFD700;
+  color: #AF3E3E;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.shopNowButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
 }
 
 /* Category Section */
 .categorySection {
-  padding: 60px 0;
+  padding: 50px 0;
   background-color: #f8f9fa;
   margin: 0 -20px;
 }
@@ -96,19 +163,20 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 30px;
-  max-width: 1200px;
+  max-width: 1250px;
   margin: 0 auto;
   padding: 0 20px;
+  height: auto;
 }
 
 .categoryCard {
   background: white;
-
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   cursor: pointer;
+
 }
 
 .categoryCard:hover {
@@ -117,7 +185,7 @@
 }
 
 .categoryImage {
-  height: 100px;
+  height: 200px;
   overflow: hidden;
 }
 
@@ -370,24 +438,6 @@
   font-weight: 500;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .heroSectionHome {
-    flex-direction: column;
-    text-align: center;
-    padding: 40px 20px;
-  }
-
-  .heroLeftHome {
-    flex: 2;
-    max-width: 500px;
-    margin-left: 50px;
-  }
-
-
-  .heroTitle {
-    font-size: 32px;
-  }
 
 
   .categoryGrid {
@@ -403,7 +453,7 @@
   .sectionTitle {
     font-size: 28px;
   }
-}
+
 
 @media (max-width: 480px) {
   .heroSectionHome {

@@ -1,5 +1,7 @@
-import apiClient from "../services/api";
 import {LoginForm} from "../@type/login";
+import {authClient} from "../services/api";
+import {ApiResponse} from "../@type/apiResponse";
+import {message} from "antd";
 
 
 
@@ -36,31 +38,53 @@ interface ResetPasswordDto {
     newPassword: string;
     confirmPassword: string;
 }
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
 
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string;
+    address?: string;
+    dateOfBirth?: string;
+    confirmPassword: string,
+}
+
+export interface VerifyOtpRequest {
+    email: string;
+    otp: string;
+}
+
+export interface ResendOtpRequest {
+    email: string;
+}
 export const loginApi = async (data: LoginForm): Promise<LoginResultDto> => {
     try {
-        const res = await apiClient.post("/auth/login", data);
+        const res = await authClient.post("/auth/login", data);
         return res.data as LoginResultDto;
     } catch (err: any) {
-        return {
-            success: false,
-            message: "Đăng nhập thất bại!",
-            data: {} as LoginData,
-            errors: err?.response?.data?.errors || { message: err?.message },
-            statusCode: err?.response?.status || 500,
-        };
+        const apiError = err?.response?.data as ApiResponse<string>;
+        if (apiError?.errors) {
+            Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+        } else {
+            message.error(apiError?.message || "Lỗi hệ thống ");
+        }
     }
 };
 
 
 
 export const forgotPasswordApi = async (email: string) => {
-    const response = await apiClient.post("/auth/forgot-password", { email });
+    const response = await authClient.post("/auth/forgot-password", { email });
     return response.data;
 }
 
 export const resetPasswordApi = async (data: ResetPasswordDto) => {
-    const response = await apiClient.post("/auth/reset-password", data);
+    const response = await authClient.post("/auth/reset-password", data);
     return response.data;
 };
 

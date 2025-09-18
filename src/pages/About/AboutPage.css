@@ -5,10 +5,15 @@
   text-align: center;
   padding: 100px 40px;
   margin: -20px -20px 60px -20px;
+  width: 100vw; /* full màn hình */
+  padding: 80px 100px;
+  box-sizing: border-box;
+  max-width: 1800px; /* hoặc container của bạn */
+  margin: 0 auto;
 }
 
 .mainTitle {
-  font-size: 48px;
+  font-size: 32px;
   font-weight: 700;
   margin-bottom: 20px;
   letter-spacing: 2px;

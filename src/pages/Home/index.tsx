@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { FaStar, FaHeart } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import './Home.css';
@@ -6,6 +6,8 @@ import { useWishlist } from "../../hooks/useWishlist";
 import { getTopProducts } from "../../api/orders.api";
 import { getProducts } from "../../api/products.api";
 import imageHome from '../../../assets/image/imageHome.jpg';
+import imageHome2 from '../../../assets/image/imageHome2.jpg';
+import imageHome3 from '../../../assets/image/imageHome3.jpg';
 import book from '../../../assets/image/book.jpg';
 import stationery from '../../../assets/image/stationery.jpg';
 import Magazines from '../../../assets/image/Magazines.jpg';
@@ -13,10 +15,6 @@ import CDsDVDs from '../../../assets/image/CDsDVDs.jpg';
 import {message} from "antd";
 import {cartApi} from "../../api/cart.api";
 import {getTop} from "../../utils/bookUtils";
-
-
-
-
 const HomePage = () => {
   const { handleWishlistToggle, isInWishlist } = useWishlist();
 
@@ -26,8 +24,7 @@ const HomePage = () => {
   const [saleBooks, setSaleBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-
+  const navigate = useNavigate();
   const transformProduct = (product: any, totalQuantity: number = 0): Book => ({
     ...product,
     rating: Math.random() * 1 + 4,
@@ -35,9 +32,15 @@ const HomePage = () => {
     originalPrice: product.price * 1.2,
     totalQuantity
   });
-
-
-
+  const categories = [
+    { name: "BOOKS", image: book },
+    { name: "STATIONERY", image: stationery },
+    { name: "MAGAZINE", image: Magazines },
+    { name: "DVD", image: CDsDVDs },
+  ];
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
+  };
   const fetchBooksData = async () => {
     try {
       setLoading(true);
@@ -229,14 +232,17 @@ const HomePage = () => {
           <div className="heroLeftHome">
             <div className="heroIcon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(45 12 12)" />
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(90 12 12)" />
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" transform="rotate(135 12 12)" />
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"
+                      transform="rotate(45 12 12)"/>
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"
+                      transform="rotate(90 12 12)"/>
+                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"
+                      transform="rotate(135 12 12)"/>
               </svg>
             </div>
-            <p className="heroSubtitle">"Knowledge is power." - Francis Bacon</p>
-            <h1 className="heroTitle">Shradha BookStore</h1>
+            <p className="heroSubtitleHome">"Knowledge is power." - Francis Bacon</p>
+            <h1 className="heroTitleHome">Shradha BookStore</h1>
             <Link to="/shop" className="shopNowButton">
               SHOP NOW
             </Link>
@@ -245,42 +251,36 @@ const HomePage = () => {
             <div className="heroImageWrapper">
               <img src={imageHome} alt="Featured Book" className="heroImage"/>
             </div>
+            <div className="heroImageWrapper">
+              <img src={imageHome2} alt="Featured Book" className="heroImage"/>
+            </div>
+            <div className="heroImageWrapper">
+              <img src={imageHome3} alt="Featured Book" className="heroImage"/>
+            </div>
           </div>
         </section>
 
         {/* Category Section */}
         <section className="categorySection">
           <div className="categoryGrid">
-            <div className="categoryCard">
-              <div className="categoryImage">
-                <img src={book} alt="BOOKS" className="productImage"/>
-              </div>
-              <h3 className="categoryTitle">BOOKS</h3>
-            </div>
-            <div className="categoryCard">
-              <div className="categoryImage">
-                <img src={stationery} alt="STATIONERY" className="productImage" />
-              </div>
-              <h3 className="categoryTitle">STATIONERY</h3>
-            </div>
-            <div className="categoryCard">
-              <div className="categoryImage">
-                <img src={Magazines} alt="Magazines" className="productImage" />
-              </div>
-              <h3 className="categoryTitle">MAGAZINES</h3>
-            </div>
-            <div className="categoryCard">
-              <div className="categoryImage">
-                <img src={CDsDVDs} alt="CDsDVDs" className="productImage" />
-              </div>
-              <h3 className="categoryTitle">CD and DVDs</h3>
-            </div>
+            {categories.map((cat) => (
+                <div
+                    key={cat.name}
+                    className="categoryCard"
+                    onClick={() => handleCategoryClick(cat.name)}
+                >
+                  <div className="categoryImage">
+                    <img src={cat.image} alt={cat.name} className="productImage"/>
+                  </div>
+                  <h3 className="categoryTitle">{cat.name}</h3>
+                </div>
+            ))}
           </div>
         </section>
 
-        {/* New Books Section */}
-        <section className="featuredSection">
-          <div className="sectionHeader">
+        {/* New Products Section */}
+        <section className="featuredSection" style={{ borderBottom: '1px solid #e0e0e0', paddingBottom: '40px', marginBottom: '40px' }}>
+          <div className="sectionHeader" style={{ marginBottom: '20px' }}>
             <h2 className="sectionTitle">New Products</h2>
             <p className="sectionSubtitle">
               Latest additions to our collection - recently published books
@@ -294,8 +294,8 @@ const HomePage = () => {
         </section>
 
         {/* Featured Books Section */}
-        <section className="featuredSection">
-          <div className="sectionHeader">
+        <section className="featuredSection" style={{ borderBottom: '1px solid #e0e0e0', paddingBottom: '40px', marginBottom: '40px' }}>
+          <div className="sectionHeader" style={{ marginBottom: '20px' }}>
             <h2 className="sectionTitle">Featured Books</h2>
             <p className="sectionSubtitle">
               Discover our handpicked collection of recommended products
@@ -308,9 +308,9 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Hot Books Section */}
-        <section className="featuredSection">
-          <div className="sectionHeader">
+        {/* Hot Products Section */}
+        <section className="featuredSection" style={{ borderBottom: '1px solid #e0e0e0', paddingBottom: '40px', marginBottom: '40px' }}>
+          <div className="sectionHeader" style={{ marginBottom: '20px' }}>
             <h2 className="sectionTitle">Hot Products</h2>
             <p className="sectionSubtitle">
               Most popular products - bestsellers based on customer orders
@@ -323,8 +323,9 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Sale Products Section */}
         <section className="featuredSection">
-          <div className="sectionHeader">
+          <div className="sectionHeader" style={{ marginBottom: '20px' }}>
             <h2 className="sectionTitle">Sale Products</h2>
             <p className="sectionSubtitle">
               Timeless classics - products that have stood the test of time
@@ -336,6 +337,7 @@ const HomePage = () => {
             )}
           </div>
         </section>
+
       </>
   );
 };

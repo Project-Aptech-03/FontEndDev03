@@ -30,11 +30,19 @@
 
 /* Hero Section */
 .hero {
-  background: #1a202c;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 80px 100px;
   color: white;
-  padding: 80px 40px;
-  text-align: center;
-  margin: -20px -20px 40px -20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100vw;
+  padding: 80px 100px;
+  box-sizing: border-box;
+}
+.hero {
+  max-width: 1800px; /* hoặc container của bạn */
+  margin: 0 auto;
 }
 
 .heroContent {
@@ -43,7 +51,7 @@
 }
 
 .heroTitle {
-  font-size: 48px;
+  font-size: 32px;
   font-weight: 700;
   margin-bottom: 20px;
   line-height: 1.2;
@@ -111,6 +119,7 @@
   height: fit-content;
   position: sticky;
   top: 20px;
+  margin-top: 30px;
 }
 
 .filterSection {
@@ -180,6 +189,7 @@
   padding: 20px 30px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
 }
 
 .resultsInfo p {
@@ -498,6 +508,7 @@
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
+    margin-top: 30px;
   }
   
   .booksGrid {

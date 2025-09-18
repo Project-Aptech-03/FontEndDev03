@@ -224,7 +224,7 @@ const Header: React.FC = () => {
                         fontWeight: 'bold',
                     }}
                 >
-                    SBT
+                    S
                 </div>
                 <span style={logoTextStyle}>SHRADHA</span>
             </div>
@@ -240,21 +240,7 @@ const Header: React.FC = () => {
 
             {/* Action Icons */}
             <div style={iconsContainerStyle}>
-                {/* Search Icon */}
-                <SearchOutlined 
-                    style={iconStyle}
-                    onClick={() => navigate('/search')}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#1890ff';
-                        e.currentTarget.style.backgroundColor = '#f0f7ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#595959';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                />
 
-                {/* User Menu */}
                 <Dropdown 
                     menu={{ items: userMenuItems }} 
                     placement="bottomRight" 

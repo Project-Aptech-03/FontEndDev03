@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, {useState, useMemo, useEffect, useRef} from 'react';
 import './BookStore.css';
 import { useBooks } from '../../hooks/useBooks';
 import { useWishlist } from '../../hooks/useWishlist';
@@ -10,11 +10,13 @@ import { usePagination } from '../../hooks/usePagination';
 import { Category, Manufacturer } from "../../@type/products";
 import { getCategory } from "../../api/category.api";
 import { getManufacturers } from "../../api/manufacturer.api";
-
+import useQuery from "../../hooks/useShop";
 const BookStore: React.FC = () => {
+  const query = useQuery();
+  const initialCategory = query.get("category") || "Books";
   const [filters, setFilters] = useState({
     keyword: '',
-    selectedCategories: ['Books'] as string[],
+    selectedCategories: [initialCategory],
     selectedPriceRange: '',
     selectedManufacturers: [] as string[]
   });
@@ -45,6 +47,24 @@ const BookStore: React.FC = () => {
     fetchFilters();
   }, []);
 
+  const initialSetDone = useRef(false);
+  useEffect(() => {
+    if (initialSetDone.current) return;
+    if (categories.length > 0) {
+      const categoryFromQuery = query.get("category") || "Books";
+      const matchedCategory = categories.find(
+          cat => cat.categoryName.toLowerCase() === categoryFromQuery.toLowerCase()
+      );
+      if (matchedCategory) {
+        setFilters(prev => ({
+          ...prev,
+          selectedCategories: [matchedCategory.categoryName]
+        }));
+      }
+      initialSetDone.current = true;
+    }
+
+  }, [query]);
   const filteredBooks = useMemo(() => {
     let filtered = [...books];
 

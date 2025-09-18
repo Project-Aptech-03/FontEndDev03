@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Form, Input, Button, message, Card } from "antd";
+import { Form, Input, Button, message } from "antd";
 import { resetPasswordApi } from "../../api/auth.api";
 import { ApiResponse } from "../../@type/apiResponse";
 
@@ -11,13 +11,31 @@ const ResetPassword: React.FC = () => {
 
     const email = searchParams.get("email") || "";
     const token = searchParams.get("token") || "";
-
-
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?-]).+$/;
 
     const handleResetPassword = async (values: {
         newPassword: string;
         confirmPassword: string;
     }) => {
+        const newErrors: Record<string, string> = {};
+
+        // Kiểm tra mật khẩu
+        if (!values.newPassword) {
+            newErrors.newPassword = "Password cannot be empty";
+        } else if (values.newPassword.length < 6) {
+            newErrors.newPassword = "Password must be at least 6 characters";
+        } if (!passwordRegex.test(values.newPassword)) {
+            newErrors.newPassword = "Password must contain at least one uppercase letter, one number, and one special character";
+        }
+        if (values.confirmPassword !== values.newPassword) {
+            newErrors.confirmPassword = "Confirmation password does not match";
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            Object.values(newErrors).forEach(msg => message.error(msg));
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await resetPasswordApi({
@@ -28,19 +46,17 @@ const ResetPassword: React.FC = () => {
             });
 
             if (res.success) {
-                message.success(res.message || "Đặt lại mật khẩu thành công!");
+                message.success(res.message || "Password reset successful!");
                 navigate("/login");
             } else {
-                message.error(res.error?.message || "Đặt lại mật khẩu thất bại.");
+                message.error(res.error?.message || "Password reset failed.");
             }
         } catch (err: any) {
             const apiError = err?.response?.data as ApiResponse<string>;
             if (apiError?.errors) {
-                Object.values(apiError.errors)
-                    .flat()
-                    .forEach((msg: string) => message.error(msg));
+                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
             } else {
-                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+                message.error(apiError?.message || "An unknown system error occurred");
             }
         } finally {
             setLoading(false);
@@ -49,54 +65,47 @@ const ResetPassword: React.FC = () => {
 
     return (
         <div className="auth-page">
-        <div className="auth-container">
-            <div className="auth-card">
-                <div className="auth-header">
+            <div className="auth-container">
+                <div className="auth-card">
                     <div className="auth-header">
-                        <h2>Đặt lại mật khẩu</h2>
+                        <h2>Reset Password</h2>
                     </div>
-                    <Form
-                        layout="vertical"
-                        onFinish={handleResetPassword}
-                        className="reset-form"
-                    >
+                    <Form layout="vertical" onFinish={handleResetPassword} className="reset-form">
                         <Form.Item
-                            label={<span style={{ color: "white" }}>Mật khẩu mới</span>}
+                            label={<span style={{ color: "white" }}>New Password</span>}
                             name="newPassword"
-                            rules={[{ required: true, message: "Vui lòng nhập mật khẩu mới!" }]}
+                            rules={[{ required: true, message: "Please enter a new password!" }]}
                         >
-                            <Input.Password placeholder="Nhập mật khẩu mới" />
+                            <Input.Password placeholder="Enter new password" />
                         </Form.Item>
 
                         <Form.Item
-                            label={<span style={{ color: "white" }}>Xác nhận mật khẩu</span>}
+                            label={<span style={{ color: "white" }}>Confirm Password</span>}
                             name="confirmPassword"
                             dependencies={["newPassword"]}
                             rules={[
-                                { required: true, message: "Vui lòng nhập lại mật khẩu!" },
+                                { required: true, message: "Please confirm your password!" },
                                 ({ getFieldValue }) => ({
                                     validator(_, value) {
                                         if (!value || getFieldValue("newPassword") === value) {
                                             return Promise.resolve();
                                         }
                                         return Promise.reject(
-                                            new Error("Mật khẩu xác nhận không khớp!")
+                                            new Error("Confirmation password does not match!")
                                         );
                                     },
                                 }),
                             ]}
                         >
-                            <Input.Password placeholder="Nhập lại mật khẩu mới" />
+                            <Input.Password placeholder="Re-enter new password" />
                         </Form.Item>
 
                         <Button type="primary" htmlType="submit" block loading={loading}>
-                            Đặt lại mật khẩu
+                            Reset Password
                         </Button>
                     </Form>
-
                 </div>
             </div>
-        </div>
         </div>
     );
 };

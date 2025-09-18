@@ -63,12 +63,13 @@ export const AppRouter = () => (
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/faqs" element={<FAQPage />} />
                 <Route path="/myorders" element={<MyOrders />} />
+                <Route path="/checkout" element={<Checkout />} />
             </Route>
 
             {/* Protected Routes - cần đăng nhập */}
             <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
-                    <Route path="/checkout" element={<Checkout />} />
+
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/profile/edit" element={<EditProfile />} />
                 </Route>

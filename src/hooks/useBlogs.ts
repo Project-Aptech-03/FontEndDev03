@@ -6,14 +6,11 @@ import {
   CreateBlogDto,
   UpdateBlogDto,
   BlogQueryDto,
-  PagedResultDto,
   CommentResponseDto,
   CreateCommentDto,
   UpdateCommentDto,
-  AuthorFollowDto
 } from '../@type/blog';
 
-// Hook for managing blog list with pagination and filtering
 export const useBlogs = (initialQuery: BlogQueryDto = { page: 1, pageSize: 10 }) => {
   const [blogs, setBlogs] = useState<BlogListResponseDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -132,11 +129,11 @@ export const useBlog = (id: number | string) => {
 
   const fetchBlog = useCallback(async () => {
     if (!id) return;
-    
+
     setLoading(true);
     setError(null);
     try {
-      const result = typeof id === 'number' 
+      const result = typeof id === 'number'
         ? await blogApi.getBlogById(id)
         : await blogApi.getBlogBySlug(id);
       setBlog(result);
@@ -158,8 +155,6 @@ export const useBlog = (id: number | string) => {
     refetch: fetchBlog
   };
 };
-
-// Hook for blog CRUD operations
 export const useBlogCrud = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,11 +210,9 @@ export const useBlogCrud = () => {
   };
 };
 
-// Hook for blog likes
 export const useBlogLikes = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const likeBlog = useCallback(async (id: number): Promise<boolean> => {
     setLoading(true);
     setError(null);
@@ -264,7 +257,7 @@ export const useBlogComments = (blogId: number) => {
 
   const fetchComments = useCallback(async () => {
     if (!blogId) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -316,7 +309,7 @@ export const useBlogComments = (blogId: number) => {
     setError(null);
     try {
       await blogApi.deleteComment(commentId);
-      await fetchComments(); // Refresh comments
+      await fetchComments();
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete comment');

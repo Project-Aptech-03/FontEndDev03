@@ -1,36 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, 
-  Row, 
-  Col, 
-  Tag, 
-  Input, 
-  Select, 
-  Button, 
-  Avatar, 
-  Divider, 
-  Modal, 
-  Form, 
-  Upload, 
+import {
+  Card,
+  Row,
+  Col,
+  Tag,
+  Input,
+  Select,
+  Button,
+  Avatar,
+  Modal,
+  Form,
+  Upload,
   message,
-  DatePicker,
   Tabs,
   Image,
   Space,
   Typography,
   Switch,
   Tooltip,
-  Rate,
-  Spin,
-  Alert
+  Alert, Spin
 } from "antd";
 import { 
   SearchOutlined, 
   CalendarOutlined, 
   UserOutlined, 
-  EyeOutlined, 
-  PlusOutlined, 
-  UploadOutlined,
+  EyeOutlined,
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
@@ -47,7 +41,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useBlogs, useFeaturedBlogs, useRecentBlogs, useBlogCrud, useBlogLikes } from "../../hooks/useBlogs";
 import { useCategories } from "../../hooks/useFilters";
-import { BlogQueryDto, CreateBlogDto, BlogListResponseDto } from "../../@type/blog";
+import { BlogQueryDto, CreateBlogDto, } from "../../@type/blog";
 import { blogApi } from "../../api/blog.api";
 import "./BlogPage.css";
 

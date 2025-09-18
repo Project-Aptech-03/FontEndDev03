@@ -12,17 +12,13 @@ import {
   Typography,
   Form,
   Input,
-  Rate,
   BackTop,
   Affix,
-  List,
-  Spin,
   Alert,
-  message
+  message, Spin
 } from "antd";
 import {
   CalendarOutlined,
-  UserOutlined,
   EyeOutlined,
   ClockCircleOutlined,
   ShareAltOutlined,
@@ -36,7 +32,6 @@ import {
 } from "@ant-design/icons";
 import { useBlog, useBlogComments, useBlogLikes, useAuthorFollows, useRecentBlogs } from "../../hooks/useBlogs";
 import { blogApi } from "../../api/blog.api";
-import { BlogResponseDto, CommentResponseDto } from "../../@type/blog";
 import "./BlogDetail.css";
 
 const { Title, Paragraph, Text } = Typography;
@@ -84,8 +79,6 @@ const BlogDetail: React.FC = () => {
   const { likeBlog, unlikeBlog } = useBlogLikes();
   const { followAuthor, unfollowAuthor, loading: followLoading, error: followError } = useAuthorFollows();
   const { blogs: recentBlogs } = useRecentBlogs(3);
-
-  // Local state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followStatusChecked, setFollowStatusChecked] = useState(false);
   const [commentValidation, setCommentValidation] = useState<{
@@ -98,7 +91,6 @@ const BlogDetail: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  // Calculate reading time
   const calculateReadingTime = (content: string) => {
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
@@ -110,30 +102,22 @@ const BlogDetail: React.FC = () => {
     if (!blog?.authorId || followStatusChecked) return;
     
     try {
-      // Try to get the follow status by checking if the user is in the author's followers
       const followers = await blogApi.getAuthorFollowers(blog.authorId, 1, 100);
-      // This is a simplified check - in a real implementation, you'd need a specific endpoint
-      // to check if the current user is following a specific author
       setFollowStatusChecked(true);
     } catch (error) {
       console.log('Could not check follow status:', error);
       setFollowStatusChecked(true);
     }
   };
-
-  // Check follow status when blog loads
   useEffect(() => {
     if (blog?.authorId && !followStatusChecked) {
       checkFollowStatus();
     }
   }, [blog?.authorId, followStatusChecked]);
-
-  // AI Content Moderation - Simulate AI analysis
   const validateCommentWithAI = async (content: string) => {
     setIsValidatingComment(true);
     
     try {
-      // Simulate AI API call for content moderation
       const response = await new Promise<{
         isValid: boolean;
         warnings: string[];
@@ -141,23 +125,19 @@ const BlogDetail: React.FC = () => {
         toxicityScore: number;
       }>((resolve) => {
         setTimeout(() => {
-          // Simple AI-like validation rules
           const warnings: string[] = [];
           let toxicityScore = 0;
           let sentiment: 'positive' | 'negative' | 'neutral' = 'neutral';
-          
-          // Check for spam patterns
+
           if (content.length < 10) {
             warnings.push('Comment is too short. Please provide more meaningful feedback.');
           }
-          
-          // Check for repeated characters (spam detection)
+
           if (/(.)\1{4,}/.test(content)) {
             warnings.push('Please avoid repetitive characters.');
             toxicityScore += 0.3;
           }
-          
-          // Check for excessive caps
+
           const capsRatio = (content.match(/[A-Z]/g) || []).length / content.length;
           if (capsRatio > 0.7 && content.length > 20) {
             warnings.push('Please avoid excessive capitalization.');
@@ -174,8 +154,7 @@ const BlogDetail: React.FC = () => {
             warnings.push('Please use respectful language.');
             toxicityScore += 0.5;
           }
-          
-          // Sentiment analysis (simplified)
+
           const positiveWords = ['good', 'great', 'awesome', 'amazing', 'love', 'like', 'excellent', 'wonderful'];
           const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'horrible', 'worst'];
           
@@ -206,7 +185,7 @@ const BlogDetail: React.FC = () => {
             sentiment,
             toxicityScore: Math.min(toxicityScore, 1)
           });
-        }, 1000); // Simulate API delay
+        }, 1000);
       });
       
       setCommentValidation(response);
@@ -220,7 +199,6 @@ const BlogDetail: React.FC = () => {
     }
   };
 
-  // Handle blog like
   const handleLike = async () => {
     if (!blog) return;
     
@@ -229,11 +207,8 @@ const BlogDetail: React.FC = () => {
     } else {
       await likeBlog(blog.id);
     }
-    // Refresh blog data to update like count
     refetchBlog();
   };
-
-  // Handle comment like
   const handleCommentLike = async (commentId: number, isLiked: boolean) => {
     if (isLiked) {
       await unlikeComment(commentId);
@@ -242,12 +217,10 @@ const BlogDetail: React.FC = () => {
     }
   };
 
-  // Handle comment submit with AI validation and retry mechanism
   const handleCommentSubmit = async (values: any, retryAttempt = 0) => {
     const maxRetries = 3;
     
     try {
-      // First validate with AI
       const validation = await validateCommentWithAI(values.comment);
       
       if (!validation) {
@@ -262,8 +235,6 @@ const BlogDetail: React.FC = () => {
         });
         return;
       }
-      
-      // If validation passes, submit comment
       const result = await createComment({
         content: values.comment,
         parentCommentId: undefined
@@ -285,8 +256,7 @@ const BlogDetail: React.FC = () => {
         setRetryCount(retryAttempt + 1);
         
         message.warning(`Attempt ${retryAttempt + 1} failed. Retrying...`);
-        
-        // Exponential backoff: wait longer between retries
+
         const delay = Math.pow(2, retryAttempt) * 1000;
         setTimeout(async () => {
           await handleCommentSubmit(values, retryAttempt + 1);
@@ -300,7 +270,6 @@ const BlogDetail: React.FC = () => {
     }
   };
 
-  // Handle author follow
   const handleFollowAuthor = async () => {
     if (!blog) return;
     
@@ -340,7 +309,6 @@ const BlogDetail: React.FC = () => {
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
         break;
     }
-    
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'width=600,height=400');
     }
@@ -381,10 +349,7 @@ const BlogDetail: React.FC = () => {
   return (
     <div className="blog-detail-container">
       <BackTop />
-      
-      {/* Blog Content Wrapper - Target for Affix */}
       <div className="blog-content-wrapper" id="blog-content-wrapper">
-        {/* Header */}
         <div className="blog-detail-header">
         <Button 
           type="text" 
@@ -434,10 +399,8 @@ const BlogDetail: React.FC = () => {
       </div>
 
       <Row gutter={[32, 32]} className="blog-detail-content">
-        {/* Main Content */}
         <Col xs={24} lg={16}>
           <Card className="blog-content-card">
-            {/* Article Actions */}
             <div className="article-actions">
               <Space size="large">
                 <Button
@@ -475,22 +438,16 @@ const BlogDetail: React.FC = () => {
                 </div>
               </Space>
             </div>
-
-            {/* Article Content */}
-            <div 
+            <div
               className="article-content"
               dangerouslySetInnerHTML={{ __html: blog.content }}
             />
-
-            {/* Tags */}
             <Divider />
             <div className="article-tags">
               <Text strong style={{ marginRight: 16 }}>Category:</Text>
               <Tag className="article-tag">{blog.categoryName}</Tag>
             </div>
           </Card>
-
-          {/* Comments Section */}
           <Card className="comments-section" title={
             <Space>
               <MessageOutlined />
@@ -506,8 +463,6 @@ const BlogDetail: React.FC = () => {
                 style={{ marginBottom: 16 }}
               />
             )}
-            
-            {/* Add Comment Form */}
             <div className="add-comment">
               <Title level={4}>Leave a Comment</Title>
               <Form form={form} onFinish={handleCommentSubmit} layout="vertical">
@@ -522,7 +477,6 @@ const BlogDetail: React.FC = () => {
                     onChange={async (e) => {
                       const content = e.target.value;
                       if (content.length > 20) {
-                        // Debounce AI validation
                         setTimeout(async () => {
                           await validateCommentWithAI(content);
                         }, 1000);
@@ -532,8 +486,6 @@ const BlogDetail: React.FC = () => {
                     }}
                   />
                 </Form.Item>
-                
-                {/* AI Validation Results */}
                 {commentValidation && (
                   <div className="ai-validation-results" style={{ marginBottom: 16 }}>
                     <Alert
@@ -589,8 +541,6 @@ const BlogDetail: React.FC = () => {
             </div>
 
             <Divider />
-
-            {/* Comments List */}
             <div className="comments-list">
               {commentsLoading ? (
                 <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -630,12 +580,9 @@ const BlogDetail: React.FC = () => {
             </div>
           </Card>
         </Col>
-
-        {/* Sidebar */}
         <Col xs={24} lg={8}>
           <Affix offsetTop={20} target={() => document.getElementById('blog-content-wrapper')}>
             <div className="blog-sidebar">
-              {/* Author Info */}
               <Card className="author-card">
                 <div className="author-info">
                   <Avatar 
@@ -660,8 +607,6 @@ const BlogDetail: React.FC = () => {
                   </div>
                 </div>
               </Card>
-
-              {/* Related Articles */}
               <Card title="Related Articles" className="related-articles">
                 {recentBlogs.slice(0, 3).map(relatedBlog => (
                   <div 
