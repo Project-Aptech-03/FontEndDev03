@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,  Phone,  Mail,  DollarSign,  ShoppingBag} from 'lucide-react';
+import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,  Phone,  Mail,  DollarSign,  ShoppingBag, Clock, FileCheck, Truck, Home, RotateCcw, Ban} from 'lucide-react';
 import './Orders.css';
 import { ApiOrder, UpdateOrderRequest, getProductImageUrl } from '../../../@type/Orders';
 import { getAllOrders, updateOrder } from '../../../api/orders.api';
@@ -10,9 +10,9 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<ApiOrder | null>(null); // Separate state for editing
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [paymentFilter, setPaymentFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -59,10 +59,6 @@ const Orders = () => {
       filtered = filtered.filter(order => order.orderStatus === statusFilter);
     }
 
-    if (paymentFilter !== 'all') {
-      filtered = filtered.filter(order => order.paymentStatus === paymentFilter);
-    }
-
     if (dateFilter !== 'all') {
       const today = new Date();
       const filterDate = new Date();
@@ -91,7 +87,7 @@ const Orders = () => {
 
     setFilteredOrders(filtered);
     setCurrentPage(1);
-  }, [orders, searchTerm, statusFilter, paymentFilter, dateFilter]);
+  }, [orders, searchTerm, statusFilter, dateFilter]);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -125,6 +121,226 @@ const Orders = () => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('vi-VN');
+  };
+
+  // Order status hierarchy for progression logic
+  const statusHierarchy = {
+    pending: 0,
+    confirmed: 1,
+    processing: 2,
+    shipped: 3,
+    delivered: 4,
+    cancelled: -1, // Can be set from any status except delivered
+    returned: -2   // Can only be set from delivered
+  };
+
+  // Get allowed next statuses based on current status
+  const getAllowedNextStatuses = (currentStatus: string): string[] => {
+    const currentLevel = statusHierarchy[currentStatus as keyof typeof statusHierarchy];
+    const allowedStatuses: string[] = [];
+
+    // Always include current status
+    allowedStatuses.push(currentStatus);
+
+    // Allow progression to next levels only
+    Object.entries(statusHierarchy).forEach(([status, level]) => {
+      if (typeof level === 'number' && level >= 0) {
+        if (level > currentLevel) {
+          allowedStatuses.push(status);
+        }
+      }
+    });
+
+    // Special rules for cancellation and returns
+    if (currentStatus !== 'delivered') {
+      allowedStatuses.push('cancelled');
+    }
+    if (currentStatus === 'delivered') {
+      allowedStatuses.push('returned');
+    }
+
+    // Remove duplicates and return
+    return [...new Set(allowedStatuses)];
+  };
+
+  // Status progression component
+  const StatusProgressBar = ({ currentStatus, onStatusChange }: { currentStatus: string, onStatusChange: (status: string) => void }) => {
+    const statusFlow = [
+      { key: 'pending', label: 'Pending', icon: Clock, color: 'orange' },
+      { key: 'confirmed', label: 'Confirmed', icon: FileCheck, color: 'blue' },
+      { key: 'processing', label: 'Processing', icon: Package, color: 'purple' },
+      { key: 'shipped', label: 'Shipped', icon: Truck, color: 'indigo' },
+      { key: 'delivered', label: 'Delivered', icon: Home, color: 'green' }
+    ];
+
+    const specialStatuses = [
+      { key: 'cancelled', label: 'Cancelled', icon: Ban, color: 'red' },
+      { key: 'returned', label: 'Returned', icon: RotateCcw, color: 'gray' }
+    ];
+
+    const getCurrentStatusIndex = () => {
+      const index = statusFlow.findIndex(s => s.key === currentStatus);
+      return index;
+    };
+
+    const getStatusState = (statusKey: string, index: number) => {
+      const currentIndex = getCurrentStatusIndex();
+      
+      // Handle special statuses first
+      if (currentStatus === 'cancelled' || currentStatus === 'returned') {
+        if (statusKey === currentStatus) return 'current';
+        return 'disabled';
+      }
+      
+      if (statusKey === currentStatus) return 'current';
+      if (currentIndex >= 0 && index < currentIndex) return 'completed';
+      if (currentIndex >= 0 && index === currentIndex + 1) return 'next';
+      if (currentIndex >= 0 && index > currentIndex) return 'future';
+      
+      return 'disabled';
+    };
+
+    const isClickable = (statusKey: string, index: number) => {
+      // If current status is cancelled or returned, no progression allowed
+      if (currentStatus === 'cancelled' || currentStatus === 'returned') {
+        return false;
+      }
+      
+      // Special status rules
+      if (statusKey === 'cancelled') {
+        return currentStatus !== 'delivered'; // Can cancel unless delivered
+      }
+      if (statusKey === 'returned') {
+        return currentStatus === 'delivered'; // Can only return if delivered
+      }
+      
+      const currentIndex = getCurrentStatusIndex();
+      
+      // Can stay in current status or move forward
+      if (currentIndex >= 0) {
+        return index >= currentIndex;
+      }
+      
+      return false;
+    };
+
+    const getStatusClasses = (statusKey: string, index: number) => {
+      const state = getStatusState(statusKey, index);
+      const clickable = isClickable(statusKey, index);
+      
+      let classes = "status-item ";
+      
+      if (!clickable) {
+        classes += "disabled ";
+      }
+
+      classes += state;
+      return classes;
+    };
+
+    const getIconClasses = (statusKey: string, index: number) => {
+      const state = getStatusState(statusKey, index);
+      const clickable = isClickable(statusKey, index);
+      
+      let classes = "status-icon ";
+      
+      if (!clickable) {
+        classes += "disabled";
+      } else {
+        classes += state;
+      }
+      
+      return classes;
+    };
+
+    const getLabelClasses = (statusKey: string, index: number) => {
+      const state = getStatusState(statusKey, index);
+      const clickable = isClickable(statusKey, index);
+      
+      let classes = "status-label ";
+      
+      if (!clickable) {
+        classes += "disabled";
+      } else {
+        classes += state;
+      }
+      
+      return classes;
+    };
+
+    return (
+      <div className="status-progress-container">
+        <div className="status-progress-wrapper">
+          {/* Progress Line */}
+          <div className="status-progress-line">
+            <div 
+              className="status-progress-fill"
+              style={{ 
+                width: `${getCurrentStatusIndex() >= 0 ? 
+                  (getCurrentStatusIndex() / (statusFlow.length - 1)) * 100 : 0}%` 
+              }}
+            ></div>
+          </div>
+
+          {/* Main Status Flow */}
+          <div className="status-flow-container">
+            {statusFlow.map((status, index) => {
+              const IconComponent = status.icon;
+              const clickable = isClickable(status.key, index);
+              
+              return (
+                <div
+                  key={status.key}
+                  className={getStatusClasses(status.key, index)}
+                  onClick={() => {
+                    if (clickable) {
+                      onStatusChange(status.key);
+                    }
+                  }}
+                >
+                  <div className="status-icon-wrapper">
+                    <IconComponent size={20} className={getIconClasses(status.key, index)} />
+                  </div>
+                  <span className={getLabelClasses(status.key, index)}>
+                    {status.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Special Statuses */}
+          <div className="special-statuses-container">
+            {specialStatuses.map((status) => {
+              const IconComponent = status.icon;
+              const clickable = isClickable(status.key, -1);
+              
+              let specialClasses = "special-status-item ";
+              if (currentStatus === status.key) {
+                specialClasses += "current ";
+              } else if (!clickable) {
+                specialClasses += "disabled ";
+              }
+              
+              return (
+                <div
+                  key={status.key}
+                  className={specialClasses}
+                  onClick={() => {
+                    if (clickable) {
+                      onStatusChange(status.key);
+                    }
+                  }}
+                >
+                  <IconComponent size={16} className="special-status-icon" />
+                  <span>{status.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const handleStatusUpdate = async (orderId: number, newStatus: string) => {
@@ -252,18 +468,6 @@ const Orders = () => {
             </select>
 
             <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Payments</option>
-              <option value="pending">Pending Payment</option>
-              <option value="paid">Paid</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-            </select>
-
-            <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               className="filter-select"
@@ -354,6 +558,7 @@ const Orders = () => {
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
+                              setEditingOrder({ ...order }); // Create a copy for editing
                               setIsEditModalOpen(true);
                             }}
                             className="action-button edit"
@@ -594,13 +799,16 @@ const Orders = () => {
         )}
 
         {/* Edit Order Modal */}
-        {isEditModalOpen && selectedOrder && (
+        {isEditModalOpen && selectedOrder && editingOrder && (
           <div className="modal-overlay">
             <div className="edit-modal">
               <div className="edit-modal-header">
                 <h2 className="edit-modal-title">Edit Order {selectedOrder.orderNumber}</h2>
                 <button
-                  onClick={() => setIsEditModalOpen(false)}
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingOrder(null);
+                  }}
                   className="close-button"
                 >
                   <XCircle size={24} />
@@ -608,57 +816,70 @@ const Orders = () => {
               </div>
 
               <div className="edit-modal-body">
-                {/* Delivery Information Category */}
-                <h4 className="category-header">Delivery Information</h4>
-                <div className="form-group">
-                  <label className="form-label">
-                    Order Status
-                  </label>
-                  <select
-                    value={selectedOrder.orderStatus}
-                    onChange={(e) => {
-                      const updatedOrder = { ...selectedOrder, orderStatus: e.target.value };
-                      setSelectedOrder(updatedOrder);
-                      handleStatusUpdate(selectedOrder.id, e.target.value);
-                    }}
-                    className="form-select"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="returned">Returned</option>
-                  </select>
+                {/* Current Order Information */}
+                <div className="info-section mb-6">
+                  <h3 className="info-section-title">
+                    <Package size={20} />
+                    Current Order Status
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="customer-info-item">
+                      <div className="customer-info-icon">
+                        <CheckCircle size={16} />
+                      </div>
+                      <div className="customer-info-text">
+                        <div className="customer-info-label">Original Status</div>
+                        <div className="customer-info-value">
+                          <StatusBadge status={selectedOrder.orderStatus} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="customer-info-item">
+                      <div className="customer-info-icon">
+                        <DollarSign size={16} />
+                      </div>
+                      <div className="customer-info-text">
+                        <div className="customer-info-label">Payment Status</div>
+                        <div className="customer-info-value">
+                          <PaymentBadge status={selectedOrder.paymentStatus} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Payment Information Category */}
-                <h4 className="category-header">Payment Information</h4>
-                <div className="form-group">
-                  <label className="form-label">
-                    Payment Status
-                  </label>
-                  <select
-                    value={selectedOrder.paymentStatus}
-                    onChange={(e) => {
-                      const updatedOrder = { ...selectedOrder, paymentStatus: e.target.value };
-                      setSelectedOrder(updatedOrder);
-                      handlePaymentStatusUpdate(selectedOrder.id, e.target.value);
+                {/* Delivery Information Category */}
+                <div className="mb-6">
+                  <h4 className="category-header flex items-center gap-2 mb-4">
+                    <Package size={20} className="text-blue-600" />
+                    Delivery Information
+                  </h4>
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <p className="text-sm text-blue-700 mb-2">
+                      <strong>Note:</strong> Click on the status icons below to select new status. Changes will be saved when you click "Save Changes".
+                    </p>
+                    <div className="text-xs text-blue-600">
+                      Order flows forward through the stages. Special statuses (Cancelled/Returned) are available based on current state.
+                    </div>
+                  </div>
+                  
+                  <StatusProgressBar 
+                    currentStatus={editingOrder.orderStatus}
+                    onStatusChange={(newStatus) => {
+                      setEditingOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
                     }}
-                    className="form-select"
-                  >
-                    <option value="pending">Pending Payment</option>
-                    <option value="paid">Paid</option>
-                    <option value="failed">Failed</option>
-                    <option value="refunded">Refunded</option>
-                  </select>
+                  />
                 </div>
+
+                
 
                 {/* Action Buttons */}
                 <div className="modal-actions">
                   <button
-                    onClick={() => setIsEditModalOpen(false)}
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingOrder(null);
+                    }}
                     className="btn-secondary"
                   >
                     Cancel
@@ -667,15 +888,16 @@ const Orders = () => {
                     onClick={async () => {
                       try {
                         const result = await updateOrder(selectedOrder.id, {
-                          orderStatus: selectedOrder.orderStatus,
-                          paymentStatus: selectedOrder.paymentStatus
+                          orderStatus: editingOrder.orderStatus,
+                          paymentStatus: editingOrder.paymentStatus
                         });
 
                         if (result.success) {
                           setOrders(prev => prev.map(order =>
-                            order.id === selectedOrder.id ? selectedOrder : order
+                            order.id === selectedOrder.id ? editingOrder : order
                           ));
                           setIsEditModalOpen(false);
+                          setEditingOrder(null);
                           alert('Order updated successfully!');
                           loadOrders(); // Reload data
                         } else {

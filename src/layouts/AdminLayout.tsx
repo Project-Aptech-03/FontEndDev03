@@ -11,7 +11,8 @@ import {
   MenuUnfoldOutlined,
   HomeOutlined,
   ShopOutlined,
-
+  ShoppingCartOutlined,
+  GiftOutlined,
   StockOutlined,
   FileTextOutlined
 
@@ -36,9 +37,11 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/users")) return "2";
     if (path.includes("/admin/products")) return "3";
     if (path.includes("/admin/product")) return "4";
-    if (path.includes("/admin/stocks")) return "5";
-    if (path.includes("/admin/faqs")) return "6";
-    if (path.includes("/admin/blog")) return "7";
+    if (path.includes("/admin/orders")) return "5";
+    if (path.includes("/admin/coupons")) return "6";
+    if (path.includes("/admin/stocks")) return "7";
+    if (path.includes("/admin/faqs")) return "8";
+    if (path.includes("/admin/blog")) return "9";
     return "1";
   };
 
@@ -65,16 +68,26 @@ const AdminLayout: React.FC = () => {
     },
     {
       key: "5",
+      icon: <ShoppingCartOutlined />,
+      label: <Link to="/admin/orders">Quản lý Orders</Link>,
+    },
+    {
+      key: "6",
+      icon: <GiftOutlined />,
+      label: <Link to="/admin/coupons">Quản lý Coupons</Link>,
+    },
+    {
+      key: "7",
       icon: <StockOutlined />,
       label: <Link to="/admin/stocks">Quản lý Stocks</Link>,
     },
     {
-      key: "6",
+      key: "8",
       icon: <QuestionCircleOutlined />,
       label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
     },
     {
-      key: "7",
+      key: "9",
       icon: <FileTextOutlined />,
       label: <Link to="/admin/blog">Quản lý Blog</Link>,
     },

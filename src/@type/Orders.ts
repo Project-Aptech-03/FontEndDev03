@@ -235,14 +235,21 @@ export interface CancelOrderRequest {
 // ===========================================
 
 // Helper function to safely get image URL from photos array
-export const getProductImageUrl = (photos?: Array<{ imageUrl: string } | string>, fallback: string = '/api/placeholder/60/80'): string => {
+export const getProductImageUrl = (photos?: Array<{ photoUrl: string; id: number; isActive: boolean; createdDate: string } | { imageUrl: string } | string>, fallback: string = '/api/placeholder/60/80'): string => {
   if (!photos || photos.length === 0) return fallback;
   
   const firstPhoto = photos[0];
   if (typeof firstPhoto === 'string') {
     return firstPhoto;
-  } else if (firstPhoto && typeof firstPhoto === 'object' && 'imageUrl' in firstPhoto) {
-    return firstPhoto.imageUrl;
+  } else if (firstPhoto && typeof firstPhoto === 'object') {
+    // Check for photoUrl property (new structure)
+    if ('photoUrl' in firstPhoto) {
+      return firstPhoto.photoUrl;
+    }
+    // Check for imageUrl property (old structure)
+    if ('imageUrl' in firstPhoto) {
+      return firstPhoto.imageUrl;
+    }
   }
   
   return fallback;
