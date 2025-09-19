@@ -162,7 +162,7 @@ const MyOrders = () => {
     if (product.photos && product.photos.length > 0) {
       return (
         <img 
-          src={product.photos[0]} 
+          src={product.photos[0].photoUrl} 
           alt={product.productName}
           className={className}
         />

@@ -129,7 +129,7 @@ const CheckoutPage = () => {
                         src={
                           typeof item.product.photos[0] === 'string'
                             ? item.product.photos[0]
-                            : item.product.photos[0].imageUrl
+                            : item.product.photos[0].photoUrl
                         }
                         alt={item.product?.productName || 'Product'}
                         onError={(e) => {

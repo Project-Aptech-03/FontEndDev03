@@ -125,13 +125,13 @@ const Orders = () => {
 
   // Order status hierarchy for progression logic
   const statusHierarchy = {
-    pending: 0,
-    confirmed: 1,
-    processing: 2,
-    shipped: 3,
-    delivered: 4,
-    cancelled: -1, // Can be set from any status except delivered
-    returned: -2   // Can only be set from delivered
+    Pending: 0,
+    Confirmed: 1,
+    Processing: 2,
+    Shipped: 3,
+    Delivered: 4,
+    Cancelled: -1, // Can be set from any status except delivered
+    Returned: -2   // Can only be set from delivered
   };
 
   // Get allowed next statuses based on current status
@@ -152,11 +152,11 @@ const Orders = () => {
     });
 
     // Special rules for cancellation and returns
-    if (currentStatus !== 'delivered') {
-      allowedStatuses.push('cancelled');
+    if (currentStatus !== 'Delivered') {
+      allowedStatuses.push('Cancelled');
     }
-    if (currentStatus === 'delivered') {
-      allowedStatuses.push('returned');
+    if (currentStatus === 'Delivered') {
+      allowedStatuses.push('Returned');
     }
 
     // Remove duplicates and return
@@ -166,16 +166,16 @@ const Orders = () => {
   // Status progression component
   const StatusProgressBar = ({ currentStatus, onStatusChange }: { currentStatus: string, onStatusChange: (status: string) => void }) => {
     const statusFlow = [
-      { key: 'pending', label: 'Pending', icon: Clock, color: 'orange' },
-      { key: 'confirmed', label: 'Confirmed', icon: FileCheck, color: 'blue' },
-      { key: 'processing', label: 'Processing', icon: Package, color: 'purple' },
-      { key: 'shipped', label: 'Shipped', icon: Truck, color: 'indigo' },
-      { key: 'delivered', label: 'Delivered', icon: Home, color: 'green' }
+      { key: 'Pending', label: 'Pending', icon: Clock, color: 'orange' },
+      { key: 'Confirmed', label: 'Confirmed', icon: FileCheck, color: 'blue' },
+      { key: 'Processing', label: 'Processing', icon: Package, color: 'purple' },
+      { key: 'Shipped', label: 'Shipped', icon: Truck, color: 'indigo' },
+      { key: 'Delivered', label: 'Delivered', icon: Home, color: 'green' }
     ];
 
     const specialStatuses = [
-      { key: 'cancelled', label: 'Cancelled', icon: Ban, color: 'red' },
-      { key: 'returned', label: 'Returned', icon: RotateCcw, color: 'gray' }
+      { key: 'Cancelled', label: 'Cancelled', icon: Ban, color: 'red' },
+      { key: 'Returned', label: 'Returned', icon: RotateCcw, color: 'gray' }
     ];
 
     const getCurrentStatusIndex = () => {
@@ -187,7 +187,7 @@ const Orders = () => {
       const currentIndex = getCurrentStatusIndex();
       
       // Handle special statuses first
-      if (currentStatus === 'cancelled' || currentStatus === 'returned') {
+      if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
         if (statusKey === currentStatus) return 'current';
         return 'disabled';
       }
@@ -201,17 +201,17 @@ const Orders = () => {
     };
 
     const isClickable = (statusKey: string, index: number) => {
-      // If current status is cancelled or returned, no progression allowed
-      if (currentStatus === 'cancelled' || currentStatus === 'returned') {
+      // If current status is Cancelled or Returned, no progression allowed
+      if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
         return false;
       }
       
       // Special status rules
       if (statusKey === 'cancelled') {
-        return currentStatus !== 'delivered'; // Can cancel unless delivered
+        return currentStatus !== 'Delivered'; // Can cancel unless delivered
       }
-      if (statusKey === 'returned') {
-        return currentStatus === 'delivered'; // Can only return if delivered
+      if (statusKey === 'Returned') {
+        return currentStatus === 'Delivered'; // Can only return if delivered
       }
       
       const currentIndex = getCurrentStatusIndex();
