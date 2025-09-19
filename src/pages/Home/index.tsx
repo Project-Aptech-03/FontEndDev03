@@ -145,7 +145,7 @@ const HomePage = () => {
           </button>
         </div>
         <div className="bookInfo">
-          <Link to={`/product/${book.id}`} className="bookTitleLink">
+          <Link to={`/detail-product/${book.id}`} className="bookTitleLink">
             <h3 className="bookTitle">{book.productName}</h3>
           </Link>
           <p className="bookAuthor">by {book.author || book.publisher?.publisherName || book.manufacturer?.manufacturerName || 'Unknown Author'}</p>

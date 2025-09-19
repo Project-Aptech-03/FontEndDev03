@@ -270,7 +270,7 @@ const Register: React.FC = () => {
                                             onChange={handleChange}
                                             onBlur={handleBlur}
                                             required
-                                            placeholder="Enter your first name..."
+                                            placeholder="First name..."
                                             className={isFieldValid("firstName") ? "error" : ""}
                                         />
                                     </div>
@@ -307,7 +307,7 @@ const Register: React.FC = () => {
                                             onChange={handleChange}
                                             onBlur={handleBlur}
                                             required
-                                            placeholder="Enter your last name..."
+                                            placeholder="Last name..."
                                             className={isFieldValid("lastName") ? "error" : ""}
                                         />
                                     </div>

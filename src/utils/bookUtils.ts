@@ -25,7 +25,7 @@ export const calculateDiscount = (originalPrice: number, currentPrice: number): 
 export const getTop = <T>(
     arr: T[],
     compareFn: (a: T, b: T) => number,
-    count = 3
+    count = 4
 ): T[] => {
   return [...arr].sort(compareFn).slice(0, count);
 };

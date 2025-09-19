@@ -31,7 +31,6 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     };
 
     const handleLoginCancel = () => {
-        setShowModal(true);
     };
 
     if (loading) return <div>Đang tải...</div>;

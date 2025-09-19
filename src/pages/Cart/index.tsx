@@ -12,6 +12,7 @@ import { CustomerAddress } from '../../@type/customerAddress';
 import AddAddressForm from './AddAddressForm';
 import './CartPage.css';
 import './CartPage.css';
+import {message} from "antd";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -223,7 +224,7 @@ const CartPage = () => {
   };
 
   const removeItem = async (itemId: number) => {
-    if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+    if (!message.error('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
       return;
     }
 
@@ -241,7 +242,7 @@ const CartPage = () => {
       const response = await cartApi.removeFromCart(itemId);
       if (response.success) {
         // Success: Item already removed from UI, just show success message
-        toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+        message.success('Đã xóa sản phẩm khỏi giỏ hàng');
       } else {
         // ROLLBACK: Add item back to original position
         setCartItems(prevItems => {
@@ -254,7 +255,7 @@ const CartPage = () => {
         if (wasSelected) {
           setSelectedItems(prev => [...prev, itemId]);
         }
-        toast.error(response.message || 'Không thể xóa sản phẩm');
+        message.error(response.message || 'Không thể xóa sản phẩm');
       }
     } catch (error) {
       // ROLLBACK: Add item back to original position
@@ -267,20 +268,17 @@ const CartPage = () => {
       if (wasSelected) {
         setSelectedItems(prev => [...prev, itemId]);
       }
-      toast.error('Không thể xóa sản phẩm. Vui lòng thử lại.');
+      message.error('Không thể xóa sản phẩm. Vui lòng thử lại.');
     }
   };
 
   const clearCart = async () => {
-    if (!window.confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
+    if (!message.error('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
       return;
     }
 
-    // Store original data for rollback
     const originalCartItems = [...cartItems];
     const originalSelectedItems = [...selectedItems];
-
-    // OPTIMISTIC UPDATE: Clear immediately from UI
     setCartItems([]);
     setSelectedItems([]);
 
@@ -288,18 +286,18 @@ const CartPage = () => {
       const response = await cartApi.clearCart();
       if (response.success) {
         // Success: Cart already cleared from UI, just show success message
-        toast.success('Đã xóa toàn bộ giỏ hàng');
+        message.success('Đã xóa toàn bộ giỏ hàng');
       } else {
         // ROLLBACK: Restore original cart data
         setCartItems(originalCartItems);
         setSelectedItems(originalSelectedItems);
-        toast.error(response.message || 'Không thể xóa giỏ hàng');
+        message.error(response.message || 'Không thể xóa giỏ hàng');
       }
     } catch (error) {
       // ROLLBACK: Restore original cart data
       setCartItems(originalCartItems);
       setSelectedItems(originalSelectedItems);
-      toast.error('Không thể xóa giỏ hàng. Vui lòng thử lại.');
+      message.error('Không thể xóa giỏ hàng. Vui lòng thử lại.');
     }
   };
 

@@ -36,8 +36,11 @@ import ProductAttributes from "../pages/admin/ProductAttributes";
 import ProductDetail from "../pages/ProductDetail";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRouter";
+import GlobalLoginModal from "./GlobalLoginModal";
 
 export const AppRouter = () => (
+    <>
+    <GlobalLoginModal />
     <AuthProvider>
         <Routes>
             {/* Public Auth Routes */}
@@ -105,4 +108,5 @@ export const AppRouter = () => (
             theme="light"
         />
     </AuthProvider>
+</>
 );

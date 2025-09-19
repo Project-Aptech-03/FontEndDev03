@@ -64,11 +64,6 @@ const AdminLayout: React.FC = () => {
       label: <Link to="/admin/productAttributes">Product Attributies</Link>,
     },
     {
-      key: "5",
-      icon: <StockOutlined />,
-      label: <Link to="/admin/stocks">Quản lý Stocks</Link>,
-    },
-    {
       key: "6",
       icon: <QuestionCircleOutlined />,
       label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
