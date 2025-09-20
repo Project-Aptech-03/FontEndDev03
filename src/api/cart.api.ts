@@ -42,10 +42,10 @@ export const cartApi = {
   },
 
   // Remove item from cart
-  removeFromCart: async (cartItemId: number): Promise<CartApiResponse> => {
+  removeFromCart: async (productId: number): Promise<CartApiResponse> => {
     try {
       const response = await apiClient.delete(
-        endpoints.removeFromCart.replace('{id}', cartItemId.toString())
+        endpoints.removeFromCart.replace('{id}', productId.toString())
       );
       return response.data;
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaSyncAlt } from 'react-icons/fa';
 import { couponApi } from '../../../api/coupon.api';
 import { Coupon, CreateCouponRequest } from '../../../@type/coupon';
 
@@ -11,6 +11,65 @@ interface CouponFormProps {
 }
 
 const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) => {
+  // Helper function to get current datetime in local timezone
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
+
+  // Helper function to get datetime one week from now
+  const getOneWeekLater = () => {
+    const oneWeek = new Date();
+    oneWeek.setDate(oneWeek.getDate() + 7);
+    oneWeek.setMinutes(oneWeek.getMinutes() - oneWeek.getTimezoneOffset());
+    return oneWeek.toISOString().slice(0, 16);
+  };
+
+  // Helper function to generate random coupon code
+  const generateRandomCouponCode = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // Helper function to check if coupon code exists in active coupons
+  const isCouponCodeUnique = async (code: string): Promise<boolean> => {
+    try {
+      const response = await couponApi.getCoupons();
+      if (response.success && response.data) {
+        const activeCoupons = response.data.filter((c: Coupon) => c.isActive);
+        return !activeCoupons.some((c: Coupon) => c.couponCode === code);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error checking coupon code uniqueness:', error);
+      return true;
+    }
+  };
+
+  // Helper function to generate unique coupon code
+  const generateUniqueCouponCode = async (): Promise<string> => {
+    let code = generateRandomCouponCode();
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      const isUnique = await isCouponCodeUnique(code);
+      if (isUnique) {
+        return code;
+      }
+      code = generateRandomCouponCode();
+      attempts++;
+    }
+    
+    // If we can't generate unique code after 10 attempts, add timestamp
+    return generateRandomCouponCode() + Date.now().toString().slice(-2);
+  };
+
   const [formData, setFormData] = useState<CreateCouponRequest>({
     couponCode: '',
     couponName: '',
@@ -19,14 +78,36 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
     minOrderAmount: 0,
     maxDiscountAmount: 0,
     quantity: 1,
-    startDate: '',
-    endDate: '',
+    startDate: getCurrentDateTime(),
+    endDate: getOneWeekLater(),
     isAutoApply: false,
     isActive: true
   });
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [generatingCode, setGeneratingCode] = useState(false);
+
+  // Generate coupon code for new coupons
+  useEffect(() => {
+    if (!coupon) {
+      generateNewCouponCode();
+    }
+  }, []);
+
+  // Generate new coupon code
+  const generateNewCouponCode = async () => {
+    setGeneratingCode(true);
+    try {
+      const newCode = await generateUniqueCouponCode();
+      setFormData(prev => ({ ...prev, couponCode: newCode }));
+    } catch (error) {
+      console.error('Error generating coupon code:', error);
+      toast.error('Failed to generate coupon code');
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
 
   useEffect(() => {
     if (coupon) {
@@ -38,8 +119,8 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
         minOrderAmount: coupon.minOrderAmount,
         maxDiscountAmount: coupon.maxDiscountAmount,
         quantity: coupon.quantity,
-        startDate: coupon.startDate.split('T')[0],
-        endDate: coupon.endDate.split('T')[0],
+        startDate: coupon.startDate.slice(0, 16), // Convert to datetime-local format
+        endDate: coupon.endDate.slice(0, 16), // Convert to datetime-local format
         isAutoApply: coupon.isAutoApply,
         isActive: coupon.isActive
       });
@@ -94,15 +175,23 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+      newErrors.startDate = 'Start date and time is required';
+    } else {
+      const startDate = new Date(formData.startDate);
+      const now = new Date();
+      if (startDate < now) {
+        newErrors.startDate = 'Start date cannot be in the past';
+      }
     }
 
     if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
-    }
-
-    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
-      newErrors.endDate = 'End date must be after start date';
+      newErrors.endDate = 'End date and time is required';
+    } else if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      if (endDate <= startDate) {
+        newErrors.endDate = 'End date must be after start date';
+      }
     }
 
     setErrors(newErrors);
@@ -119,11 +208,11 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
 
     setLoading(true);
     try {
-      // Format dates to include time
+      // Format dates to ISO string for API
       const submissionData = {
         ...formData,
-        startDate: `${formData.startDate}T00:00:00`,
-        endDate: `${formData.endDate}T23:59:59`
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString()
       };
 
       let response;
@@ -173,15 +262,29 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     Coupon Code
                     <span className="field-hint">Unique code for customers to enter</span>
                   </label>
-                  <input
-                    type="text"
-                    id="couponCode"
-                    name="couponCode"
-                    value={formData.couponCode}
-                    onChange={handleChange}
-                    placeholder="e.g., SAVE20, NEWUSER50"
-                    className={errors.couponCode ? 'error' : ''}
-                  />
+                  <div className="input-with-button">
+                    <input
+                      type="text"
+                      id="couponCode"
+                      name="couponCode"
+                      value={formData.couponCode}
+                      onChange={handleChange}
+                      placeholder="e.g., SAVE20, NEWUSER50"
+                      className={errors.couponCode ? 'error' : ''}
+                      readOnly={!coupon} // Make readonly for new coupons to prevent manual editing
+                    />
+                    {!coupon && (
+                      <button
+                        type="button"
+                        onClick={generateNewCouponCode}
+                        disabled={generatingCode}
+                        className="refresh-code-btn"
+                        title="Generate new code"
+                      >
+                        <FaSyncAlt className={generatingCode ? 'spinning' : ''} />
+                      </button>
+                    )}
+                  </div>
                   {errors.couponCode && <span className="error-message">{errors.couponCode}</span>}
                 </div>
 
@@ -338,15 +441,16 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 <div className="form-group">
                   <label htmlFor="startDate">
                     <span className="required">*</span>
-                    Start Date
-                    <span className="field-hint">Coupon is valid from this date</span>
+                    Start Date & Time
+                    <span className="field-hint">Coupon is valid from this date and time</span>
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="startDate"
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleChange}
+                    min={getCurrentDateTime()} // Prevent past dates
                     className={errors.startDate ? 'error' : ''}
                   />
                   {errors.startDate && <span className="error-message">{errors.startDate}</span>}
@@ -355,15 +459,16 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 <div className="form-group">
                   <label htmlFor="endDate">
                     <span className="required">*</span>
-                    End Date
-                    <span className="field-hint">Coupon expires after this date</span>
+                    End Date & Time
+                    <span className="field-hint">Coupon expires after this date and time</span>
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     id="endDate"
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleChange}
+                    min={formData.startDate || getCurrentDateTime()} // End date must be after start date
                     className={errors.endDate ? 'error' : ''}
                   />
                   {errors.endDate && <span className="error-message">{errors.endDate}</span>}
