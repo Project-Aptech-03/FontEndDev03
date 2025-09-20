@@ -13,7 +13,6 @@ import {
   ShopOutlined,
   ShoppingCartOutlined,
   GiftOutlined,
-  StockOutlined,
   FileTextOutlined
 
 } from "@ant-design/icons";
@@ -39,9 +38,8 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/product")) return "4";
     if (path.includes("/admin/orders")) return "5";
     if (path.includes("/admin/coupons")) return "6";
-    if (path.includes("/admin/stocks")) return "7";
-    if (path.includes("/admin/faqs")) return "8";
-    if (path.includes("/admin/blog")) return "9";
+    if (path.includes("/admin/faqs")) return "7";
+    if (path.includes("/admin/blog")) return "8";
     return "1";
   };
 
@@ -54,42 +52,37 @@ const AdminLayout: React.FC = () => {
     {
       key: "2",
       icon: <UserOutlined />,
-      label: <Link to="/admin/users">Quản lý Users</Link>,
+      label: <Link to="/admin/users">Manage Users</Link>,
     },
     {
       key: "3",
       icon: <ProductOutlined />,
-      label: <Link to="/admin/products">Quản lý Products</Link>,
+      label: <Link to="/admin/products">Manage Products</Link>,
     },
     {
       key: "4",
       icon: <ShopOutlined />,
-      label: <Link to="/admin/productAttributes">Product Attributies</Link>,
+      label: <Link to="/admin/productAttributes">Product Attributes</Link>,
     },
     {
       key: "5",
       icon: <ShoppingCartOutlined />,
-      label: <Link to="/admin/orders">Quản lý Orders</Link>,
+      label: <Link to="/admin/orders">Manage Orders</Link>,
     },
     {
       key: "6",
       icon: <GiftOutlined />,
-      label: <Link to="/admin/coupons">Quản lý Coupons</Link>,
+      label: <Link to="/admin/coupons">Manage Coupons</Link>,
     },
     {
       key: "7",
-      icon: <StockOutlined />,
-      label: <Link to="/admin/stocks">Quản lý Stocks</Link>,
+      icon: <QuestionCircleOutlined />,
+      label: <Link to="/admin/faqs">Manage FAQs</Link>,
     },
     {
       key: "8",
-      icon: <QuestionCircleOutlined />,
-      label: <Link to="/admin/faqs">Quản lý FAQs</Link>,
-    },
-    {
-      key: "9",
       icon: <FileTextOutlined />,
-      label: <Link to="/admin/blog">Quản lý Blog</Link>,
+      label: <Link to="/admin/blog">Manage Blog</Link>,
     },
   ];
 
@@ -97,26 +90,25 @@ const AdminLayout: React.FC = () => {
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: "Về trang chủ",
+      label: "Back to Home",
       onClick: () => navigate("/"),
     },
     {
       type: "divider",
     },
-      {
+    {
       key: "profile",
       icon: <UserOutlined />,
-      label: "Hồ sơ",
-      onClick: () => navigate("/profile")
+      label: "Profile",
+      onClick: () => navigate("/profile"),
     },
-
     {
       type: "divider",
     },
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "Đăng xuất",
+      label: "Log out",
       danger: true,
       onClick: () => {
         localStorage.removeItem("token");
@@ -124,6 +116,7 @@ const AdminLayout: React.FC = () => {
       },
     },
   ];
+
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -145,7 +138,7 @@ const AdminLayout: React.FC = () => {
           {collapsed ? (
             <QuestionCircleOutlined style={{ fontSize: 24, color: "#fff" }} />
           ) : (
-            <h2 style={{ color: "#fff", margin: 0, fontSize: 18 }}>ADMIN PANEL</h2>
+            <h2 style={{ color: "#fff", margin: 0, fontSize: 18 }}>Shradha Book Store Admin</h2>
           )}
         </div>
         
@@ -161,7 +154,7 @@ const AdminLayout: React.FC = () => {
       <Layout>
         <Header style={{ 
           background: colorBgContainer, 
-          padding: "0 24px", 
+          padding: "0 24px",
           display: "flex", 
           alignItems: "center", 
           justifyContent: "space-between",
@@ -175,7 +168,7 @@ const AdminLayout: React.FC = () => {
               style: { fontSize: 18, marginRight: 16 }
             })}
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
-              Trang Quản Trị
+              Admin
             </h2>
           </div>
           

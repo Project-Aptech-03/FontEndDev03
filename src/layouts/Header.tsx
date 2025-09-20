@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import { Menu, Layout, Dropdown, Badge, Avatar, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import {
-    SearchOutlined,
     UserOutlined,
     HeartOutlined,
     ShoppingCartOutlined,
@@ -77,7 +76,6 @@ const Header: React.FC = () => {
     ];
     const userMenuItems: MenuProps['items'] = isLoggedIn
         ? [
-            // Nếu là admin thì thêm Dashboard
             ...(user?.role === 'Admin' ? [
                 {
                     key: 'dashboard',
@@ -96,6 +94,7 @@ const Header: React.FC = () => {
             {
                 key: 'orders',
                 label: 'My Orders',
+                icon: <ShoppingCartOutlined />,
                 onClick: () => navigate('/myorders'),
             },
             {
