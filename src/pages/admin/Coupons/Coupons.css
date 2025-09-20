@@ -875,3 +875,83 @@
 .checkbox-label:has(.checkbox-input:checked) .checkbox-text strong {
   color: #1e40af;
 }
+
+/* Input with button styles */
+.input-with-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-button input {
+  padding-right: 45px;
+  flex: 1;
+}
+
+.refresh-code-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.refresh-code-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.refresh-code-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-code-btn:disabled:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.refresh-code-btn svg {
+  width: 14px;
+  height: 14px;
+  color: #6b7280;
+}
+
+.refresh-code-btn:hover svg {
+  color: #374151;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Readonly input styling */
+input[readonly] {
+  background-color: #f9fafb;
+  color: #6b7280;
+}
+
+input[readonly]:focus {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  box-shadow: none;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {   Package, Eye, Truck, CheckCircle, XCircle, Clock,ShoppingBag, ArrowRight,  RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, DollarSign, AlertCircle} from 'lucide-react';
-import { ApiOrder as Order, CancelOrderRequest } from '../../@type/Orders';
+import { ApiOrder as Order, CancelOrderRequest, getProductImageUrl } from '../../@type/Orders';
 import { getMyOrders, cancelOrder } from '../../api/orders.api';
 import './MyOrder.css';
 
@@ -159,21 +159,22 @@ const MyOrders = () => {
   };
 
   const renderProductImage = (product: any, className: string) => {
-    if (product.photos && product.photos.length > 0) {
-      return (
-        <img 
-          src={product.photos[0]} 
-          alt={product.productName}
-          className={className}
-        />
-      );
-    } else {
-      return (
-        <div className={`${className} no-image-placeholder`}>
-          <ImageOff size={24} color="#ccc" />
-        </div>
-      );
-    }
+    return (
+      <img
+        src={getProductImageUrl(product?.photos)}
+        alt={product?.productName || 'Product'}
+        className={className}
+        onError={(e) => {
+          // Hide broken image and show placeholder
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const placeholder = target.nextElementSibling as HTMLElement;
+          if (placeholder) {
+            placeholder.style.display = 'flex';
+          }
+        }}
+      />
+    );
   };
 
   const handleViewDetails = (order: Order) => {
@@ -339,9 +340,14 @@ const MyOrders = () => {
                   <div className="order-items-compact">
                     {order.orderItems.slice(0, 1).map(item => (
                       <div key={item.id} className="order-item-compact">
-                        {renderProductImage(item.product, "item-image-compact")}
+                        <div className="item-image-wrapper">
+                          {renderProductImage(item.product, "item-image-compact")}
+                          <div className="no-image-placeholder item-image-compact" style={{ display: 'none' }}>
+                            <ImageOff size={20} color="#ccc" />
+                          </div>
+                        </div>
                         <div className="item-info">
-                          <span className="item-name-compact">{item.product.productName}</span>
+                          <span className="item-name-compact">{item.product?.productName}</span>
                           <span className="item-details-compact">x{item.quantity}</span>
                         </div>
                       </div>
@@ -563,9 +569,14 @@ const MyOrders = () => {
                   <div className="items-compact">
                     {selectedOrder.orderItems.map(item => (
                       <div key={item.id} className="item-compact">
-                        {renderProductImage(item.product, "item-img")}
+                        <div className="item-image-wrapper">
+                          {renderProductImage(item.product, "item-img")}
+                          <div className="no-image-placeholder item-img" style={{ display: 'none' }}>
+                            <ImageOff size={20} color="#ccc" />
+                          </div>
+                        </div>
                         <div className="item-details-compact">
-                          <h4 className="item-title">{item.product.productName}</h4>
+                          <h4 className="item-title">{item.product?.productName}</h4>
                           <p className="item-qty">{formatCurrency(item.unitPrice)} × {item.quantity}</p>
                         </div>
                         <div className="item-total">

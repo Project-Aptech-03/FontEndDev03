@@ -151,7 +151,7 @@ const CartPage = () => {
         'Sản phẩm này đã hết hàng. Bạn có muốn xóa khỏi giỏ hàng không?'
       );
       if (confirmRemove) {
-        await removeItem(itemId);
+        await removeItem(cartItem.productId); // Changed to use productId
       }
       return;
     }
@@ -222,24 +222,28 @@ const CartPage = () => {
       });
     }
   };
-
-  const removeItem = async (itemId: number) => {
-    if (!message.error('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+  const removeItem = async (productId: number) => {
+    if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
       return;
     }
 
-    // Store original data for rollback
-    const originalItem = cartItems.find(item => item.id === itemId);
+    // Find the cart item by productId
+    const originalItem = cartItems.find(item => item.productId === productId);
+    if (!originalItem) {
+      toast.error('Không tìm thấy sản phẩm trong giỏ hàng');
+      return;
+    }
+
+    const itemId = originalItem.id;
     const wasSelected = selectedItems.includes(itemId);
 
-    if (!originalItem) return;
-
     // OPTIMISTIC UPDATE: Remove immediately from UI
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
     setSelectedItems(prev => prev.filter(id => id !== itemId));
 
     try {
-      const response = await cartApi.removeFromCart(itemId);
+      // Call API with productId instead of itemId
+      const response = await cartApi.removeFromCart(productId);
       if (response.success) {
         // Success: Item already removed from UI, just show success message
         message.success('Đã xóa sản phẩm khỏi giỏ hàng');
@@ -247,9 +251,8 @@ const CartPage = () => {
         // ROLLBACK: Add item back to original position
         setCartItems(prevItems => {
           const newItems = [...prevItems];
-          // Try to maintain original order by finding the right index
-          const originalIndex = cartItems.findIndex(item => item.id === itemId);
-          newItems.splice(originalIndex, 0, originalItem);
+          const originalIndex = cartItems.findIndex(item => item.productId === productId);
+          newItems.splice(originalIndex >= 0 ? originalIndex : prevItems.length, 0, originalItem);
           return newItems;
         });
         if (wasSelected) {
@@ -261,8 +264,8 @@ const CartPage = () => {
       // ROLLBACK: Add item back to original position
       setCartItems(prevItems => {
         const newItems = [...prevItems];
-        const originalIndex = cartItems.findIndex(item => item.id === itemId);
-        newItems.splice(originalIndex, 0, originalItem);
+        const originalIndex = cartItems.findIndex(item => item.productId === productId);
+        newItems.splice(originalIndex >= 0 ? originalIndex : prevItems.length, 0, originalItem);
         return newItems;
       });
       if (wasSelected) {
@@ -701,7 +704,7 @@ const CartPage = () => {
 
                               <button
                                 className="remove-btn"
-                                onClick={() => removeItem(item.id)}
+                                onClick={() => removeItem(item.product?.id || item.productId)}
                                 title="Xóa sản phẩm"
                               >
                                 <FaTrash />
