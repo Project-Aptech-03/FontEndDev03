@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { triggerLoginModal } from "./authModalService";
 
 const API_BASE_URL = "https://localhost:7275/api";
 
@@ -14,16 +15,18 @@ apiClient.interceptors.request.use((config) => {
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
+
 export const authClient = axios.create({
     baseURL: API_BASE_URL,
     headers: { "Content-Type": "application/json" },
-
 });
-// Response interceptor: auto refresh token
+
+// Response interceptor
 apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
@@ -31,7 +34,9 @@ apiClient.interceptors.response.use(
             if (!refreshToken) {
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = "/login";
+
+                // 🚨 Thay vì redirect, gọi modal
+                triggerLoginModal();
                 return Promise.reject(error);
             }
 
@@ -53,13 +58,14 @@ apiClient.interceptors.response.use(
             } catch {
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = "/login";
+
+                triggerLoginModal();
                 return Promise.reject(error);
             }
         }
+
         return Promise.reject(error);
     }
 );
-
 
 export default apiClient;
