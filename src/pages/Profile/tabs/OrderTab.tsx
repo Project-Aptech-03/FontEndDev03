@@ -68,20 +68,20 @@ const OrderTab: React.FC = () => {
 
     const handleCancelOrder = (orderId: number) => {
         Modal.confirm({
-            title: "Xác nhận hủy đơn",
-            content: "Bạn có chắc chắn muốn hủy đơn hàng này?",
-            okText: "Hủy đơn",
+            title: "Confirm Cancellation",
+            content: "Are you sure you want to cancel this order?",
+            okText: "Cancel Order",
             okButtonProps: { danger: true },
-            cancelText: "Đóng",
+            cancelText: "Close",
             async onOk() {
                 const res = await cancelOrder(orderId, {
-                    reason: "Người dùng yêu cầu hủy",
+                    reason: "User requested cancellation",
                 });
                 if (res.success) {
-                    message.success("Đã hủy đơn hàng thành công");
+                    message.success("Order has been successfully cancelled");
                     fetchOrders();
                 } else {
-                    message.error(res.error?.message || "Hủy đơn hàng thất bại");
+                    message.error(res.error?.message || "Failed to cancel the order");
                 }
             },
         });
@@ -95,16 +95,15 @@ const OrderTab: React.FC = () => {
                 setProductDetail(res.data);
                 setIsModalVisible(true);
             } else {
-                message.error("Không thể tải thông tin sản phẩm");
+                message.error("Unable to load product information");
             }
         } catch (err) {
             console.error(err);
-            message.error("Lỗi khi tải thông tin sản phẩm");
+            message.error("Error while loading product information");
         } finally {
             setProductLoading(false);
         }
     };
-
     if (loading) {
         return (
             <div className="flex justify-center items-center h-[50vh]">
@@ -114,7 +113,7 @@ const OrderTab: React.FC = () => {
     }
 
     return (
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{maxWidth: 900, margin: "0 auto"}}>
             <List
                 itemLayout="vertical"
                 dataSource={orders}
@@ -129,9 +128,9 @@ const OrderTab: React.FC = () => {
                                     alignItems: "center",
                                 }}
                             >
-                <span>
-                  Đơn hàng <b>{order.orderNumber}</b>
-                </span>
+                        <span>
+                            Order <b>{order.orderNumber}</b>
+                        </span>
                                 <Tag
                                     color={order.orderStatus === "Pending" ? "orange" : "green"}
                                 >
@@ -139,57 +138,57 @@ const OrderTab: React.FC = () => {
                                 </Tag>
                             </div>
                         }
-                        style={{ marginBottom: 20, borderRadius: 12 }}
+                        style={{marginBottom: 20, borderRadius: 12}}
                         extra={
                             order.orderStatus === "Pending" && (
                                 <Button danger onClick={() => handleCancelOrder(order.id)}>
-                                    Hủy đơn
+                                    Cancel Order
                                 </Button>
                             )
                         }
                     >
-                        {/* Thông tin đơn hàng */}
+                        {/* Order Information */}
                         <Descriptions
                             column={2}
                             size="small"
                             bordered
-                            style={{ marginBottom: 16 }}
+                            style={{marginBottom: 16}}
                         >
-                            <Descriptions.Item label="Ngày đặt">
+                            <Descriptions.Item label="Order Date">
                                 {dayjs(order.orderDate).format("DD/MM/YYYY HH:mm")}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Thanh toán">
+                            <Descriptions.Item label="Payment">
                                 {order.paymentType}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tạm tính">
+                            <Descriptions.Item label="Subtotal">
                                 {order.subtotal.toLocaleString()} VND
                             </Descriptions.Item>
-                            <Descriptions.Item label="Phí giao hàng">
+                            <Descriptions.Item label="Shipping Fee">
                                 {order.deliveryAddress?.displayShippingFee}
                             </Descriptions.Item>
-                            <Descriptions.Item label="Tổng tiền" span={2}>
-                                <b style={{ color: "#d4380d" }}>
+                            <Descriptions.Item label="Total Amount" span={2}>
+                                <b style={{color: "#d4380d"}}>
                                     {order.totalAmount.toLocaleString()} VND
                                 </b>
                             </Descriptions.Item>
                         </Descriptions>
 
-                        {/* Địa chỉ giao hàng */}
+                        {/* Shipping Address */}
                         <Card
                             size="small"
                             type="inner"
-                            title="Địa chỉ giao hàng"
-                            style={{ marginBottom: 16 }}
+                            title="Shipping Address"
+                            style={{marginBottom: 16}}
                         >
                             <p>{order.deliveryAddress?.displayAddress}</p>
                             <p>{order.deliveryAddress?.displayContactInfo}</p>
                             <p>{order.deliveryAddress?.displayDistance}</p>
                         </Card>
 
-                        {/* Danh sách sản phẩm */}
+                        {/* Product List */}
                         <List
                             size="small"
-                            header={<b>Sản phẩm trong đơn</b>}
+                            header={<b>Products in Order</b>}
                             dataSource={order.orderItems}
                             renderItem={(item) => (
                                 <List.Item
@@ -204,7 +203,7 @@ const OrderTab: React.FC = () => {
                                         avatar={
                                             <img
                                                 src={
-                                                    productImages[item.productId] ||
+                                                    item.product?.photos?.[0]?.photoUrl ||
                                                     "https://via.placeholder.com/60x80?text=No+Image"
                                                 }
                                                 alt={item.product?.productName}
@@ -217,70 +216,66 @@ const OrderTab: React.FC = () => {
                                                 }}
                                                 onClick={() => handleViewProduct(item.productId)}
                                             />
-
-
                                         }
                                         title={
                                             <span
                                                 style={{cursor: "pointer", color: "#1677ff", fontWeight: 500}}
                                                 onClick={() => handleViewProduct(item.productId)}
                                             >
-            {item.product?.productName}
-          </span>
+                                        {item.product?.productName}
+                                    </span>
                                         }
                                         description={
-                                            <div style={{ fontSize: 13, color: "#666" }}>
-                                                Số lượng: <b>{item.quantity}</b>
+                                            <div style={{fontSize: 13, color: "#666"}}>
+                                                Quantity: <b>{item.quantity}</b>
                                             </div>
                                         }
                                     />
-                                    <div style={{ fontWeight: 600, color: "#d4380d" }}>
+                                    <div style={{fontWeight: 600, color: "#d4380d"}}>
                                         {item.totalPrice.toLocaleString()} VND
                                     </div>
                                 </List.Item>
                             )}
                         />
-
-
                     </Card>
                 )}
             />
 
-            {/* Modal hiển thị chi tiết sản phẩm */}
+            {/* Product Detail Modal */}
             <Modal
-                title="Chi tiết sản phẩm"
+                title="Product Details"
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={null}
                 width={800}
             >
                 {productLoading ? (
-                    <Spin size="large" />
+                    <Spin size="large"/>
                 ) : productDetail ? (
                     <div>
                         <Image
                             src={productDetail.photos[0]?.photoUrl}
                             alt={productDetail.productName}
                             width={200}
-                            style={{ borderRadius: 8, marginBottom: 16 }}
+                            style={{borderRadius: 8, marginBottom: 16}}
                         />
                         <Title level={4}>{productDetail.productName}</Title>
                         <Paragraph>{productDetail.description}</Paragraph>
                         <p>
-                            <b>Mã sản phẩm:</b> {productDetail.productCode}
+                            <b>Product Code:</b> {productDetail.productCode}
                         </p>
                         <p>
-                            <b>Giá:</b>{" "}
-                            <span style={{ color: "#d4380d" }}>
-                {productDetail.price.toLocaleString()} VND
-              </span>
+                            <b>Price:</b>{" "}
+                            <span style={{color: "#d4380d"}}>
+                        {productDetail.price.toLocaleString()} VND
+                    </span>
                         </p>
                         <p>
-                            <b>Nhà sản xuất:</b> {productDetail.manufacturer?.manufacturerName}
+                            <b>Manufacturer:</b> {productDetail.manufacturer?.manufacturerName}
                         </p>
                     </div>
                 ) : (
-                    <p>Không có thông tin sản phẩm</p>
+                    <p>No product information available</p>
                 )}
             </Modal>
         </div>

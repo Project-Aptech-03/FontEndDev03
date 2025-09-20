@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {   Package, Eye, Truck, CheckCircle, XCircle, Clock,ShoppingBag, ArrowRight,  RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, DollarSign, AlertCircle} from 'lucide-react';
-import { ApiOrder as Order, CancelOrderRequest } from '../../@type/Orders';
+import {   Package, Eye, Truck, CheckCircle, XCircle, Clock,ShoppingBag,  RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, DollarSign, AlertCircle} from 'lucide-react';
+import { ApiOrder as Order } from '../../@type/Orders';
 import { getMyOrders, cancelOrder } from '../../api/orders.api';
 import './MyOrder.css';
 

@@ -95,6 +95,7 @@ export interface ApiOrderItem {
   totalPrice: number;
   notes: string;
   product: ApiProduct;
+
 }
 export interface TopProduct {
   productId: number;
@@ -248,7 +249,6 @@ export const getProductImageUrl = (photos?: Array<{ imageUrl: string } | string>
   return fallback;
 };
 
-// Utility types for transforming API data to UI data
 export type ApiToUiOrder = Omit<ApiOrder, 'customer' | 'deliveryAddress' | 'orderItems'> & {
   customer: BaseCustomer & {
     address: string;
@@ -260,7 +260,6 @@ export type ApiToUiOrder = Omit<ApiOrder, 'customer' | 'deliveryAddress' | 'orde
   shippingAddress: string;
 };
 
-// Type guards for runtime type checking
 export const isApiOrder = (order: any): order is ApiOrder => {
   return typeof order === 'object' && 
          typeof order.id === 'number' && 

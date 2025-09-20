@@ -15,7 +15,7 @@ function GlobalLoginModal() {
     };
 
     const handleCancel = () => {
-        setOpen(false); // chỉ đóng modal, không chuyển trang
+        setOpen(false);
     };
 
     return (
