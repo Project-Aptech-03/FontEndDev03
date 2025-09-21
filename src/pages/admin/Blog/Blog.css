@@ -219,19 +219,19 @@
   .blog-header {
     padding: 16px;
   }
-  
+
   .blog-header h2 {
     font-size: 24px;
   }
-  
+
   .blog-header p {
     font-size: 14px;
   }
-  
+
   .ant-table-wrapper {
     overflow-x: auto;
   }
-  
+
   .ant-modal {
     margin: 16px;
     max-width: calc(100vw - 32px);
@@ -242,11 +242,11 @@
   .blog-admin {
     padding: 8px;
   }
-  
+
   .ant-card {
     margin-bottom: 12px;
   }
-  
+
   .ant-col {
     margin-bottom: 12px;
   }
@@ -520,16 +520,16 @@
     max-width: 95vw;
     margin: 10px;
   }
-  
+
   .ant-modal-body {
     padding: 16px;
   }
-  
+
   .blog-preview {
     padding: 16px;
     max-height: 400px;
   }
-  
+
   .ant-tabs .ant-tabs-content-holder {
     padding: 16px 0;
   }
@@ -728,7 +728,7 @@
 }
 
 /* Header styling */
-.ql-editor h1, .ql-editor h2, .ql-editor h3, 
+.ql-editor h1, .ql-editor h2, .ql-editor h3,
 .ql-editor h4, .ql-editor h5, .ql-editor h6 {
   margin: 24px 0 16px 0;
   font-weight: 600;
@@ -763,16 +763,16 @@
   .ql-toolbar {
     padding: 4px;
   }
-  
+
   .ql-toolbar .ql-formats {
     margin-right: 8px;
   }
-  
+
   .ql-editor {
     min-height: 150px;
     font-size: 13px;
   }
-  
+
   .ql-toolbar button {
     width: 28px;
     height: 28px;

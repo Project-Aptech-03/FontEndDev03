@@ -22,7 +22,7 @@ const EditProfile: React.FC = () => {
     if (loading) {
         return (
             <div className="flex justify-center items-center h-[60vh]">
-                <Spin size="large" tip="Đang tải thông tin..." />
+                <Spin size="large" tip="Loading profile information..." />
             </div>
         );
     }
@@ -34,14 +34,14 @@ const EditProfile: React.FC = () => {
     return (
         <>
             <Card
-                title={<Title level={4}>✏️ Chỉnh sửa hồ sơ: {fullName || "Người dùng"}</Title>}
+                title={<Title level={4}>✏️ Edit Profile: {fullName || "User"}</Title>}
                 extra={
                     <Button
                         type="link"
                         icon={<ArrowLeftOutlined />}
                         onClick={() => navigate(-1)}
                     >
-                        Quay lại
+                        Back
                     </Button>
                 }
                 style={{

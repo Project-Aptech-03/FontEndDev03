@@ -33,7 +33,7 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     const handleLoginCancel = () => {
     };
 
-    if (loading) return <div>Đang tải...</div>;
+    if (loading) return <div>Loading...</div>;
     if (redirectToLogin) return <Navigate to="/login" replace />;
     if (redirectToHome) return <Navigate to="/home" replace />;
     if (isLoggedIn && user && (!allowedRoles || allowedRoles.includes(user.role || ""))) {
@@ -42,18 +42,18 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
 
     return (
         <>
-            <div>Đang kiểm tra quyền truy cập...</div>
+            <div>Checking access rights...</div>
             <Modal
                 open={showModal}
-                title="Cần đăng nhập"
+                title="Login required"
                 onOk={handleLoginOk}
                 onCancel={handleLoginCancel}
                 closable={false}
                 maskClosable={false}
-                okText="Đăng nhập"
-                cancelText="Hủy"
+                okText="Login"
+                cancelText="Cancel"
             >
-                <p>Bạn cần đăng nhập để truy cập trang này!</p>
+                <p>You need to log in to use this feature !</p>
             </Modal>
         </>
     );

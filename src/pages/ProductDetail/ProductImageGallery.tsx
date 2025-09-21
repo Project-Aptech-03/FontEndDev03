@@ -5,7 +5,8 @@ import Slider from 'react-slick';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import {ProductsResponseDto} from "../../@type/productsResponse";
+import { ProductsResponseDto } from "../../@type/productsResponse";
+import { useWishlist } from "../../hooks/useWishlist"; // <-- import hook chung
 
 interface ProductImageGalleryProps {
     product: ProductsResponseDto;
@@ -13,11 +14,13 @@ interface ProductImageGalleryProps {
 
 const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
-    const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
 
-    const images = product.photos?.length ?
-        product.photos.map(p => p.photoUrl) :
-        ['https://via.placeholder.com/600x800?text=No+Image'];
+    // dùng chung wishlist hook
+    const { handleWishlistToggle, isInWishlist } = useWishlist();
+
+    const images = product.photos?.length
+        ? product.photos.map(p => p.photoUrl)
+        : ['https://via.placeholder.com/600x800?text=No+Image'];
 
     const primaryImage = images[selectedImageIndex];
 
@@ -34,10 +37,6 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
         ]
     };
 
-    const toggleWishlist = () => {
-        setIsWishlisted(!isWishlisted);
-    };
-
     return (
         <Card
             style={{
@@ -49,7 +48,11 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
             bodyStyle={{ padding: 0 }}
         >
             <div style={{ position: 'relative' }}>
-                <Badge.Ribbon text="Bestseller" color="red" style={{ display: product.isActive ? 'block' : 'none' }}>
+                <Badge.Ribbon
+                    text="Bestseller"
+                    color="red"
+                    style={{ display: product.isActive ? 'block' : 'none' }}
+                >
                     <Image
                         src={primaryImage}
                         alt={product.productName}
@@ -61,14 +64,15 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
                         }}
                         preview={{
                             mask: (
-                                <div style={{
-                                    background: 'rgba(0,0,0,0.6)',
-                                    color: 'white',
-                                    padding: '8px 16px',
-
-                                    borderRadius: 20,
-                                    fontSize: 14
-                                }}>
+                                <div
+                                    style={{
+                                        background: 'rgba(0,0,0,0.6)',
+                                        color: 'white',
+                                        padding: '8px 16px',
+                                        borderRadius: 20,
+                                        fontSize: 14
+                                    }}
+                                >
                                     <EyeOutlined /> View larger
                                 </div>
                             )
@@ -77,8 +81,8 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
                 </Badge.Ribbon>
 
                 <ImageActionButtons
-                    isWishlisted={isWishlisted}
-                    onToggleWishlist={toggleWishlist}
+                    isWishlisted={isInWishlist(product.id)}
+                    onToggleWishlist={() => handleWishlistToggle(product)}
                 />
             </div>
 
@@ -99,14 +103,16 @@ const ImageActionButtons: React.FC<{
     isWishlisted: boolean;
     onToggleWishlist: () => void;
 }> = ({ isWishlisted, onToggleWishlist }) => (
-    <div style={{
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8
-    }}>
+    <div
+        style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8
+        }}
+    >
         <Tooltip title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}>
             <Button
                 shape="circle"
@@ -150,9 +156,12 @@ const ImageThumbnailSlider: React.FC<{
                             position: 'relative',
                             cursor: 'pointer',
                             borderRadius: 12,
-                            margin:'0 10px',
+                            margin: '0 10px',
                             overflow: 'hidden',
-                            border: selectedImageIndex === idx ? '3px solid #1890ff' : '2px solid #f0f0f0',
+                            border:
+                                selectedImageIndex === idx
+                                    ? '3px solid #1890ff'
+                                    : '2px solid #f0f0f0',
                             transition: 'all 0.3s ease'
                         }}
                         onClick={() => onImageSelect(idx)}

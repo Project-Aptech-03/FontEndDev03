@@ -63,6 +63,7 @@ export interface UpdateBlogDto {
   isPublished?: boolean;
   isFeatured?: boolean;
   categoryId?: number;
+  publishedDate?: string | Date;
 }
 
 export interface BlogQueryDto {
@@ -73,6 +74,7 @@ export interface BlogQueryDto {
   authorId?: string;
   isPublished?: boolean;
   isFeatured?: boolean;
+  includeDrafts?: boolean; // Include draft blogs
   sortBy?: string; // CreatedDate, PublishedDate, ViewCount, LikeCount
   sortOrder?: string; // asc, desc
 }

@@ -616,7 +616,7 @@ const Register: React.FC = () => {
 
                 {/* Ant Design Modal for API error messages */}
                 <Modal
-                    title="Lỗi"
+                    title="Error"
                     open={isModalVisible}
                     onOk={() => setIsModalVisible(false)}
                     onCancel={() => setIsModalVisible(false)}
@@ -631,7 +631,7 @@ const Register: React.FC = () => {
 const logoTextStyle: React.CSSProperties = {
     fontSize: '24px',
     fontWeight: 700,
-    color: '#1890ff', // màu xanh trực tiếp
+    color: '#1890ff',
     marginLeft: '8px',
     letterSpacing: '-0.5px',
 };

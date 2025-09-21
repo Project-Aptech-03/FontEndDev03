@@ -45,8 +45,30 @@ export const useBlogs = (initialQuery: BlogQueryDto = { page: 1, pageSize: 10 })
     }
   }, []);
 
+  const fetchAllBlogs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await blogApi.getAllBlogs();
+      setBlogs(result.items);
+      setPagination({
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
+        pageSize: result.pageSize,
+        totalPages: result.totalPages,
+        hasPreviousPage: result.hasPreviousPage,
+        hasNextPage: result.hasNextPage
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch all blogs');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    fetchBlogs(initialQuery);
+    // Don't auto-fetch with initialQuery, let component decide
+    // fetchBlogs(initialQuery);
   }, [fetchBlogs, initialQuery]);
 
   return {
@@ -55,7 +77,8 @@ export const useBlogs = (initialQuery: BlogQueryDto = { page: 1, pageSize: 10 })
     error,
     pagination,
     refetch: () => fetchBlogs(initialQuery),
-    updateQuery: fetchBlogs
+    updateQuery: fetchBlogs,
+    fetchAllBlogs
   };
 };
 
@@ -134,8 +157,8 @@ export const useBlog = (id: number | string) => {
     setError(null);
     try {
       const result = typeof id === 'number'
-        ? await blogApi.getBlogById(id)
-        : await blogApi.getBlogBySlug(id);
+          ? await blogApi.getBlogById(id)
+          : await blogApi.getBlogBySlug(id);
       setBlog(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch blog');

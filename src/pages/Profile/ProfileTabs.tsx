@@ -20,7 +20,11 @@ const ProfileTabs: React.FC<Props> = ({ user, handleLogout, navigate }) => {
         <div style={{ padding: "24px" }}>
             <Tabs defaultActiveKey="1">
                 <TabPane
-                    tab={<span><UserOutlined /> Thông tin cá nhân</span>}
+                    tab={
+                        <span>
+        <UserOutlined /> Personal Information
+      </span>
+                    }
                     key="1"
                 >
                     <PersonalInfoTab
@@ -31,19 +35,28 @@ const ProfileTabs: React.FC<Props> = ({ user, handleLogout, navigate }) => {
                 </TabPane>
 
                 <TabPane
-                    tab={<span><ShoppingOutlined /> Đơn hàng</span>}
+                    tab={
+                        <span>
+        <ShoppingOutlined /> Orders History
+      </span>
+                    }
                     key="2"
                 >
                     <OrderTab />
                 </TabPane>
 
                 <TabPane
-                    tab={<span><SettingOutlined /> Cài đặt</span>}
+                    tab={
+                        <span>
+        <SettingOutlined /> Settings
+      </span>
+                    }
                     key="3"
                 >
                     <SettingTab />
                 </TabPane>
             </Tabs>
+
 
         </div>
     );

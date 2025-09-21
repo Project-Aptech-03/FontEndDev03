@@ -11,7 +11,6 @@ import {
   Spin,
   Alert,
   Typography,
-  Divider,
   List,
   Badge,
 } from "antd";
@@ -25,88 +24,37 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
   Line,
   CartesianGrid,
   Legend,
+  Area,
+  AreaChart,
 } from "recharts";
 import { ColumnsType } from "antd/lib/table";
-import { format } from "date-fns";
+import { format, subDays, } from "date-fns";
 import {getProducts} from "../../../api/products.api";
 import {getAllUsers} from "../../../api/user.api";
+import {getAllOrders} from "../../../api/orders.api";
+import {useNavigate} from "react-router-dom"; // Import orders API
 
 const { Title, Text } = Typography;
 
-type ProductDto = {
-  id: number;
-  productCode?: string;
-  productName: string;
-  description?: string;
-  author?: string;
-  productType?: string;
-  pages?: number | null;
-  weight?: number | null;
-  price?: number;
-  stockQuantity: number;
-  isActive?: boolean;
-  createdDate?: string;
-  category?: {
-    id: number;
-    categoryCode?: string;
-    categoryName: string;
-    productCount?: number;
-    subCategories?: any[];
-  } | null;
-  manufacturer?: {
-    id: number;
-    manufacturerName?: string;
-  } | null;
-  photos?: Array<{ id: number; photoUrl: string }>;
-};
-
-type PagedResultProducts = {
-  items: ProductDto[];
-  totalCount: number;
-  pageIndex: number;
-  pageSize: number;
-  totalPages: number;
-};
-
-type UserDto = {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  role?: string;
-  phoneNumber?: string;
-  dateOfBirth?: string | null;
-  avatarUrl?: string | null;
-  address?: string;
-};
-
-type PagedResultUsers = {
-  items: UserDto[];
-  totalCount: number;
-  pageIndex: number;
-  pageSize: number;
-  totalPages: number;
-};
-
 const currency = (v?: number) =>
-    v !== undefined && v !== null ? `$${v.toFixed(2)}` : "-";
+    v !== undefined && v !== null ? `${v.toLocaleString('vi-VN')} VND` : "-";
 
 const shortDate = (s?: string) =>
     s ? format(new Date(s), "yyyy-MM-dd HH:mm") : "-";
+
 const Dashboard: React.FC = () => {
   // API states
-  const [productData, setProductData] = useState<PagedResultProducts | null>(
-      null
-  );
+  const [productData, setProductData] = useState<PagedResultProducts | null>(null);
   const [userData, setUserData] = useState<PagedResultUsers | null>(null);
+  const [orderData, setOrderData] = useState<ApiOrder[] | null>(null);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -114,20 +62,30 @@ const Dashboard: React.FC = () => {
       setError(null);
       setLoadingProducts(true);
       setLoadingUsers(true);
-      try {
-        // get many products (tùy chỉnh pageSize nếu DB lớn)
-        const pRes = await getProducts(1, 100);
+      setLoadingOrders(true);
 
+      try {
+        // Fetch products
+        const pRes = await getProducts(1, 100);
         const pPayload: PagedResultProducts =
             (pRes?.data as any)?.items ? (pRes.data as any) : (pRes as any);
 
+        // Fetch users
         const uRes = await getAllUsers(1, 1000);
         const uPayload: PagedResultUsers =
             (uRes?.data as any)?.items ? (uRes.data as any) : (uRes as any);
 
+        // Fetch orders
+        const oRes = await getAllOrders();
+        let oPayload: ApiOrder[] = [];
+        if (oRes.success && oRes.result) {
+          oPayload = oRes.result.data || oRes.result || [];
+        }
+
         if (!mounted) return;
         setProductData(pPayload);
         setUserData(uPayload);
+        setOrderData(oPayload);
       } catch (err: any) {
         console.error("Dashboard fetch error:", err);
         setError(
@@ -139,6 +97,7 @@ const Dashboard: React.FC = () => {
         if (mounted) {
           setLoadingProducts(false);
           setLoadingUsers(false);
+          setLoadingOrders(false);
         }
       }
     };
@@ -149,13 +108,38 @@ const Dashboard: React.FC = () => {
     };
   }, []);
 
-  const loading = loadingProducts || loadingUsers;
+  const loading = loadingProducts || loadingUsers || loadingOrders;
 
   /* -----------------------
      KPI values
      ----------------------- */
   const totalUsers = userData?.totalCount ?? 0;
   const totalProducts = productData?.totalCount ?? 0;
+  const totalOrders = orderData?.length ?? 0;
+
+  // Revenue calculations
+  const totalRevenue = useMemo(() => {
+    if (!orderData) return 0;
+    return orderData
+        .filter(order => order.orderStatus === 'Completed' || order.orderStatus === 'Delivered')
+        .reduce((sum, order) => sum + order.totalAmount, 0);
+  }, [orderData]);
+
+  const pendingOrders = useMemo(() => {
+    if (!orderData) return 0;
+    return orderData.filter(order => order.orderStatus === 'Pending').length;
+  }, [orderData]);
+
+  const todayRevenue = useMemo(() => {
+    if (!orderData) return 0;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return orderData
+        .filter(order => {
+          const orderDate = format(new Date(order.orderDate), 'yyyy-MM-dd');
+          return orderDate === today && (order.orderStatus === 'Completed' || order.orderStatus === 'Delivered');
+        })
+        .reduce((sum, order) => sum + order.totalAmount, 0);
+  }, [orderData]);
 
   const lowStockProducts = useMemo(() => {
     if (!productData?.items) return [];
@@ -164,7 +148,6 @@ const Dashboard: React.FC = () => {
 
   const recentUsers = useMemo(() => {
     if (!userData?.items) return [];
-    // assume list already sorted by created date; otherwise sort if createdDate exist
     return userData.items.slice(0, 6);
   }, [userData]);
 
@@ -177,6 +160,74 @@ const Dashboard: React.FC = () => {
     });
     return sorted.slice(0, 6);
   }, [productData]);
+
+  const recentOrders = useMemo(() => {
+    if (!orderData) return [];
+    const sorted = [...orderData].sort((a, b) => {
+      const da = new Date(a.orderDate).getTime();
+      const db = new Date(b.orderDate).getTime();
+      return db - da;
+    });
+    return sorted.slice(0, 6);
+  }, [orderData]);
+
+  // Revenue by day (last 30 days)
+  const dailyRevenue = useMemo(() => {
+    if (!orderData) return [];
+
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = subDays(new Date(), 29 - i);
+      return {
+        date: format(date, 'yyyy-MM-dd'),
+        revenue: 0,
+        orders: 0
+      };
+    });
+
+    orderData
+        .filter(order => order.orderStatus === 'Completed' || order.orderStatus === 'Delivered')
+        .forEach(order => {
+          const orderDate = format(new Date(order.orderDate), 'yyyy-MM-dd');
+          const dayData = last30Days.find(d => d.date === orderDate);
+          if (dayData) {
+            dayData.revenue += order.totalAmount;
+            dayData.orders += 1;
+          }
+        });
+
+    return last30Days;
+  }, [orderData]);
+  const orderStatusData = useMemo(() => {
+    if (!orderData) return [];
+    const statusCount: Record<string, number> = {};
+    orderData.forEach(order => {
+      statusCount[order.orderStatus] = (statusCount[order.orderStatus] || 0) + 1;
+    });
+    return Object.entries(statusCount).map(([name, value]) => ({ name, value }));
+  }, [orderData]);
+
+  const categoryRevenue = useMemo(() => {
+    if (!orderData) return [];
+
+    const categoryMap: Record<string, number> = {};
+
+    orderData
+        .filter(order => order.orderStatus === 'Completed' || order.orderStatus === 'Delivered')
+        .forEach(order => {
+          (order.orderItems || []).forEach(item => {
+            const category = item.product?.category?.categoryName ?? 'Other';
+            const price = Number(item.totalPrice) || 0;
+            categoryMap[category] = (categoryMap[category] || 0) + price;
+          });
+        });
+
+    return Object.entries(categoryMap)
+        .map(([category, revenue]) => ({ category, revenue }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 10);
+  }, [orderData]);
+
+
   const usersByRoleData = useMemo(() => {
     const map: Record<string, number> = {};
     (userData?.items || []).forEach((u) => {
@@ -187,65 +238,10 @@ const Dashboard: React.FC = () => {
   }, [userData]);
 
   const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#00a3ff"];
-  const productsByCategory = useMemo(() => {
-    const map: Record<string, number> = {};
-    (productData?.items || []).forEach((p) => {
-      const cat = p.category?.categoryName || "Khác";
-      map[cat] = (map[cat] || 0) + 1;
-    });
-    return Object.entries(map)
-        .map(([category, count]) => ({ category, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
-  }, [productData]);
-  const productCreationTrend = useMemo(() => {
-    const dayMap: Record<string, number> = {};
-    (productData?.items || []).forEach((p) => {
-      const d = p.createdDate ? format(new Date(p.createdDate), "yyyy-MM-dd") : null;
-      if (!d) return;
-      dayMap[d] = (dayMap[d] || 0) + 1;
-    });
-    const entries = Object.entries(dayMap)
-        .map(([date, count]) => ({ date, count }))
-        .sort((a, b) => a.date.localeCompare(b.date))
-        .slice(-30); // recent 30 days
-    return entries;
-  }, [productData]);
-
-  const userColumns: ColumnsType<UserDto> = [
-    {
-      title: "Tên",
-      dataIndex: "fullName",
-      key: "fullName",
-      render: (_: any, record) => (
-          <div>
-            <div style={{ fontWeight: 600 }}>{record.fullName || `${record.firstName || ""} ${record.lastName || ""}`}</div>
-            <div style={{ color: "#888" }}>{record.email}</div>
-          </div>
-      ),
-    },
-    {
-      title: "Role",
-      dataIndex: "role",
-      key: "role",
-      render: (r) => <Tag color={r === "Admin" ? "red" : "blue"}>{r}</Tag>,
-    },
-    {
-      title: "SĐT",
-      dataIndex: "phoneNumber",
-      key: "phoneNumber",
-    },
-    {
-      title: "Địa chỉ",
-      dataIndex: "address",
-      key: "address",
-      ellipsis: true,
-    },
-  ];
 
   const productColumns: ColumnsType<ProductDto> = [
     {
-      title: "Sản phẩm",
+      title: "Product",
       dataIndex: "productName",
       key: "productName",
       render: (_: any, record) => (
@@ -268,17 +264,17 @@ const Dashboard: React.FC = () => {
       title: "Category",
       dataIndex: ["category", "categoryName"],
       key: "category",
-      render: (c) => <Tag>{c || "Khác"}</Tag>,
+      render: (c) => <Tag>{c || "Other"}</Tag>,
     },
     {
-      title: "Giá",
+      title: "Price",
       dataIndex: "price",
       key: "price",
       align: "right",
       render: (p) => <Text strong>{currency(p)}</Text>,
     },
     {
-      title: "Tồn kho",
+      title: "Stock",
       dataIndex: "stockQuantity",
       key: "stockQuantity",
       align: "right",
@@ -286,12 +282,66 @@ const Dashboard: React.FC = () => {
           q < 10 ? <Badge status="error" text={`${q}`} /> : <Text>{q}</Text>,
     },
     {
-      title: "Ngày tạo",
+      title: "Created Date",
       dataIndex: "createdDate",
       key: "createdDate",
       render: (d) => shortDate(d),
     },
   ];
+
+  const orderColumns: ColumnsType<ApiOrder> = [
+    {
+      title: "Order Number",
+      dataIndex: "orderNumber",
+      key: "orderNumber",
+      render: (orderNumber) => (
+          <Text strong style={{ color: "#1890ff" }}>{orderNumber}</Text>
+      ),
+    },
+    {
+      title: "Customer",
+      dataIndex: ["customer", "fullName"],
+      key: "customer",
+    },
+    {
+      title: "Total Amount",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      align: "right",
+      render: (amount) => <Text strong>{currency(amount)}</Text>,
+    },
+    {
+      title: "Status",
+      dataIndex: "orderStatus",
+      key: "orderStatus",
+      render: (status) => {
+        let color = "default";
+        switch (status) {
+          case "Completed":
+          case "Delivered":
+            color = "green";
+            break;
+          case "Pending":
+            color = "orange";
+            break;
+          case "Cancelled":
+            color = "red";
+            break;
+          default:
+            color = "blue";
+        }
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: "Order Date",
+      dataIndex: "orderDate",
+      key: "orderDate",
+      render: (date) => shortDate(date),
+    },
+  ];
+
+
   return (
       <div style={{ padding: 24 }}>
         <Row justify="space-between" align="middle" style={{ marginBottom: 18 }}>
@@ -299,13 +349,13 @@ const Dashboard: React.FC = () => {
             <Title level={3} style={{ marginBottom: 0 }}>
               Admin Dashboard
             </Title>
-            <Text type="secondary">Tổng quan hệ thống</Text>
+            <Text type="secondary">System Overview & Revenue</Text>
           </Col>
         </Row>
 
         {error && (
             <Alert
-                message="Lỗi khi tải dữ liệu"
+                message="Error loading data"
                 description={error}
                 type="error"
                 showIcon
@@ -314,63 +364,213 @@ const Dashboard: React.FC = () => {
         )}
 
         <Spin spinning={loading}>
-          <Row gutter={[16, 16]}>
+          {/* KPI Cards */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/orders")}
+                  style={{ cursor: "pointer" }}
+              >
                 <Statistic
-                    title="Tổng người dùng"
+                    title="Total Revenue"
+                    value={totalRevenue}
+                    valueStyle={{ color: "#3f8600" }}
+                    formatter={(value) => currency(Number(value))}
+                />
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/orders")}
+                  style={{ cursor: "pointer" }}
+              >
+                <Statistic
+                    title="Today's Revenue"
+                    value={todayRevenue}
+                    valueStyle={{ color: "#1890ff" }}
+                    formatter={(value) => currency(Number(value))}
+                />
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Card  hoverable
+                     onClick={() => navigate("/admin/orders")}
+                     style={{ cursor: "pointer" }}
+              >
+                <Statistic
+                    title="Total Orders"
+                    value={totalOrders}
+                    valueStyle={{ color: "#722ed1" }}
+                />
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/orders")}
+                  style={{ cursor: "pointer" }}>
+                <Statistic
+                    title="Pending Orders"
+                    value={pendingOrders}
+                    valueStyle={{ color: "#fa8c16" }}
+                />
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/users")}
+                  style={{ cursor: "pointer" }}
+              >
+                <Statistic
+                    title="Total Users"
                     value={totalUsers}
                     valueStyle={{ color: "#3f8600" }}
                 />
-                <div style={{ marginTop: 8 }}>
-                  <Text type="secondary">Người dùng đăng ký trên hệ thống</Text>
-                </div>
               </Card>
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Tổng sản phẩm" value={totalProducts} />
-                <div style={{ marginTop: 8 }}>
-                  <Text type="secondary">Sản phẩm có trong kho</Text>
-                </div>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/products")}
+                  style={{ cursor: "pointer" }}
+              >
+                <Statistic title="Total Products" value={totalProducts} />
               </Card>
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <Card>
+              <Card
+                  hoverable
+                  onClick={() => navigate("/admin/products")}
+                  style={{ cursor: "pointer" }}
+              >
                 <Statistic
-                    title="Tồn kho thấp"
+                    title="Low Stock"
                     value={lowStockProducts.length}
                     valueStyle={{ color: "#cf1322" }}
                 />
-                <div style={{ marginTop: 8 }}>
-                  <Text type="secondary">Sản phẩm có  10 units</Text>
-                </div>
+              </Card>
+            </Col>
+          </Row>
+        {/* Revenue Charts */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Col xs={24} lg={16}>
+              <Card title="Revenue Chart (Last 30 Days)" style={{ height: 400 }}>
+                {dailyRevenue.length === 0 ? (
+                    <div style={{ textAlign: "center", paddingTop: 60 }}>
+                      <Text type="secondary">No revenue data available</Text>
+                    </div>
+                ) : (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <AreaChart data={dailyRevenue}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                            dataKey="date"
+                            tickFormatter={(date) => format(new Date(date), "MM/dd")}
+                        />
+                        <YAxis
+                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                        />
+                        <Tooltip
+                            formatter={(value, name) => [
+                              name === "revenue" ? currency(Number(value)) : value,
+                              name === "revenue" ? "Revenue" : "Orders",
+                            ]}
+                            labelFormatter={(date) =>
+                                format(new Date(date), "MM/dd/yyyy")
+                            }
+                        />
+                        <Legend />
+                        <Area
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="#1890ff"
+                            fill="#1890ff"
+                            fillOpacity={0.6}
+                            name="Revenue"
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="orders"
+                            stroke="#52c41a"
+                            name="Orders"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                )}
               </Card>
             </Col>
 
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic
-                    title="Người dùng mới (hiển thị)"
-                    value={recentUsers.length}
-                />
-                <div style={{ marginTop: 8 }}>
-                  <Text type="secondary">Người dùng mới (top hiển thị)</Text>
-                </div>
+            <Col xs={24} lg={8}>
+              <Card title="Order Status" style={{ height: 400 }}>
+                {orderStatusData.length === 0 ? (
+                    <div style={{ textAlign: "center", paddingTop: 60 }}>
+                      <Text type="secondary">No order data available</Text>
+                    </div>
+                ) : (
+                    <ResponsiveContainer width="100%" height={320}>
+                      <PieChart>
+                        <Pie
+                            dataKey="value"
+                            data={orderStatusData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            label={({ name, value }) => `${name}: ${value}`}
+                        >
+                          {orderStatusData.map((entry, index) => (
+                              <Cell
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                              />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                )}
               </Card>
             </Col>
           </Row>
 
-          <Divider />
-
-          <Row gutter={[16, 16]}>
+          {/* Category Revenue */}
+          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col xs={24} lg={12}>
-              <Card title="Người dùng theo Role" style={{ height: 360 }}>
+              <Card title="Revenue by Category" style={{ height: 360 }}>
+                {categoryRevenue.length === 0 ? (
+                    <div style={{ textAlign: "center", paddingTop: 60 }}>
+                      <Text type="secondary">No revenue data available</Text>
+                    </div>
+                ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={categoryRevenue} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                            type="number"
+                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                        />
+                        <YAxis dataKey="category" type="category" width={150} />
+                        <Tooltip formatter={(value) => [currency(Number(value)), "Revenue"]} />
+                        <Bar dataKey="revenue" fill="#52c41a" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                )}
+              </Card>
+            </Col>
+
+            <Col xs={24} lg={12}>
+              <Card title="Users by Role" style={{ height: 360 }}>
                 {usersByRoleData.length === 0 ? (
                     <div style={{ textAlign: "center", paddingTop: 60 }}>
-                      <Text type="secondary">Không có dữ liệu</Text>
+                      <Text type="secondary">No data available</Text>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height={300}>
@@ -396,66 +596,34 @@ const Dashboard: React.FC = () => {
                 )}
               </Card>
             </Col>
-
-            <Col xs={24} lg={12}>
-              <Card title="Sản phẩm theo danh mục (Top 10)" style={{ height: 360 }}>
-                {productsByCategory.length === 0 ? (
-                    <div style={{ textAlign: "center", paddingTop: 60 }}>
-                      <Text type="secondary">Không có dữ liệu</Text>
-                    </div>
-                ) : (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={productsByCategory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" hide={false} />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                )}
-              </Card>
-            </Col>
           </Row>
 
-          <Divider />
-
+          {/* Data Tables */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={16}>
-              <Card title="Xu hướng tạo sản phẩm (30 ngày gần nhất)">
-                {productCreationTrend.length === 0 ? (
-                    <div style={{ textAlign: "center", paddingTop: 40 }}>
-                      <Text type="secondary">Không có dữ liệu lịch sử</Text>
-                    </div>
-                ) : (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={productCreationTrend}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="count" stroke="#82ca9d" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                )}
+              <Card title="Recent Orders" style={{ marginBottom: 16 }}>
+                <Table
+                    rowKey={(r) => r.id}
+                    dataSource={recentOrders}
+                    columns={orderColumns}
+                    pagination={false}
+                    locale={{ emptyText: "No orders" }}
+                />
               </Card>
 
-              <Divider />
-
-              <Card title="Danh sách sản phẩm mới nhất">
+              <Card title="Latest Products">
                 <Table
                     rowKey={(r) => r.id}
                     dataSource={recentProducts}
                     columns={productColumns}
                     pagination={false}
-                    locale={{ emptyText: "Không có sản phẩm" }}
+                    locale={{ emptyText: "No products" }}
                 />
               </Card>
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card title="Người dùng mới nhất">
+              <Card title="Latest Users" style={{ marginBottom: 16 }}>
                 <List
                     itemLayout="horizontal"
                     dataSource={recentUsers}
@@ -503,41 +671,41 @@ const Dashboard: React.FC = () => {
                         </List.Item>
                     )}
                 />
-                <Divider />
-                <Card type="inner" title="Tồn kho thấp">
-                  <List
-                      dataSource={lowStockProducts.slice(0, 6)}
-                      renderItem={(p) => (
-                          <List.Item>
-                            <List.Item.Meta
-                                avatar={
-                                  p.photos && p.photos.length > 0 ? (
-                                      <img
-                                          src={p.photos[0].photoUrl}
-                                          alt={p.productName}
-                                          style={{
-                                            width: 48,
-                                            height: 48,
-                                            objectFit: "cover",
-                                            borderRadius: 4,
-                                          }}
-                                      />
-                                  ) : null
-                                }
-                                title={<div style={{ fontWeight: 600 }}>{p.productName}</div>}
-                                description={
-                                  <>
-                                    <div>{p.category?.categoryName}</div>
-                                    <div style={{ color: "#cf1322" }}>
-                                      Tồn kho: {p.stockQuantity}
-                                    </div>
-                                  </>
-                                }
-                            />
-                          </List.Item>
-                      )}
-                  />
-                </Card>
+              </Card>
+
+              <Card title="Low Stock">
+                <List
+                    dataSource={lowStockProducts.slice(0, 6)}
+                    renderItem={(p) => (
+                        <List.Item>
+                          <List.Item.Meta
+                              avatar={
+                                p.photos && p.photos.length > 0 ? (
+                                    <img
+                                        src={p.photos[0].photoUrl}
+                                        alt={p.productName}
+                                        style={{
+                                          width: 48,
+                                          height: 48,
+                                          objectFit: "cover",
+                                          borderRadius: 4,
+                                        }}
+                                    />
+                                ) : null
+                              }
+                              title={<div style={{ fontWeight: 600 }}>{p.productName}</div>}
+                              description={
+                                <>
+                                  <div>{p.category?.categoryName}</div>
+                                  <div style={{ color: "#cf1322" }}>
+                                    Stock: {p.stockQuantity}
+                                  </div>
+                                </>
+                              }
+                          />
+                        </List.Item>
+                    )}
+                />
               </Card>
             </Col>
           </Row>

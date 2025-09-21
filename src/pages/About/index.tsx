@@ -94,7 +94,7 @@ const AboutPage = () => {
             <h2 className="year">2000</h2>
             <p className="timelineDescription">
               Shradha Bookstore was established in 2000 with the mission of bringing knowledge closer to everyone.
-              Over a journey of more than 20 years, Moon has become a familiar destination for book lovers.
+              Over a journey of more than 20 years, Shradha has become a familiar destination for book lovers.
             </p>
           </div>
 
@@ -120,8 +120,8 @@ const AboutPage = () => {
           <div className="timelineText">
             <h2 className="year">2025</h2>
             <p className="timelineDescription">
-              By 2025, Moon has brought hundreds of thousands of books in many different genres from literature, life skills, education, children to specialized books to readers all over the country.
-              Not only stopping at providing books, Moon also accompanies readers in author exchange activities, reading culture discussions and many programs to encourage the spirit of learning.            </p>
+              By 2025, Shradha has brought hundreds of thousands of books in many different genres from literature, life skills, education, children to specialized books to readers all over the country.
+              Not only stopping at providing books, Shradha also accompanies readers in author exchange activities, reading culture discussions and many programs to encourage the spirit of learning.            </p>
           </div>
 
           <div className="timelineImage">

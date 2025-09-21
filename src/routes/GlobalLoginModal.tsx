@@ -21,15 +21,15 @@ function GlobalLoginModal() {
     return (
         <Modal
             open={open}
-            title="Cần đăng nhập"
+            title="Login Required"
             onOk={handleOk}
             onCancel={handleCancel}
             closable={true}
             maskClosable={false}
-            okText="Đăng nhập"
-            cancelText="Hủy"
+            okText="Login"
+            cancelText="Cancel"
         >
-            <p>Bạn cần đăng nhập để thực hiện thao tác này.</p>
+            <p>You need to log in to use this feature.</p>
         </Modal>
     );
 }

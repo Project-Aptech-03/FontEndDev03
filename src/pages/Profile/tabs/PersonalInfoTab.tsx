@@ -32,7 +32,7 @@ const PersonalInfoTab: React.FC<Props> = ({ user, navigate, handleLogout }) => {
         >
             <Row gutter={[16, 16]}>
                 <Col span={24}>
-                    <Divider style={{ margin: "12px 0" }}>Thông tin cá nhân</Divider>
+                    <Divider style={{ margin: "12px 0" }}>Personnal Information</Divider>
                     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
                         <Text>
                             <MailOutlined style={{ color: "#1890ff", marginRight: 8 }} />

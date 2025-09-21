@@ -228,7 +228,7 @@ export interface UpdateOrderRequest {
 }
 
 export interface CancelOrderRequest {
-  cancellationReason: string;
+  CancellationReason: string;
 }
 
 // ===========================================

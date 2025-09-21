@@ -10,33 +10,52 @@ import {
     Spin,
     Image,
     Typography,
+    Pagination, Row, Col, Select,
 } from "antd";
 import dayjs from "dayjs";
-import { ApiOrder } from "../../../@type/Orders";
+import {ApiOrder, CancelOrderRequest} from "../../../@type/Orders";
 import { cancelOrder, getMyOrders } from "../../../api/orders.api";
 import { getProductById } from "../../../api/products.api";
-import {ProductsResponseDto} from "../../../@type/productsResponse";
+import { ProductsResponseDto } from "../../../@type/productsResponse";
+import {useNavigate} from "react-router-dom";
 
 const { Title, Paragraph } = Typography;
 
 const OrderTab: React.FC = () => {
     const [orders, setOrders] = useState<ApiOrder[]>([]);
     const [loading, setLoading] = useState(false);
+    const [reason, setReason] = useState<string>("");
 
+    const reasons = [
+        "Changed delivery address",
+        "No longer needed",
+        "Changed order quantity",
+        "Ordered wrong product type",
+        "Found a better price elsewhere",
+        "Delayed shipping",
+        "Payment issue",
+        "Received wrong information",
+        "Duplicate order",
+        "Other personal reasons"
+    ];
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 2; // số đơn hàng mỗi trang
+    // Cancel order state
+    const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     // Modal state
-    const [productDetail, setProductDetail] = useState<ProductsResponseDto | null>(
-        null
-    );
+    const [productDetail, setProductDetail] = useState<ProductsResponseDto | null>(null);
     const [productLoading, setProductLoading] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
-
+    const navigate = useNavigate();
     const fetchOrders = async () => {
         setLoading(true);
         const res = await getMyOrders();
         if (res.success && res.result?.data) {
             setOrders(res.result.data);
         } else {
-            message.error("Không thể tải danh sách đơn hàng");
+            message.error("Unable to load order history information");
         }
         setLoading(false);
     };
@@ -65,27 +84,32 @@ const OrderTab: React.FC = () => {
         };
         if (orders.length > 0) fetchImages();
     }, [orders]);
-
-    const handleCancelOrder = (orderId: number) => {
-        Modal.confirm({
-            title: "Confirm Cancellation",
-            content: "Are you sure you want to cancel this order?",
-            okText: "Cancel Order",
-            okButtonProps: { danger: true },
-            cancelText: "Close",
-            async onOk() {
-                const res = await cancelOrder(orderId, {
-                    reason: "User requested cancellation",
-                });
-                if (res.success) {
-                    message.success("Order has been successfully cancelled");
-                    fetchOrders();
-                } else {
-                    message.error(res.error?.message || "Failed to cancel the order");
-                }
-            },
-        });
+    // 👉 Khi bấm nút Cancel Order
+    const openCancelModal = (orderId: number) => {
+        setSelectedOrderId(orderId);
+        setReason("");
+        setIsCancelModalVisible(true);
     };
+
+    // 👉 Xác nhận hủy đơn
+    const handleConfirmCancel = async () => {
+        if (!selectedOrderId || !reason) {
+            message.warning("Please select a cancellation reason");
+            return;
+        }
+        const payload: CancelOrderRequest = { CancellationReason: reason };
+        const res = await cancelOrder(selectedOrderId, payload);
+        if (res.success) {
+            message.success("Order has been successfully cancelled");
+            fetchOrders();
+            setIsCancelModalVisible(false);
+            setReason("");
+            setSelectedOrderId(null);
+        } else {
+            message.error(res.error?.message || "Failed to cancel the order");
+        }
+    };
+
 
     const handleViewProduct = async (productId: number) => {
         setProductLoading(true);
@@ -104,6 +128,7 @@ const OrderTab: React.FC = () => {
             setProductLoading(false);
         }
     };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-[50vh]">
@@ -112,11 +137,15 @@ const OrderTab: React.FC = () => {
         );
     }
 
+    // Tính toán dữ liệu phân trang
+    const startIndex = (currentPage - 1) * pageSize;
+    const currentOrders = orders.slice(startIndex, startIndex + pageSize);
+
     return (
-        <div style={{maxWidth: 900, margin: "0 auto"}}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
             <List
                 itemLayout="vertical"
-                dataSource={orders}
+                dataSource={currentOrders}
                 renderItem={(order) => (
                     <Card
                         key={order.id}
@@ -128,9 +157,9 @@ const OrderTab: React.FC = () => {
                                     alignItems: "center",
                                 }}
                             >
-                        <span>
-                            Order <b>{order.orderNumber}</b>
-                        </span>
+                                <span>
+                                    Order <b>{order.orderNumber}</b>
+                                </span>
                                 <Tag
                                     color={order.orderStatus === "Pending" ? "orange" : "green"}
                                 >
@@ -138,22 +167,17 @@ const OrderTab: React.FC = () => {
                                 </Tag>
                             </div>
                         }
-                        style={{marginBottom: 20, borderRadius: 12}}
+                        style={{ marginBottom: 20, borderRadius: 12 }}
                         extra={
                             order.orderStatus === "Pending" && (
-                                <Button danger onClick={() => handleCancelOrder(order.id)}>
+                                <Button danger onClick={() => openCancelModal(order.id)}>
                                     Cancel Order
                                 </Button>
                             )
                         }
                     >
                         {/* Order Information */}
-                        <Descriptions
-                            column={2}
-                            size="small"
-                            bordered
-                            style={{marginBottom: 16}}
-                        >
+                        <Descriptions column={2} size="small" bordered style={{ marginBottom: 16 }}>
                             <Descriptions.Item label="Order Date">
                                 {dayjs(order.orderDate).format("DD/MM/YYYY HH:mm")}
                             </Descriptions.Item>
@@ -167,7 +191,7 @@ const OrderTab: React.FC = () => {
                                 {order.deliveryAddress?.displayShippingFee}
                             </Descriptions.Item>
                             <Descriptions.Item label="Total Amount" span={2}>
-                                <b style={{color: "#d4380d"}}>
+                                <b style={{ color: "#d4380d" }}>
                                     {order.totalAmount.toLocaleString()} VND
                                 </b>
                             </Descriptions.Item>
@@ -178,7 +202,7 @@ const OrderTab: React.FC = () => {
                             size="small"
                             type="inner"
                             title="Shipping Address"
-                            style={{marginBottom: 16}}
+                            style={{ marginBottom: 16 }}
                         >
                             <p>{order.deliveryAddress?.displayAddress}</p>
                             <p>{order.deliveryAddress?.displayContactInfo}</p>
@@ -219,19 +243,23 @@ const OrderTab: React.FC = () => {
                                         }
                                         title={
                                             <span
-                                                style={{cursor: "pointer", color: "#1677ff", fontWeight: 500}}
+                                                style={{
+                                                    cursor: "pointer",
+                                                    color: "#1677ff",
+                                                    fontWeight: 500,
+                                                }}
                                                 onClick={() => handleViewProduct(item.productId)}
                                             >
-                                        {item.product?.productName}
-                                    </span>
+                                                {item.product?.productName}
+                                            </span>
                                         }
                                         description={
-                                            <div style={{fontSize: 13, color: "#666"}}>
+                                            <div style={{ fontSize: 13, color: "#666" }}>
                                                 Quantity: <b>{item.quantity}</b>
                                             </div>
                                         }
                                     />
-                                    <div style={{fontWeight: 600, color: "#d4380d"}}>
+                                    <div style={{ fontWeight: 600, color: "#d4380d" }}>
                                         {item.totalPrice.toLocaleString()} VND
                                     </div>
                                 </List.Item>
@@ -241,42 +269,120 @@ const OrderTab: React.FC = () => {
                 )}
             />
 
+            {/* Pagination */}
+            <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={orders.length}
+                onChange={(page) => setCurrentPage(page)}
+                style={{ marginTop: 16, textAlign: "center" }}
+            />
+
             {/* Product Detail Modal */}
             <Modal
-                title="Product Details"
+                title={null}
                 open={isModalVisible}
                 onCancel={() => setIsModalVisible(false)}
                 footer={null}
-                width={800}
+                width={900}
+                centered
+                bodyStyle={{ padding: 0, borderRadius: 12, overflow: "hidden" }}
             >
                 {productLoading ? (
-                    <Spin size="large"/>
-                ) : productDetail ? (
-                    <div>
-                        <Image
-                            src={productDetail.photos[0]?.photoUrl}
-                            alt={productDetail.productName}
-                            width={200}
-                            style={{borderRadius: 8, marginBottom: 16}}
-                        />
-                        <Title level={4}>{productDetail.productName}</Title>
-                        <Paragraph>{productDetail.description}</Paragraph>
-                        <p>
-                            <b>Product Code:</b> {productDetail.productCode}
-                        </p>
-                        <p>
-                            <b>Price:</b>{" "}
-                            <span style={{color: "#d4380d"}}>
-                        {productDetail.price.toLocaleString()} VND
-                    </span>
-                        </p>
-                        <p>
-                            <b>Manufacturer:</b> {productDetail.manufacturer?.manufacturerName}
-                        </p>
+                    <div className="flex justify-center items-center h-[300px]">
+                        <Spin size="large" />
                     </div>
+                ) : productDetail ? (
+                    <Card
+                        bordered={false}
+                        bodyStyle={{ padding: 24 }}
+                        style={{ borderRadius: 12 }}
+                    >
+                        <Row gutter={24}>
+                            {/* Image section */}
+                            <Col span={10} style={{ textAlign: "center" }}>
+                                <Image
+                                    src={productDetail.photos[0]?.photoUrl}
+                                    alt={productDetail.productName}
+                                    width={280}
+                                    style={{ borderRadius: 12 }}
+                                    preview={true}
+                                />
+                            </Col>
+
+                            {/* Product info */}
+                            <Col span={14}>
+                                <Title level={3} style={{ marginBottom: 12 }}>
+                                    {productDetail.productName}
+                                </Title>
+                                <Paragraph
+                                    style={{ color: "#595959", marginBottom: 16 }}
+                                >
+                                    {productDetail.description}
+                                </Paragraph>
+                                <p>
+                                    <b>Product Code:</b> {productDetail.productCode}
+                                </p>
+                                <p>
+                                    <b>Manufacturer:</b>{" "}
+                                    {productDetail.manufacturer?.manufacturerName}
+                                </p>
+                                <p style={{ fontSize: 18, margin: "12px 0" }}>
+                                    <b>Price:</b>{" "}
+                                    <span style={{ color: "#d4380d", fontWeight: 600 }}>
+                                    {productDetail.price.toLocaleString()} VND
+                                </span>
+                                </p>
+
+                                <div style={{ marginTop: 24 }}>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        style={{ borderRadius: 8, marginRight: 12 }}
+                                        onClick={() =>
+                                            navigate(`/detail-product/${productDetail.id}`)
+                                        }
+                                    >
+                                        Buy More
+                                    </Button>
+                                    <Button
+                                        size="large"
+                                        style={{ borderRadius: 8 }}
+                                        onClick={() => setIsModalVisible(false)}
+                                    >
+                                        Close
+                                    </Button>
+                                </div>
+                            </Col>
+                        </Row>
+                    </Card>
                 ) : (
-                    <p>No product information available</p>
+                    <p style={{ padding: 24 }}>No product information available</p>
                 )}
+            </Modal>
+
+            <Modal
+                title="Cancel Order"
+                open={isCancelModalVisible}
+                onOk={handleConfirmCancel}
+                onCancel={() => setIsCancelModalVisible(false)}
+                okText="Confirm"
+                cancelText="Close"
+                okButtonProps={{ danger: true }}
+            >
+                <p>Please select the reason for cancellation:</p>
+                <Select
+                    placeholder="Select a reason"
+                    style={{ width: "100%" }}
+                    value={reason}
+                    onChange={setReason}
+                >
+                    {reasons.map((r, index) => (
+                        <Select.Option key={index} value={r}>
+                            {r}
+                        </Select.Option>
+                    ))}
+                </Select>
             </Modal>
         </div>
     );

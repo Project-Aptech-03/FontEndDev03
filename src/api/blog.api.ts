@@ -30,6 +30,52 @@ export const blogApi = {
     return response.data;
   },
 
+  // Get all blogs including drafts for admin
+  getAllBlogs: async (): Promise<PagedResultDto<BlogListResponseDto>> => {
+    try {
+      // Get published blogs with larger page size
+      const publishedQuery = {
+        page: 1,
+        pageSize: 1000,
+        sortBy: "CreatedDate",
+        sortOrder: "desc",
+        isPublished: true
+      };
+      const publishedResponse = await apiClient.get('/Blog', { params: publishedQuery });
+
+      // Get draft blogs with larger page size
+      const draftQuery = {
+        page: 1,
+        pageSize: 1000,
+        sortBy: "CreatedDate",
+        sortOrder: "desc",
+        isPublished: false
+      };
+      const draftResponse = await apiClient.get('/Blog', { params: draftQuery });
+
+      // Combine results
+      const publishedBlogs = publishedResponse.data?.items || [];
+      const draftBlogs = draftResponse.data?.items || [];
+      const allBlogs = [...publishedBlogs, ...draftBlogs];
+
+      // Sort combined results by created date
+      allBlogs.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
+
+      return {
+        items: allBlogs,
+        totalCount: allBlogs.length,
+        pageNumber: 1,
+        pageSize: allBlogs.length,
+        totalPages: 1,
+        hasPreviousPage: false,
+        hasNextPage: false
+      };
+
+    } catch (error) {
+      throw error;
+    }
+  },
+
   searchBlogs: async (searchTerm: string, page: number = 1, pageSize: number = 10): Promise<BlogListResponseDto[]> => {
     const response = await apiClient.get('/Blog/search', {
       params: { searchTerm, page, pageSize }

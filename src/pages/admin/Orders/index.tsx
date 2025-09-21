@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,  Phone,  Mail,  DollarSign,  ShoppingBag, Clock, FileCheck, Truck, Home, RotateCcw, Ban} from 'lucide-react';
 import './Orders.css';
-import { ApiOrder, UpdateOrderRequest, getProductImageUrl } from '../../../@type/Orders';
+import { ApiOrder, getProductImageUrl } from '../../../@type/Orders';
 import { getAllOrders, updateOrder } from '../../../api/orders.api';
 
 const Orders = () => {

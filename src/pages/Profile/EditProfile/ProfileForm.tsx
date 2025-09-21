@@ -27,13 +27,13 @@ import dayjs from "dayjs";
 interface Props {
     form: any;
     submitting: boolean;
-    user: UsersResponseDto;
+    user: UsersResponseDto | null;
     openChangePassword: () => void;
 }
 
 const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, user }) => {
     const [hasChanges, setHasChanges] = useState(false);
-    const [avatarPreview, setAvatarPreview] = useState<string>(user.avatarUrl || "");
+    const [avatarPreview, setAvatarPreview] = useState<string>(user?.avatarUrl || "");
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,10 +44,10 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
 
     const handleAvatarClick = () => {
         Modal.confirm({
-            title: "Thay đổi ảnh đại diện",
-            content: "Bạn có muốn tải ảnh mới lên không?",
-            okText: "Có",
-            cancelText: "Không",
+            title: "Change Profile Picture",
+            content: "Do you want to upload a new photo?",
+            okText: "Yes",
+            cancelText: "No",
             onOk: () => fileInputRef.current?.click(),
         });
     };
@@ -71,22 +71,22 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
                 const res = await uploadAvatar(avatarFile);
                 if (res?.url) {
                     avatarUrl = res.url;
-                    message.success("Upload avatar thành công!");
+                    message.success("Avatar uploaded successfully!");
                 } else {
-                    message.error("Upload avatar thất bại!");
+                    message.error("Failed to upload avatar!");
                     return;
                 }
             }
             const payload: UpdateProfileDto = { ...values, avatarUrl };
 
             await updateUser(user.id, payload);
-            message.success("Cập nhật thông tin thành công!");
+            message.success("Profile updated successfully!");
         } catch (err: any) {
             const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
             if (apiError?.errors) {
                 Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
             } else {
-                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+                message.error(apiError?.message || "Unknown system error");
             }
         }
     };
@@ -99,17 +99,17 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
             onValuesChange={handleValuesChange}
             scrollToFirstError
             initialValues={{
-                firstName: user.firstName,
-                lastName: user.lastName,
-                phoneNumber: user.phoneNumber,
-                address: user.address,
-                dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
-                avatarUrl: user.avatarUrl,
+                firstName: user?.firstName,
+                lastName: user?.lastName,
+                phoneNumber: user?.phoneNumber,
+                address: user?.address,
+                dateOfBirth: user?.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+                avatarUrl: user?.avatarUrl,
             }}
         >
             {hasChanges && (
                 <Alert
-                    message="Bạn có thay đổi chưa được lưu"
+                    message="You have unsaved changes"
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
@@ -125,7 +125,7 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
                     onClick={handleAvatarClick}
                 />
                 <div style={{ marginTop: 8, color: "#888" }}>
-                    <CameraOutlined /> Nhấn vào ảnh để thay đổi
+                    <CameraOutlined /> Click the photo to change
                 </div>
                 <input
                     type="file"
@@ -139,43 +139,43 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
             <Row gutter={16}>
                 <Col xs={24} md={12}>
                     <Form.Item
-                        label="Họ"
+                        label="First Name"
                         name="firstName"
                         rules={[
-                            { required: true, message: "Vui lòng nhập họ" },
-                            { min: 2, message: "Họ phải có ít nhất 2 ký tự" },
+                            { required: true, message: "Please enter your first name" },
+                            { min: 2, message: "First name must be at least 2 characters" },
                         ]}
                     >
-                        <Input prefix={<UserOutlined />} placeholder="Nhập họ của bạn" size="large" />
+                        <Input prefix={<UserOutlined />} placeholder="Enter your first name" size="large" />
                     </Form.Item>
                 </Col>
                 <Col xs={24} md={12}>
                     <Form.Item
-                        label="Tên"
+                        label="Last Name"
                         name="lastName"
                         rules={[
-                            { required: true, message: "Vui lòng nhập tên" },
-                            { min: 2, message: "Tên phải có ít nhất 2 ký tự" },
+                            { required: true, message: "Please enter your last name" },
+                            { min: 2, message: "Last name must be at least 2 characters" },
                         ]}
                     >
-                        <Input prefix={<UserOutlined />} placeholder="Nhập tên của bạn" size="large" />
+                        <Input prefix={<UserOutlined />} placeholder="Enter your last name" size="large" />
                     </Form.Item>
                 </Col>
             </Row>
 
-            <Form.Item label="Số điện thoại" name="phoneNumber">
-                <Input prefix={<PhoneOutlined />} placeholder="Nhập số điện thoại" size="large" />
+            <Form.Item label="Phone Number" name="phoneNumber">
+                <Input prefix={<PhoneOutlined />} placeholder="Enter your phone number" size="large" />
             </Form.Item>
 
-            <Form.Item label="Địa chỉ" name="address">
-                <Input prefix={<HomeOutlined />} placeholder="Nhập địa chỉ đầy đủ" size="large" />
+            <Form.Item label="Address" name="address">
+                <Input prefix={<HomeOutlined />} placeholder="Enter your full address" size="large" />
             </Form.Item>
 
-            <Form.Item label="Ngày sinh" name="dateOfBirth">
+            <Form.Item label="Date of Birth" name="dateOfBirth">
                 <DatePicker
                     style={{ width: "100%" }}
                     format="DD/MM/YYYY"
-                    placeholder="Chọn ngày sinh"
+                    placeholder="Select your date of birth"
                     size="large"
                     suffixIcon={<CalendarOutlined />}
                 />
@@ -184,14 +184,14 @@ const ProfileForm: React.FC<Props> = ({ form, submitting, openChangePassword, us
             <Form.Item className="action-buttons">
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
                     <Button type="primary" htmlType="submit" loading={submitting} size="large">
-                        Lưu thay đổi
+                        Save Changes
                     </Button>
                     <Button
                         onClick={openChangePassword}
                         size="large"
                         style={{ backgroundColor: "#FCC61D", color: "#fff" }}
                     >
-                        Đổi mật khẩu
+                        Change Password
                     </Button>
                 </div>
             </Form.Item>

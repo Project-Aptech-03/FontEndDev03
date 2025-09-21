@@ -35,7 +35,6 @@ apiClient.interceptors.response.use(
                 localStorage.clear();
                 sessionStorage.clear();
 
-                // 🚨 Thay vì redirect, gọi modal
                 triggerLoginModal();
                 return Promise.reject(error);
             }

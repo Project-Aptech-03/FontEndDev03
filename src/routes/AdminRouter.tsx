@@ -30,18 +30,18 @@ const AdminRoute = () => {
 
     return (
         <>
-            <div>Đang kiểm tra quyền truy cập...</div>
+            <div>Checking access rights...</div>
             <Modal
                 open={showModal}
-                title="Cần đăng nhập"
+                title="Login Required"
                 onOk={handleOk}
                 onCancel={handleCancel}
                 closable={false}
                 maskClosable={false}
-                okText="Đăng nhập"
-                cancelText="Hủy"
+                okText="Login"
+                cancelText="Cancel"
             >
-                <p>Bạn cần đăng nhập với quyền Admin để truy cập trang này!</p>
+                <p>You need to log in with Admin privileges to access this page!</p>
             </Modal>
         </>
     );
