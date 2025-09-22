@@ -410,7 +410,7 @@ const Footer: React.FC = () => {
                                             Email Us
                                         </Text>
                                         <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}>
-                                            hello@shradaha.com
+                                            hello@shradha.com
                                         </Text>
                                     </div>
                                 </div>

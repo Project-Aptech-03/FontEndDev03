@@ -220,7 +220,7 @@ const Register: React.FC = () => {
                             >
                                 S
                             </div>
-                            <span style={logoTextStyle}>Shrada Book Store</span>
+                            <span style={logoTextStyle}>Shradha Book Store</span>
 
                         </div>
                         <h2>Sign Up</h2>
