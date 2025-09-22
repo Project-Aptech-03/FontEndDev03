@@ -6,8 +6,8 @@ import dayjs from "dayjs";
 import { UsersResponseDto } from "../../@type/UserResponseDto";
 import AvatarUpload from "../../components/AvatarUpload";
 import { uploadAvatar } from "../../api/profile.api";
-import {updateUser} from "../../api/user.api";
-import {ApiResponse} from "../../@type/apiResponse";
+import { updateUser } from "../../api/user.api";
+import { ApiResponse } from "../../@type/apiResponse";
 
 const ProfileHeader: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
     const [avatarUrl, setAvatarUrl] = useState<string | undefined>(user.avatarUrl);
@@ -21,22 +21,21 @@ const ProfileHeader: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
             if (res?.url) {
                 setAvatarUrl(res.url);
                 await updateUser(user.id, { avatarUrl: res.url });
-                message.success("Cập nhật avatar thành công!");
+                message.success("Avatar updated successfully!");
             } else {
-                message.error("Upload thất bại, server không trả về URL");
+                message.error("Upload failed, server did not return URL");
             }
-        }catch (err: any) {
+        } catch (err: any) {
             const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
             if (apiError?.errors) {
                 Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
             } else {
-                message.error(apiError?.message || "Lỗi hệ thống không xác định");
+                message.error(apiError?.message || "Unidentified system error");
             }
         } finally {
             setLoading(false);
         }
     };
-
 
     return (
         <div style={{ padding: "0 24px", marginTop: -50, textAlign: "center" }}>
@@ -46,12 +45,12 @@ const ProfileHeader: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
                 <span style={{ fontSize: 22, fontWeight: 600 }}>{user.fullName}</span>
                 <span style={{ fontSize: 14, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
                     <CelebrationIcon style={{ color: "#ff4d4f", fontSize: 16 }} />
-                    {dayjs().diff(dayjs(user.dateOfBirth), "year")} tuổi
+                    {dayjs().diff(dayjs(user.dateOfBirth), "year")} years old
                 </span>
             </h2>
 
             <p style={{ color: "#888" }}>
-                {user.role || "Người dùng"} - {user.address || "Chưa có địa chỉ"}
+                {user.role || "User"} - {user.address || "No address available"}
             </p>
         </div>
     );

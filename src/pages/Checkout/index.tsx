@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { checkoutOrder } from '../../api/orders.api';
 import { CartProduct, CheckoutAddress, AppliedCoupon, CheckoutData } from '../../@type/Orders';
 import './CheckoutPage.css';
+import {message} from "antd";
 
 const CheckoutPage = () => {
   const location = useLocation();
@@ -74,13 +75,14 @@ const CheckoutPage = () => {
       console.log('Checkout response:', response);
 
       if (response && response.success) {
-        toast.success('Order placed successfully!');
+        message.success('Order placed successfully!');
+        window.dispatchEvent(new Event("cartUpdated"));
         navigate('/myorders');
       } else {
         // Handle failed response
         const errorMessage = response?.error?.message || response?.message || 'Payment failed. Please check your payment or contact the shop for support.';
         console.log('Order failed:', errorMessage);
-        toast.error(errorMessage);
+        message.error(errorMessage);
       }
     } catch (error: any) {
       console.error('Error placing order:', error);
@@ -91,7 +93,7 @@ const CheckoutPage = () => {
         : 'Payment failed. Please check your payment or contact the shop for support.';
       
       console.log('Showing error toast:', errorMessage);
-      toast.error(errorMessage);
+      message.error(errorMessage);
     } finally {
       setIsPlacingOrder(false);
     }
@@ -104,13 +106,13 @@ const CheckoutPage = () => {
       </div>
     );
   }
-
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'USD'
     }).format(price);
   };
+
 
   return (
     <div className="checkout-container">

@@ -23,20 +23,17 @@ const Footer: React.FC = () => {
     const footerLinks = {
         company: [
             { label: "About Us", path: "/about" },
-            { label: "Our Story", path: "/about" },
             { label: "Blog", path: "/blog" },
             { label: "FAQs", path: "/faqs" },
         ],
         support: [
             { label: "Help Center", path: "/contact" },
-            { label: "Contact Us", path: "/contact" },
             { label: "Returns", path: "/returns" },
             { label: "Size Guide", path: "/size-guide" },
         ],
         legal: [
             { label: "Privacy Policy", path: "/privacy" },
             { label: "Terms of Service", path: "/terms" },
-            { label: "Cookie Policy", path: "/cookies" },
             { label: "Shipping Policy", path: "/shipping" },
         ],
         categories: [
@@ -48,37 +45,14 @@ const Footer: React.FC = () => {
     };
 
     const socialLinks = [
-        {
-            icon: <FacebookOutlined />,
-            url: "https://facebook.com",
-            color: "#1877f2",
-            name: "Facebook"
-        },
-        {
-            icon: <TwitterOutlined />,
-            url: "https://twitter.com",
-            color: "#1da1f2",
-            name: "Twitter"
-        },
-        {
-            icon: <InstagramOutlined />,
-            url: "https://instagram.com",
-            color: "#e4405f",
-            name: "Instagram"
-        },
-        {
-            icon: <LinkedinOutlined />,
-            url: "https://linkedin.com",
-            color: "#0077b5",
-            name: "LinkedIn"
-        },
+        { icon: <FacebookOutlined />, url: "https://facebook.com", color: "#1877f2" },
+        { icon: <TwitterOutlined />, url: "https://twitter.com", color: "#1da1f2" },
+        { icon: <InstagramOutlined />, url: "https://instagram.com", color: "#e4405f" },
+        { icon: <LinkedinOutlined />, url: "https://linkedin.com", color: "#0077b5" },
     ];
 
     const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const footerStyle: React.CSSProperties = {
@@ -96,96 +70,18 @@ const Footer: React.FC = () => {
         left: 0,
         right: 0,
         bottom: 0,
-        background: `
-      radial-gradient(circle at 25% 25%, rgba(255,255,255,0.05) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%),
-      linear-gradient(45deg, transparent 49%, rgba(255,255,255,0.02) 50%, transparent 51%)
-    `,
-        backgroundSize: "200px 200px, 200px 200px, 60px 60px",
-    };
-
-    const footerContentStyle: React.CSSProperties = {
-        position: "relative",
-        zIndex: 2,
-        maxWidth: "1400px",
-        margin: "0 auto",
-        padding: "80px 20px 0",
-    };
-
-    const logoStyle: React.CSSProperties = {
-        display: "flex",
-        alignItems: "center",
-        marginBottom: 14,
-        cursor: "pointer",
-    };
-
-
-    const logoTextStyle: React.CSSProperties = {
-        fontSize: '24px',
-        fontWeight: 700,
-        background: 'linear-gradient(45deg, #1890ff, #722ed1)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
-        marginLeft: '8px',
-        letterSpacing: '-0.5px',
-    };
-
-    const sectionTitleStyle: React.CSSProperties = {
-        color: "#fff",
-        fontSize: "18px",
-        fontWeight: 600,
-        position: "relative",
+        background: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.03) 0%, transparent 50%)`,
+        backgroundSize: "200px 200px",
     };
 
     const linkStyle: React.CSSProperties = {
         color: "rgba(255, 255, 255, 0.8)",
         textDecoration: "none",
-        transition: "all 0.3s ease",
+        transition: "all 0.2s ease",
         cursor: "pointer",
-        fontSize: "14px",
+        fontSize: "13px",
         display: "block",
-        padding: "8px 0",
-        borderRadius: "4px",
-        position: "relative",
-    };
-
-    const contactItemStyle: React.CSSProperties = {
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        padding: "12px 0",
-        borderRadius: "8px",
-        transition: "all 0.3s ease",
-    };
-
-    const contactIconStyle: React.CSSProperties = {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: 44,
-        height: 44,
-        background: "rgba(255, 255, 255, 0.1)",
-        borderRadius: "10px",
-        color: "#fff",
-        fontSize: "18px",
-        backdropFilter: "blur(10px)",
-    };
-
-    const paymentStyle: React.CSSProperties = {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 40,
-        padding: "0 16px",
-        background: "rgba(255, 255, 255, 0.1)",
-        borderRadius: "8px",
-        color: "#fff",
-        fontSize: "12px",
-        fontWeight: "bold",
-        backdropFilter: "blur(10px)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        transition: "all 0.3s ease",
+        padding: "4px 0",
     };
 
     return (
@@ -197,12 +93,11 @@ const Footer: React.FC = () => {
                 type="primary"
                 shape="circle"
                 icon={<ArrowUpOutlined />}
-                size="large"
                 onClick={scrollToTop}
                 style={{
                     position: "fixed",
-                    bottom: "30px",
-                    right: "30px",
+                    bottom: "20px",
+                    right: "20px",
                     zIndex: 1000,
                     background: "linear-gradient(45deg, #ff6b6b, #ee5a24)",
                     border: "none",
@@ -210,69 +105,94 @@ const Footer: React.FC = () => {
                 }}
             />
 
-            <div style={footerContentStyle}>
-                <Row gutter={[40, 40]}>
+            <div style={{
+                position: "relative",
+                zIndex: 2,
+                maxWidth: "1200px",
+                margin: "0 auto",
+                padding: "40px 20px 0",
+            }}>
+                <Row gutter={[32, 24]}>
                     {/* Brand Section */}
-                    <Col xs={24} sm={24} md={12} lg={8}>
+                    <Col xs={24} sm={24} md={8}>
                         <div
-                            style={logoStyle}
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: 16,
+                                cursor: "pointer",
+                                transition: "transform 0.2s ease",
+                            }}
                             onClick={() => navigate('/')}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'scale(1.02)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'scale(1)';
-                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             <div
                                 style={{
-                                    width: '40px',
-                                    height: '40px',
+                                    width: '36px',
+                                    height: '36px',
                                     borderRadius: '8px',
                                     background: 'linear-gradient(45deg, #1890ff, #722ed1)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     color: 'white',
-                                    fontSize: '18px',
+                                    fontSize: '16px',
                                     fontWeight: 'bold',
                                 }}
                             >
                                 S
                             </div>
-                            <span style={logoTextStyle}>SHRADHA</span>
+                            <span style={{
+                                fontSize: '22px',
+                                fontWeight: 700,
+                                background: 'linear-gradient(45deg, #1890ff, #722ed1)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                                marginLeft: '8px',
+                                letterSpacing: '-0.5px',
+                            }}>
+                                SHRADHA
+                            </span>
                         </div>
+
                         <Text style={{
-                            color: "rgba(255, 255, 255, 0.9)",
-                            lineHeight: 1.8,
-                            fontSize: "16px",
+                            color: "rgba(255, 255, 255, 0.85)",
+                            lineHeight: 1.6,
+                            fontSize: "14px",
                             display: "block",
-                            marginBottom: "15px"
+                            marginBottom: "16px"
                         }}>
-                            Discover the latest trends in books and study supplies – we bring you quality products
-                            that inspire and enhance your daily learning and creative experience.
+                            Quality books and study supplies that inspire learning and creativity.
                         </Text>
 
-                        {/* Newsletter Signup */}
-                        <div style={{
-                            padding: "24px",
-                            background: "rgba(255, 255, 255, 0.1)",
-                            borderRadius: "12px",
-                            backdropFilter: "blur(10px)",
-                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                        }}>
-                            <Title level={5} style={{color: "#fff", marginBottom: 10}}>
-                                📚 Stay Updated
-                            </Title>
-                            <Text style={{color: "rgba(255, 255, 255, 0.8)", fontSize: "14px"}}>
-                                Subscribe to get special offers, free giveaways, and educational content.
-                            </Text>
+                        {/* Contact Info */}
+                        <div style={{ marginBottom: "16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                <MailOutlined style={{ color: "#1890ff" }} />
+                                <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "13px" }}>
+                                    hello@shradha.com
+                                </Text>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                <PhoneOutlined style={{ color: "#1890ff" }} />
+                                <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "13px" }}>
+                                    +84 (028) 123-4567
+                                </Text>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <EnvironmentOutlined style={{ color: "#1890ff" }} />
+                                <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "13px" }}>
+                                    District 1, Ho Chi Minh City
+                                </Text>
+                            </div>
                         </div>
                     </Col>
 
                     {/* Links Sections */}
-                    <Col xs={12} sm={8} md={6} lg={4}>
-                        <Title level={5} style={sectionTitleStyle}>
+                    <Col xs={12} sm={6} md={4}>
+                        <Title level={5} style={{ color: "#fff", fontSize: "16px", fontWeight: 600, marginBottom: 12 }}>
                             Company
                         </Title>
                         <div>
@@ -282,16 +202,12 @@ const Footer: React.FC = () => {
                                     onClick={() => navigate(link.path)}
                                     style={linkStyle}
                                     onMouseEnter={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "#fff";
-                                        target.style.paddingLeft = "8px";
-                                        target.style.background = "rgba(255, 255, 255, 0.1)";
+                                        (e.target as HTMLElement).style.color = "#fff";
+                                        (e.target as HTMLElement).style.paddingLeft = "4px";
                                     }}
                                     onMouseLeave={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "rgba(255, 255, 255, 0.8)";
-                                        target.style.paddingLeft = "0";
-                                        target.style.background = "transparent";
+                                        (e.target as HTMLElement).style.color = "rgba(255, 255, 255, 0.8)";
+                                        (e.target as HTMLElement).style.paddingLeft = "0";
                                     }}
                                 >
                                     {link.label}
@@ -300,8 +216,8 @@ const Footer: React.FC = () => {
                         </div>
                     </Col>
 
-                    <Col xs={12} sm={8} md={6} lg={4}>
-                        <Title level={5} style={sectionTitleStyle}>
+                    <Col xs={12} sm={6} md={4}>
+                        <Title level={5} style={{ color: "#fff", fontSize: "16px", fontWeight: 600, marginBottom: 12 }}>
                             Categories
                         </Title>
                         <div>
@@ -311,16 +227,12 @@ const Footer: React.FC = () => {
                                     onClick={() => navigate(link.path)}
                                     style={linkStyle}
                                     onMouseEnter={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "#fff";
-                                        target.style.paddingLeft = "8px";
-                                        target.style.background = "rgba(255, 255, 255, 0.1)";
+                                        (e.target as HTMLElement).style.color = "#fff";
+                                        (e.target as HTMLElement).style.paddingLeft = "4px";
                                     }}
                                     onMouseLeave={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "rgba(255, 255, 255, 0.8)";
-                                        target.style.paddingLeft = "0";
-                                        target.style.background = "transparent";
+                                        (e.target as HTMLElement).style.color = "rgba(255, 255, 255, 0.8)";
+                                        (e.target as HTMLElement).style.paddingLeft = "0";
                                     }}
                                 >
                                     {link.label}
@@ -329,8 +241,8 @@ const Footer: React.FC = () => {
                         </div>
                     </Col>
 
-                    <Col xs={12} sm={8} md={6} lg={4}>
-                        <Title level={5} style={sectionTitleStyle}>
+                    <Col xs={12} sm={6} md={4}>
+                        <Title level={5} style={{ color: "#fff", fontSize: "16px", fontWeight: 600, marginBottom: 12 }}>
                             Support
                         </Title>
                         <div>
@@ -340,16 +252,12 @@ const Footer: React.FC = () => {
                                     onClick={() => navigate(link.path)}
                                     style={linkStyle}
                                     onMouseEnter={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "#fff";
-                                        target.style.paddingLeft = "8px";
-                                        target.style.background = "rgba(255, 255, 255, 0.1)";
+                                        (e.target as HTMLElement).style.color = "#fff";
+                                        (e.target as HTMLElement).style.paddingLeft = "4px";
                                     }}
                                     onMouseLeave={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "rgba(255, 255, 255, 0.8)";
-                                        target.style.paddingLeft = "0";
-                                        target.style.background = "transparent";
+                                        (e.target as HTMLElement).style.color = "rgba(255, 255, 255, 0.8)";
+                                        (e.target as HTMLElement).style.paddingLeft = "0";
                                     }}
                                 >
                                     {link.label}
@@ -358,8 +266,45 @@ const Footer: React.FC = () => {
                         </div>
                     </Col>
 
-                    <Col xs={24} sm={24} md={12} lg={4}>
-                        <Title level={5} style={sectionTitleStyle}>
+                    <Col xs={12} sm={6} md={4}>
+                        <Title level={5} style={{ color: "#fff", fontSize: "16px", fontWeight: 600, marginBottom: 12 }}>
+                            Follow Us
+                        </Title>
+                        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                            {socialLinks.map((social, index) => (
+                                <a
+                                    key={index}
+                                    href={social.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        width: 36,
+                                        height: 36,
+                                        background: "rgba(255, 255, 255, 0.1)",
+                                        borderRadius: "8px",
+                                        color: "#fff",
+                                        textDecoration: "none",
+                                        transition: "all 0.2s ease",
+                                        fontSize: "16px",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = social.color;
+                                        e.currentTarget.style.transform = "translateY(-2px)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                                        e.currentTarget.style.transform = "translateY(0)";
+                                    }}
+                                >
+                                    {social.icon}
+                                </a>
+                            ))}
+                        </div>
+
+                        <Title level={5} style={{ color: "#fff", fontSize: "16px", fontWeight: 600, marginBottom: 12 }}>
                             Legal
                         </Title>
                         <div>
@@ -369,16 +314,12 @@ const Footer: React.FC = () => {
                                     onClick={() => navigate(link.path)}
                                     style={linkStyle}
                                     onMouseEnter={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "#fff";
-                                        target.style.paddingLeft = "8px";
-                                        target.style.background = "rgba(255, 255, 255, 0.1)";
+                                        (e.target as HTMLElement).style.color = "#fff";
+                                        (e.target as HTMLElement).style.paddingLeft = "4px";
                                     }}
                                     onMouseLeave={(e) => {
-                                        const target = e.target as HTMLElement;
-                                        target.style.color = "rgba(255, 255, 255, 0.8)";
-                                        target.style.paddingLeft = "0";
-                                        target.style.background = "transparent";
+                                        (e.target as HTMLElement).style.color = "rgba(255, 255, 255, 0.8)";
+                                        (e.target as HTMLElement).style.paddingLeft = "0";
                                     }}
                                 >
                                     {link.label}
@@ -387,136 +328,8 @@ const Footer: React.FC = () => {
                         </div>
                     </Col>
                 </Row>
-                <div style={{
-                    marginTop: "20px",
-                    padding: "40px",
-                    background: "rgba(255, 255, 255, 0.05)",
-                    borderRadius: "16px",
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                }}>
-                    <Row gutter={[32, 32]}>
-                        <Col xs={24} sm={24} md={12}>
-                            <Title level={4} style={{ color: "#fff", marginBottom: 10}}>
-                                📞 Get in Touch
-                            </Title>
-                            <div>
-                                <div style={contactItemStyle}>
-                                    <div style={contactIconStyle}>
-                                        <MailOutlined />
-                                    </div>
-                                    <div>
-                                        <Text style={{ color: "#fff", fontWeight: 500, display: "block" }}>
-                                            Email Us
-                                        </Text>
-                                        <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}>
-                                            hello@shradha.com
-                                        </Text>
-                                    </div>
-                                </div>
 
-                                <div style={contactItemStyle}>
-                                    <div style={contactIconStyle}>
-                                        <PhoneOutlined />
-                                    </div>
-                                    <div>
-                                        <Text style={{ color: "#fff", fontWeight: 500, display: "block" }}>
-                                            Call Us
-                                        </Text>
-                                        <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}>
-                                            +84 (028) 123-4567
-                                        </Text>
-                                    </div>
-                                </div>
-
-                                <div style={contactItemStyle}>
-                                    <div style={contactIconStyle}>
-                                        <EnvironmentOutlined />
-                                    </div>
-                                    <div>
-                                        <Text style={{ color: "#fff", fontWeight: 500, display: "block" }}>
-                                            Visit Store
-                                        </Text>
-                                        <Text style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}>
-                                            123 Nguyen Hue Street,<br />
-                                            District 1, Ho Chi Minh City
-                                        </Text>
-                                    </div>
-                                </div>
-                            </div>
-                        </Col>
-
-                        <Col xs={24} sm={24} md={12}>
-                            <Title level={4} style={{ color: "#fff", marginBottom: 18 }}>
-                                🌟 Follow Our Journey
-                            </Title>
-                            <div style={{ display: "flex", gap: 16, marginBottom: 18 }}>
-                                {socialLinks.map((social, index) => (
-                                    <a
-                                        key={index}
-                                        href={social.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title={`Follow us on ${social.name}`}
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            width: 56,
-                                            height: 56,
-                                            background: "rgba(255, 255, 255, 0.1)",
-                                            borderRadius: "12px",
-                                            color: "#fff",
-                                            textDecoration: "none",
-                                            transition: "all 0.3s ease",
-                                            fontSize: "24px",
-                                            backdropFilter: "blur(10px)",
-                                            border: "1px solid rgba(255, 255, 255, 0.1)",
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.background = social.color;
-                                            e.currentTarget.style.transform = "translateY(-4px) scale(1.05)";
-                                            e.currentTarget.style.boxShadow = `0 8px 25px ${social.color}40`;
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
-                                            e.currentTarget.style.transform = "translateY(0) scale(1)";
-                                            e.currentTarget.style.boxShadow = "none";
-                                        }}
-                                    >
-                                        {social.icon}
-                                    </a>
-                                ))}
-                            </div>
-
-                            <div>
-                                <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "14px", display: "block", marginBottom: 14}}>
-                                    We accept secure payments
-                                </Text>
-                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                                    {["VISA", "MASTERCARD", "PAYPAL", "MOMO"].map((payment) => (
-                                        <div
-                                            key={payment}
-                                            style={paymentStyle}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
-                                                e.currentTarget.style.transform = "translateY(-2px)";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
-                                                e.currentTarget.style.transform = "translateY(0)";
-                                            }}
-                                        >
-                                            {payment}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </Col>
-                    </Row>
-                </div>
-
-                <Divider style={{ borderColor: "rgba(255, 255, 255, 0.1)", margin: "10px 0 10px" }} />
+                <Divider style={{ borderColor: "rgba(255, 255, 255, 0.15)", margin: "24px 0 16px" }} />
 
                 {/* Bottom Footer */}
                 <div style={{
@@ -524,39 +337,37 @@ const Footer: React.FC = () => {
                     justifyContent: "space-between",
                     alignItems: "center",
                     flexWrap: "wrap",
-                    gap: "20px",
-                    paddingBottom: "40px",
+                    gap: "16px",
+                    paddingBottom: "24px",
                 }}>
                     <Text style={{
                         color: "rgba(255, 255, 255, 0.7)",
-                        fontSize: "14px",
+                        fontSize: "13px",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px"
+                        gap: "6px"
                     }}>
-                        © {currentYear} Shradha Book Store. All rights reserved. Made with
+                        © {currentYear} Shradha Book Store. Made with
                         <HeartFilled style={{ color: "#ff6b6b" }} /> in Vietnam
                     </Text>
 
-                    <div style={{ display: "flex", gap: 24 }}>
-                        <Link
-                            onClick={() => navigate("/privacy")}
-                            style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}
-                        >
-                            Privacy
-                        </Link>
-                        <Link
-                            onClick={() => navigate("/terms")}
-                            style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}
-                        >
-                            Terms
-                        </Link>
-                        <Link
-                            onClick={() => navigate("/cookies")}
-                            style={{ color: "rgba(255, 255, 255, 0.7)", fontSize: "14px" }}
-                        >
-                            Cookies
-                        </Link>
+                    <div style={{ display: "flex", gap: 16 }}>
+                        {["VISA", "MASTERCARD", "PAYPAL"].map((payment) => (
+                            <div
+                                key={payment}
+                                style={{
+                                    padding: "4px 8px",
+                                    background: "rgba(255, 255, 255, 0.1)",
+                                    borderRadius: "4px",
+                                    color: "#fff",
+                                    fontSize: "10px",
+                                    fontWeight: "bold",
+                                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                                }}
+                            >
+                                {payment}
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

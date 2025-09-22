@@ -15,6 +15,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from  '../routes/AuthContext'
+import apiClient from "../services/api";
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
@@ -28,6 +29,37 @@ const Header: React.FC = () => {
         logout();
         navigate('/login');
     };
+    const [cartCount, setCartCount] = useState(0);
+    useEffect(() => {
+        const fetchCart = async () => {
+            try {
+                const res = await apiClient.get('/cart');
+
+                if (res.data && Array.isArray(res.data.data)) {
+                    const total = res.data.data.reduce(
+                        (sum: number, item: any) => sum + item.quantity,
+                        0
+                    );
+                    setCartCount(total);
+                }
+            } catch (error) {
+                console.error("Get cart error:", error);
+            }
+        };
+
+        fetchCart();
+
+        const handleCartUpdate = () => {
+            fetchCart();
+        };
+        window.addEventListener("cartUpdated", handleCartUpdate);
+
+        return () => {
+            window.removeEventListener("cartUpdated", handleCartUpdate);
+        };
+    }, [])
+
+
 
     const [wishlistCount, setWishlistCount] = useState(0);
     useEffect(() => {
@@ -295,7 +327,7 @@ const Header: React.FC = () => {
                 </Badge>
 
                 {/* Shopping Cart Icon */}
-                <Badge count={3} size="small" offset={[-3, 3]}>
+                <Badge count={cartCount} size="small" offset={[-3, 3]}>
                     <ShoppingCartOutlined
                         style={location.pathname === '/cart' ? activeIconStyle : iconStyle}
                         onClick={() => navigate('/cart')}

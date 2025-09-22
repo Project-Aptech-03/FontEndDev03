@@ -40,21 +40,18 @@ const MyOrders = () => {
 
     fetchOrders();
   }, []);
-
   const getActiveOrders = () => {
     return orders.filter(order => {
       const status = order.orderStatus.toLowerCase();
       return !['delivered', 'cancelled', 'returned'].includes(status);
     });
   };
-
   const getCompletedOrders = () => {
     return orders.filter(order => {
       const status = order.orderStatus.toLowerCase();
       return ['delivered', 'cancelled', 'returned'].includes(status);
     });
   };
-
   const getStatusIcon = (status: string) => {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
@@ -76,7 +73,6 @@ const MyOrders = () => {
         return <Package size={16} />;
     }
   };
-
   const getStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       pending: 'Awaiting Confirmation',
@@ -89,7 +85,6 @@ const MyOrders = () => {
     };
     return statusMap[status.toLowerCase()] || status;
   };
-
   const getPaymentStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
       pending: 'Payment Pending',
@@ -100,7 +95,6 @@ const MyOrders = () => {
     };
     return statusMap[status.toLowerCase()] || status;
   };
-
   const getPaymentStatusIcon = (status: string) => {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
@@ -118,7 +112,6 @@ const MyOrders = () => {
         return <CreditCard size={12} />;
     }
   };
-
   const getPaymentStatusClass = (status: string) => {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
@@ -136,14 +129,12 @@ const MyOrders = () => {
         return 'payment-unknown';
     }
   };
-
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'USD'
     }).format(amount);
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -153,11 +144,9 @@ const MyOrders = () => {
       minute: '2-digit'
     });
   };
-
   const canCancelOrder = (orderStatus: string) => {
     return ['pending', 'confirmed', 'processing'].includes(orderStatus.toLowerCase());
   };
-
   const renderProductImage = (product: any, className: string) => {
     return (
       <img
@@ -165,7 +154,6 @@ const MyOrders = () => {
         alt={product?.productName || 'Product'}
         className={className}
         onError={(e) => {
-          // Hide broken image and show placeholder
           const target = e.target as HTMLImageElement;
           target.style.display = 'none';
           const placeholder = target.nextElementSibling as HTMLElement;
@@ -176,7 +164,6 @@ const MyOrders = () => {
       />
     );
   };
-
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailModalOpen(true);
@@ -291,7 +278,6 @@ const MyOrders = () => {
           </button>
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="loading-state">
             <div className="loading-spinner"></div>

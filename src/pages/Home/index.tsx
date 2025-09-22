@@ -15,6 +15,7 @@ import CDsDVDs from '../../../assets/image/CDsDVDs.jpg';
 import {message} from "antd";
 import {cartApi} from "../../api/cart.api";
 import {getTop} from "../../utils/bookUtils";
+
 const HomePage = () => {
   const { handleWishlistToggle, isInWishlist } = useWishlist();
 
@@ -25,6 +26,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const transformProduct = (product: any, totalQuantity: number = 0): Book => ({
     ...product,
     rating: Math.random() * 1 + 4,
@@ -32,15 +34,18 @@ const HomePage = () => {
     originalPrice: product.price * 1.2,
     totalQuantity
   });
+
   const categories = [
     { name: "BOOKS", image: book },
     { name: "STATIONERY", image: stationery },
     { name: "MAGAZINE", image: Magazines },
     { name: "DVD", image: CDsDVDs },
   ];
+
   const handleCategoryClick = (categoryName) => {
     navigate(`/shop?category=${encodeURIComponent(categoryName)}`);
   };
+
   const fetchBooksData = async () => {
     try {
       setLoading(true);
@@ -96,17 +101,12 @@ const HomePage = () => {
     fetchBooksData();
   }, []);
 
-
-  useEffect(() => {
-    fetchBooksData();
-  }, []);
-
   const handleAddToCart = async (book: Book) => {
     try {
       const response = await cartApi.addToCart(book.id, 1);
       if (response.success) {
         message.success(`Added "${book.productName}" to cart!`);
-        window.dispatchEvent(new Event("cartUpdated"));
+        window.dispatchEvent(new CustomEvent("cartUpdated"));
       } else {
         message.error(response.message || "Failed to add to cart!");
       }
@@ -115,15 +115,46 @@ const HomePage = () => {
       console.error("Add to cart failed:", error);
     }
   };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return 'No description available.';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
   const renderBookCard = (book: Book) => (
-      <div key={book.id} className="bookCard">
-        <div className="bookImage">
-          <Link to={`/product/${book.id}`} className="bookImageLink">
+      <div key={book.id} className="bookCard" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: '500px',
+        maxHeight: '500px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        backgroundColor: 'white',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        position: 'relative'
+      }}>
+        <div className="bookImage" style={{
+          position: 'relative',
+          height: '200px',
+          overflow: 'hidden',
+          flexShrink: 0
+        }}>
+          <Link to={`/product/${book.id}`} className="bookImageLink" style={{
+            display: 'block',
+            height: '100%'
+          }}>
             <img
                 src={book.photos?.[0]?.photoUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop'}
                 alt={book.productName}
                 onError={(e) => {
                   e.currentTarget.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop';
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
                 }}
             />
           </Link>
@@ -144,38 +175,146 @@ const HomePage = () => {
             <FaHeart />
           </button>
         </div>
-        <div className="bookInfo">
-          <Link to={`/detail-product/${book.id}`} className="bookTitleLink">
-            <h3 className="bookTitle">{book.productName}</h3>
+
+        <div className="bookInfo" style={{
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0
+        }}>
+          <Link to={`/detail-product/${book.id}`} className="bookTitleLink" style={{
+            textDecoration: 'none',
+            color: 'inherit'
+          }}>
+            <h3 className="bookTitle" style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              margin: '0 0 8px 0',
+              lineHeight: '1.3',
+              height: '40px',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical'
+            }}>
+              {truncateText(book.productName, 50)}
+            </h3>
           </Link>
-          <p className="bookAuthor">by {book.author || book.publisher?.publisherName || book.manufacturer?.manufacturerName || 'Unknown Author'}</p>
-          <div className="bookRating">
-            <div className="stars">
+
+          <p className="bookAuthor" style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: '0 0 8px 0',
+            height: '20px',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis'
+          }}>
+            by {truncateText(book.author || book.publisher?.publisherName || book.manufacturer?.manufacturerName || 'Unknown Author', 25)}
+          </p>
+
+          <div className="bookRating" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '12px',
+            height: '20px'
+          }}>
+            <div className="stars" style={{ display: 'flex', gap: '2px' }}>
               {[...Array(5)].map((_, i) => (
                   <FaStar
                       key={i}
                       className={i < Math.floor(book.rating || 0) ? 'star filled' : 'star'}
+                      style={{ fontSize: '12px' }}
                   />
               ))}
             </div>
-            <span className="ratingText">({book.reviewCount || 0} reviews)</span>
+            <span className="ratingText" style={{
+              fontSize: '12px',
+              color: '#666'
+            }}>({book.reviewCount || 0})</span>
           </div>
-          <div className="bookPrice">
-            <span className="currentPrice">${book.price}</span>
+
+          <div className="bookPrice" style={{
+            marginBottom: '12px',
+            height: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+          <span className="currentPrice" style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#e74c3c'
+          }}>${book.price}</span>
             {book.originalPrice && book.originalPrice > book.price && (
-                <span className="originalPrice">${book.originalPrice}</span>
+                <span className="originalPrice" style={{
+                  fontSize: '14px',
+                  color: '#999',
+                  textDecoration: 'line-through'
+                }}>${book.originalPrice}</span>
             )}
           </div>
-          <p className="bookDescription">
-            {book.description || 'No description available.'}
+
+          <p className="bookDescription" style={{
+            fontSize: '13px',
+            color: '#666',
+            lineHeight: '1.4',
+            margin: '0 0 12px 0',
+            height: '56px',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 4,
+            WebkitBoxOrient: 'vertical'
+          }}>
+            {truncateText(book.description || 'No description available.', 100)}
           </p>
-          <div className="bookMeta">
-            <span className="bookCategory">{book.category?.categoryName || 'Unknown'}</span>
-            <span className="bookManufacturer">{book.manufacturer?.manufacturerName || 'Unknown'}</span>
+
+          <div className="bookMeta" style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '8px',
+            height: '20px'
+          }}>
+          <span className="bookCategory" style={{
+            fontSize: '12px',
+            backgroundColor: '#f8f9fa',
+            color: '#6c757d',
+            padding: '2px 8px',
+            borderRadius: '12px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: '50%'
+          }}>
+            {truncateText(book.category?.categoryName || 'Unknown', 15)}
+          </span>
+            <span className="bookManufacturer" style={{
+              fontSize: '12px',
+              backgroundColor: '#e9ecef',
+              color: '#495057',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '50%'
+            }}>
+            {truncateText(book.manufacturer?.manufacturerName || 'Unknown', 15)}
+          </span>
           </div>
+
           {book.totalQuantity !== undefined && book.totalQuantity > 0 && (
-              <div className="orderCount">
-                <small>Total Sales: {book.totalQuantity}</small>
+              <div className="orderCount" style={{
+                marginTop: 'auto',
+                height: '16px'
+              }}>
+                <small style={{
+                  fontSize: '11px',
+                  color: '#28a745',
+                  fontWeight: '500'
+                }}>Total Sales: {book.totalQuantity}</small>
               </div>
           )}
         </div>
@@ -286,7 +425,12 @@ const HomePage = () => {
               Latest additions to our collection - recently published books
             </p>
           </div>
-          <div className="booksGrid">
+          <div className="booksGrid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+            padding: '0 20px'
+          }}>
             {newBooks.length > 0 ? newBooks.map(renderBookCard) : (
                 <p>No new products available at the moment.</p>
             )}
@@ -301,7 +445,12 @@ const HomePage = () => {
               Discover our handpicked collection of recommended products
             </p>
           </div>
-          <div className="booksGrid">
+          <div className="booksGrid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+            padding: '0 20px'
+          }}>
             {featuredBooks.length > 0 ? featuredBooks.map(renderBookCard) : (
                 <p>No featured products available at the moment.</p>
             )}
@@ -316,7 +465,12 @@ const HomePage = () => {
               Most popular products - bestsellers based on customer orders
             </p>
           </div>
-          <div className="booksGrid">
+          <div className="booksGrid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+            padding: '0 20px'
+          }}>
             {hotBooks.length > 0 ? hotBooks.map(renderBookCard) : (
                 <p>No hot products available at the moment.</p>
             )}
@@ -331,13 +485,17 @@ const HomePage = () => {
               Timeless classics - products that have stood the test of time
             </p>
           </div>
-          <div className="booksGrid">
+          <div className="booksGrid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+            padding: '0 20px'
+          }}>
             {saleBooks.length > 0 ? saleBooks.map(renderBookCard) : (
                 <p>No classic books available at the moment.</p>
             )}
           </div>
         </section>
-
       </>
   );
 };

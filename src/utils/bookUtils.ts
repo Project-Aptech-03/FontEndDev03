@@ -2,18 +2,18 @@ import { Book } from '../@type/book';
 import {cartApi} from "../api/cart.api";
 import {message} from "antd";
 
-
 export const handleAddToCart = async (book: Book) => {
   try {
     const res = await cartApi.addToCart(book.id, 1);
-    message.success("Thêm vào giỏ hàng thành công!");
+    message.success("Added to cart successfully!");
     console.log("Cart API response:", res);
+
+    window.dispatchEvent(new CustomEvent("cartUpdated"));
   } catch (error) {
-    message.error("Không thể thêm vào giỏ hàng, vui lòng thử lại!");
+    message.error("Unable to add to cart, please try again!");
     console.error("Add to cart error:", error);
   }
 };
-
 export const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`;
 };

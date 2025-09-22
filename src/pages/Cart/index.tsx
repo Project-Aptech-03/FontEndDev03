@@ -12,7 +12,7 @@ import { CustomerAddress } from '../../@type/customerAddress';
 import AddAddressForm from './AddAddressForm';
 import './CartPage.css';
 import './CartPage.css';
-import {message} from "antd";
+import {message, Modal} from "antd";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -31,7 +31,6 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [updatingItems, setUpdatingItems] = useState<Set<number>>(new Set());
 
-  // Fetch cart data from API
   const fetchCartData = async () => {
     try {
       setLoading(true);
@@ -40,7 +39,6 @@ const CartPage = () => {
 
       if (response.success && response.data) {
         setCartItems(response.data);
-        // Auto-select all items when cart loads
         setSelectedItems(response.data.map(item => item.id));
       } else {
         setError(response.message || 'Failed to fetch cart data');
@@ -63,7 +61,6 @@ const CartPage = () => {
     try {
       const res = await customerAddressApi.getAddresses();
       if (res.success && res.data) {
-        // Filter only active addresses
         const activeAddresses = res.data.filter((addr: CustomerAddress) => addr.isActive);
         const addressesWithIndex = activeAddresses.map((addr: CustomerAddress, idx: number) => ({ ...addr, _idx: idx }));
         setAddresses(addressesWithIndex);
@@ -73,12 +70,11 @@ const CartPage = () => {
         }
       }
     } catch (err) {
-      toast.error('Không lấy được địa chỉ');
+      toast.error('Failed to fetch addresses');
     }
   };
-
   const deleteAddress = async (addressId: number) => {
-    if (!window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) {
+    if (!window.confirm('Are you sure you want to delete this address?')) {
       return;
     }
 
@@ -89,7 +85,7 @@ const CartPage = () => {
       // Use the actual ID from the address object
       const res = await customerAddressApi.deleteAddress(address.id);
       if (res.success) {
-        toast.success('Đã xóa địa chỉ thành công');
+        toast.success('Address deleted successfully');
         // If deleted address was selected, reset selection
         if (selectedAddressId === addressId) {
           setSelectedAddressId(null);
@@ -97,10 +93,10 @@ const CartPage = () => {
         // Refresh addresses list
         fetchAddresses();
       } else {
-        toast.error(res.message || 'Không thể xóa địa chỉ');
+        toast.error(res.message || 'Unable to delete address');
       }
     } catch (error) {
-      toast.error('Không thể xóa địa chỉ. Vui lòng thử lại.');
+      toast.error('Unable to delete address. Please try again.');
     }
   };
 
@@ -119,44 +115,36 @@ const CartPage = () => {
 
       const res = await customerAddressApi.setDefaultAddress(address.id);
       if (res.success) {
-        toast.success('Đã đặt làm địa chỉ mặc định');
+        toast.success('Set as default address successfully');
         fetchAddresses();
       } else {
-        toast.error(res.message || 'Không thể đặt làm địa chỉ mặc định');
+        toast.error(res.message || 'Unable to set as default address');
       }
     } catch (error) {
-      toast.error('Không thể đặt làm địa chỉ mặc định. Vui lòng thử lại.');
+      toast.error('Unable to set as default address. Please try again.');
     }
   };
 
+
   const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-
-    // Find the cart item to check stock
     const cartItem = cartItems.find(item => item.id === itemId);
     if (!cartItem) return;
-
-    // Check stock quantity
     const stockQuantity = cartItem.product?.stockQuantity || 0;
 
-    // If trying to increase quantity beyond stock
     if (newQuantity > stockQuantity) {
-      toast.error(`Vượt quá số lượng trong kho (còn lại: ${stockQuantity})`);
+      toast.error(`Exceeds available stock (remaining: ${stockQuantity})`);
       return;
     }
-
-    // If stock is 0, ask if user wants to remove item
     if (stockQuantity === 0) {
       const confirmRemove = window.confirm(
-        'Sản phẩm này đã hết hàng. Bạn có muốn xóa khỏi giỏ hàng không?'
+          'This product is out of stock. Do you want to remove it from the cart?'
       );
       if (confirmRemove) {
         await removeItem(cartItem.productId); // Changed to use productId
       }
       return;
     }
-
-    // Store original values for rollback
     const originalQuantity = cartItem.quantity;
     const originalTotalPrice = cartItem.totalPrice;
 
@@ -179,41 +167,41 @@ const CartPage = () => {
 
       if (response.success) {
         // Success: UI already updated, just show success message
-        toast.success('Đã cập nhật số lượng');
+        toast.success('Quantity updated successfully');
 
         // Optionally sync with server data if needed
         const serverItem = response.data;
         if (serverItem.quantity !== newQuantity || serverItem.totalPrice !== newTotalPrice) {
           // Server returned different values, update with server data
           setCartItems(prevItems =>
-            prevItems.map(item =>
-              item.id === itemId
-                ? { ...item, quantity: serverItem.quantity, totalPrice: serverItem.totalPrice }
-                : item
-            )
+              prevItems.map(item =>
+                  item.id === itemId
+                      ? { ...item, quantity: serverItem.quantity, totalPrice: serverItem.totalPrice }
+                      : item
+              )
           );
         }
       } else {
         // ROLLBACK: Revert to original values
         setCartItems(prevItems =>
-          prevItems.map(item =>
-            item.id === itemId
-              ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
-              : item
-          )
+            prevItems.map(item =>
+                item.id === itemId
+                    ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
+                    : item
+            )
         );
-        toast.error(response.message || 'Không thể cập nhật giỏ hàng');
+        toast.error(response.message || 'Failed to update cart');
       }
     } catch (error) {
       // ROLLBACK: Revert to original values
       setCartItems(prevItems =>
-        prevItems.map(item =>
-          item.id === itemId
-            ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
-            : item
-        )
+          prevItems.map(item =>
+              item.id === itemId
+                  ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
+                  : item
+          )
       );
-      toast.error('Không thể cập nhật giỏ hàng. Vui lòng thử lại.');
+      toast.error('Unable to update cart. Please try again.');
     } finally {
       setUpdatingItems(prev => {
         const next = new Set(prev);
@@ -223,32 +211,27 @@ const CartPage = () => {
     }
   };
   const removeItem = async (productId: number) => {
-    if (!message.error('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+    if (!message.error('Are you sure you want to remove this item from the cart?')) {
       return;
     }
 
     // Find the cart item by productId
     const originalItem = cartItems.find(item => item.productId === productId);
     if (!originalItem) {
-      message.error('Không tìm thấy sản phẩm trong giỏ hàng');
+      message.error('Item not found in the cart');
       return;
     }
 
     const itemId = originalItem.id;
     const wasSelected = selectedItems.includes(itemId);
-
-    // OPTIMISTIC UPDATE: Remove immediately from UI
     setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
     setSelectedItems(prev => prev.filter(id => id !== itemId));
 
     try {
-      // Call API with productId instead of itemId
       const response = await cartApi.removeFromCart(productId);
       if (response.success) {
-        // Success: Item already removed from UI, just show success message
-        message.success('Đã xóa sản phẩm khỏi giỏ hàng');
+        message.success('Item removed from cart');
       } else {
-        // ROLLBACK: Add item back to original position
         setCartItems(prevItems => {
           const newItems = [...prevItems];
           const originalIndex = cartItems.findIndex(item => item.productId === productId);
@@ -258,10 +241,9 @@ const CartPage = () => {
         if (wasSelected) {
           setSelectedItems(prev => [...prev, itemId]);
         }
-        message.error(response.message || 'Không thể xóa sản phẩm');
+        message.error(response.message || 'Failed to remove item');
       }
     } catch (error) {
-      // ROLLBACK: Add item back to original position
       setCartItems(prevItems => {
         const newItems = [...prevItems];
         const originalIndex = cartItems.findIndex(item => item.productId === productId);
@@ -271,55 +253,59 @@ const CartPage = () => {
       if (wasSelected) {
         setSelectedItems(prev => [...prev, itemId]);
       }
-      message.error('Không thể xóa sản phẩm. Vui lòng thử lại.');
+      message.error('Unable to remove item. Please try again.');
     }
   };
+
 
   const clearCart = async () => {
-    if (!message.error('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')) {
-      return;
-    }
+    Modal.confirm({
+      title: "Clear Cart",
+      content: "Are you sure you want to clear the cart?",
+      okText: "Yes",
+      cancelText: "No",
+      async onOk() {
+        const originalCartItems = [...cartItems];
+        const originalSelectedItems = [...selectedItems];
+        setCartItems([]);
+        setSelectedItems([]);
 
-    const originalCartItems = [...cartItems];
-    const originalSelectedItems = [...selectedItems];
-    setCartItems([]);
-    setSelectedItems([]);
-
-    try {
-      const response = await cartApi.clearCart();
-      if (response.success) {
-        // Success: Cart already cleared from UI, just show success message
-        message.success('Đã xóa toàn bộ giỏ hàng');
-      } else {
-        // ROLLBACK: Restore original cart data
-        setCartItems(originalCartItems);
-        setSelectedItems(originalSelectedItems);
-        message.error(response.message || 'Không thể xóa giỏ hàng');
-      }
-    } catch (error) {
-      // ROLLBACK: Restore original cart data
-      setCartItems(originalCartItems);
-      setSelectedItems(originalSelectedItems);
-      message.error('Không thể xóa giỏ hàng. Vui lòng thử lại.');
-    }
+        try {
+          const response = await cartApi.clearCart();
+          if (response.success) {
+            message.success("Cart has been cleared");
+            window.dispatchEvent(new Event("cartUpdated"));
+          } else {
+            setCartItems(originalCartItems);
+            setSelectedItems(originalSelectedItems);
+            message.error(response.message || "Failed to clear the cart");
+          }
+        } catch (error) {
+          setCartItems(originalCartItems);
+          setSelectedItems(originalSelectedItems);
+          message.error("Unable to clear the cart. Please try again.");
+        }
+      },
+    });
   };
+
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponError('Vui lòng nhập mã giảm giá');
-      toast.error('Vui lòng nhập mã giảm giá');
+      setCouponError('Please enter a coupon code');
+      toast.error('Please enter a coupon code');
       return;
     }
 
     if (selectedSubtotal <= 0) {
-      setCouponError('Vui lòng chọn sản phẩm trước khi áp dụng mã');
-      toast.error('Giỏ hàng của bạn đang trống');
+      setCouponError('Please select a product before applying the coupon');
+      toast.error('Your cart is empty');
       return;
     }
 
     setApplyingCoupon(true);
     setCouponError(null); // Clear previous errors
-    
+
     try {
       const response = await couponApi.applyCoupon({
         couponCode: couponCode.trim(),
@@ -334,7 +320,9 @@ const CartPage = () => {
         });
         setCouponCode('');
         setCouponError(null);
-        toast.success(`Đã áp dụng mã "${response.data.couponCode}" thành công! Tiết kiệm ${response.data.discountAmount.toLocaleString('vi-VN')} ₫`);
+        toast.success(
+            `Coupon "${response.data.couponCode}" applied successfully! You saved ${response.data.discountAmount.toLocaleString('en-US')} $`
+        );
       } else {
         // Handle specific error messages
         const errorMessage = getSpecificErrorMessage(response.message, couponCode.trim());
@@ -343,18 +331,18 @@ const CartPage = () => {
       }
     } catch (error: any) {
       let errorMessage = '';
-      
+
       // Handle network/server errors
       if (error.response?.status === 404) {
-        errorMessage = `❌ Mã "${couponCode.trim()}" không tồn tại hoặc đã bị xóa`;
+        errorMessage = `❌ Coupon "${couponCode.trim()}" does not exist or has been deleted`;
       } else if (error.response?.status === 400) {
         errorMessage = getSpecificErrorMessage(error.response?.data?.message, couponCode.trim());
       } else if (error.response?.status >= 500) {
-        errorMessage = '⚠️ Lỗi server. Vui lòng thử lại sau';
+        errorMessage = '⚠️ Server error. Please try again later';
       } else {
-        errorMessage = '❌ Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng';
+        errorMessage = '❌ Unable to connect to the server. Please check your network connection';
       }
-      
+
       setCouponError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -362,112 +350,111 @@ const CartPage = () => {
     }
   };
 
-  // Function to get specific error message based on server response
   const getSpecificErrorMessage = (serverMessage: string | undefined, code: string) => {
-    if (!serverMessage) return `❌ Mã "${code}" không hợp lệ`;
+    if (!serverMessage) return `❌ Coupon "${code}" is invalid`;
 
     const message = serverMessage.toLowerCase();
-    
+
     // Check for specific error patterns
     if (message.includes('expired') || message.includes('hết hạn')) {
-      return `⏰ Mã "${code}" đã hết hạn sử dụng`;
+      return `⏰ Coupon "${code}" has expired`;
     }
-    
+
     if (message.includes('used up') || message.includes('hết lượt') || message.includes('quantity')) {
-      return `📊 Mã "${code}" đã hết lượt sử dụng`;
+      return `📊 Coupon "${code}" has been used up`;
     }
-    
+
     if (message.includes('not found') || message.includes('không tìm thấy')) {
-      return `❌ Mã "${code}" không tồn tại`;
+      return `❌ Coupon "${code}" does not exist`;
     }
-    
+
     if (message.includes('inactive') || message.includes('disabled') || message.includes('không hoạt động')) {
-      return `🚫 Mã "${code}" đã bị vô hiệu hóa`;
+      return `🚫 Coupon "${code}" has been disabled`;
     }
-    
+
     if (message.includes('minimum') || message.includes('tối thiểu')) {
-      return `💰 Đơn hàng chưa đạt giá trị tối thiểu để sử dụng mã "${code}"`;
+      return `💰 Order does not meet the minimum value to use coupon "${code}"`;
     }
-    
+
     if (message.includes('already used') || message.includes('đã sử dụng')) {
-      return `🔄 Bạn đã sử dụng mã "${code}" rồi`;
+      return `🔄 You have already used coupon "${code}"`;
     }
-    
+
     // Default error message with server message
     return `❌ ${serverMessage}`;
   };
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
-    toast.success('Đã xóa mã giảm giá');
+    toast.success('Coupon has been removed');
   };
 
   const proceedToCheckout = async () => {
     if (selectedItems.length === 0) {
-      toast.error('Vui lòng chọn sản phẩm để mua');
+      message.error('Please select products to purchase');
       return;
     }
-    
+
     if (!selectedAddressId && selectedAddressId !== 0 && addresses.length > 0) {
-      toast.error('Vui lòng chọn địa chỉ nhận hàng');
+      message.error('Please select a shipping address');
       return;
     }
     const selectedProducts = cartItems.filter(item => selectedItems.includes(item.id));
 
     const outOfStockItems = selectedProducts.filter(item =>
-      (item.product?.stockQuantity || 0) === 0
+        (item.product?.stockQuantity || 0) === 0
     );
 
     const insufficientStockItems = selectedProducts.filter(item =>
-      item.quantity > (item.product?.stockQuantity || 0)
+        item.quantity > (item.product?.stockQuantity || 0)
     );
 
     if (outOfStockItems.length > 0) {
       const itemNames = outOfStockItems.map(item => item.product?.productName).join(', ');
-      toast.error(`Các sản phẩm sau đã hết hàng: ${itemNames}`);
+      toast.error(`The following products are out of stock: ${itemNames}`);
       return;
     }
 
     if (insufficientStockItems.length > 0) {
       const itemNames = insufficientStockItems.map(item =>
-        `${item.product?.productName} (còn ${item.product?.stockQuantity})`
+          `${item.product?.productName} (only ${item.product?.stockQuantity} left)`
       ).join(', ');
-      toast.error(`Số lượng vượt quá tồn kho: ${itemNames}`);
+      toast.error(`Quantity exceeds available stock: ${itemNames}`);
       return;
     }
 
     try {
       // Get next order code from API
       const orderCodeResponse = await getNextOrderCode();
-      
+
       if (!orderCodeResponse.success || !orderCodeResponse.result?.data) {
-        toast.error('Không thể tạo mã đơn hàng. Vui lòng thử lại.');
+        message.error('Unable to generate order code. Please try again.');
         return;
       }
 
       const orderCode = orderCodeResponse.result.data;
       const address = addresses.find(a => a._idx === selectedAddressId);
 
-      // Tính toán lại thông tin cho những sản phẩm đã chọn
+      // Recalculate info for selected products
       const checkoutData = {
-        orderCode: orderCode,                         // Mã đơn hàng từ API
-        products: selectedProducts,                    // Chỉ sản phẩm đã tích chọn
-        address: address,                             // Địa chỉ đã chọn
-        coupon: appliedCoupon,                        // Mã giảm giá (nếu có)
-        orderNote: orderNote.trim(),                  // Ghi chú đơn hàng
-        subtotal: selectedSubtotal,                   // Tổng tiền sản phẩm đã chọn
-        shipping: getShippingFee(),                   // Phí vận chuyển
-        discount: appliedCoupon ? appliedCoupon.discountAmount : 0,  // Số tiền giảm
-        total: selectedSubtotal + getShippingFee() - (appliedCoupon ? appliedCoupon.discountAmount : 0)  // Tổng cuối
+        orderCode: orderCode,
+        products: selectedProducts,
+        address: address,
+        coupon: appliedCoupon,
+        orderNote: orderNote.trim(),
+        subtotal: selectedSubtotal,
+        shipping: getShippingFee(),
+        discount: appliedCoupon ? appliedCoupon.discountAmount : 0,
+        total: selectedSubtotal + getShippingFee() - (appliedCoupon ? appliedCoupon.discountAmount : 0)
       };
 
       navigate('/checkout', {
         state: checkoutData
       });
-      
+
     } catch (error) {
       console.error('Error proceeding to checkout:', error);
-      toast.error('Không thể chuyển đến trang thanh toán. Vui lòng thử lại.');
+      toast.error('Unable to proceed to checkout. Please try again.');
     }
   };
 
@@ -493,36 +480,36 @@ const CartPage = () => {
 
   if (loading) {
     return (
-      <div className="cart-loading">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <h3>Đang tải giỏ hàng...</h3>
-          <p>Vui lòng đợi trong giây lát</p>
+        <div className="cart-loading">
+          <div className="loading-content">
+            <div className="loading-spinner"></div>
+            <h3>Loading cart...</h3>
+            <p>Please wait a moment</p>
+          </div>
         </div>
-      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="cartPage">
-        <div className="error-page">
-          <div className="error-content">
-            <div className="error-icon">
-              <FaShoppingBag />
+        <div className="cartPage">
+          <div className="error-page">
+            <div className="error-content">
+              <div className="error-icon">
+                <FaShoppingBag />
+              </div>
+              <h2>Unable to load cart</h2>
+              <p>{error}</p>
+              <button className="retry-button" onClick={fetchCartData}>
+                <FaShoppingBag />
+                Retry
+              </button>
+              <Link to="/shop" className="back-to-shop">
+                Continue Shopping
+              </Link>
             </div>
-            <h2>Không thể tải giỏ hàng</h2>
-            <p>{error}</p>
-            <button className="retry-button" onClick={fetchCartData}>
-              <FaShoppingBag />
-              Thử lại
-            </button>
-            <Link to="/shop" className="back-to-shop">
-              Tiếp tục mua sắm
-            </Link>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -535,7 +522,7 @@ const CartPage = () => {
             <div className="title-section">
               <h1 className="page-title">
                 <FaShoppingBag className="title-icon" />
-                Giỏ hàng của bạn
+                Your Cart
               </h1>
             </div>
           </div>
@@ -545,51 +532,48 @@ const CartPage = () => {
       <div className="container">
         <div className="cart-content">
           {cartItems.length === 0 ? (
-            <div className="empty-cart">
-              <div className="empty-cart-content">
-                <div className="empty-icon">
-                  <FaShoppingBag />
-                </div>
-                <h2>Giỏ hàng trống</h2>
-                <p>Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
-                <div className="empty-actions">
-                  <Link to="/shop" className="shop-now-btn">
-                    <FaShoppingBag />
-                    Mua sắm ngay
-                  </Link>
-                  <Link to="/categories" className="browse-categories-btn">
-                    Xem danh mục
-                  </Link>
+              <div className="empty-cart">
+                <div className="empty-cart-content">
+                  <div className="empty-icon">
+                    <FaShoppingBag/>
+                  </div>
+                  <h2>Empty Cart</h2>
+                  <p>You don’t have any products in your cart yet. Explore our amazing products!</p>
+                  <div className="empty-actions">
+                    <Link to="/shop" className="shop-now-btn">
+                      <FaShoppingBag/>
+                      Shop Now
+                    </Link>
+                    <Link to="/categories" className="browse-categories-btn">
+                      Browse Categories
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
           ) : (
-            <>
-              {/* Main Content */}
+              <>
               <div className="cart-main">
-                {/* Left Column - Cart Items & Address */}
                 <div className="cart-left-column">
-                  {/* Cart Items */}
                   <div className="cart-items-section">
                     <div className="section-header">
-                      <h3>Sản phẩm ({cartItems.length})</h3>
+                      <h3>Products ({cartItems.length})</h3>
                       <div className="header-actions">
                         <button
-                          className={`select-all-btn ${selectedItems.length === cartItems.length ? 'active' : ''}`}
-                          onClick={() => {
-                            if (selectedItems.length === cartItems.length) {
-                              setSelectedItems([]);
-                            } else {
-                              setSelectedItems(cartItems.map(item => item.id));
-                            }
-                          }}
+                            className={`select-all-btn ${selectedItems.length === cartItems.length ? 'active' : ''}`}
+                            onClick={() => {
+                              if (selectedItems.length === cartItems.length) {
+                                setSelectedItems([]);
+                              } else {
+                                setSelectedItems(cartItems.map(item => item.id));
+                              }
+                            }}
                         >
-                          <FaCheck />
-                          {selectedItems.length === cartItems.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                          <FaCheck/>
+                          {selectedItems.length === cartItems.length ? 'Deselect All' : 'Select All'}
                         </button>
                         <button className="clear-cart-btn" onClick={clearCart}>
-                          <FaTrash />
-                          Xóa tất cả
+                          <FaTrash/>
+                          Clear All
                         </button>
                       </div>
                     </div>
@@ -601,116 +585,117 @@ const CartPage = () => {
                         const isLowStock = stockQuantity > 0 && stockQuantity <= 10;
 
                         return (
-                          <div key={item.id} className={`cart-item ${selectedItems.includes(item.id) ? 'selected' : ''} ${isOutOfStock ? 'out-of-stock' : ''} ${isLowStock ? 'low-stock' : ''}`}>
-                            <div className="item-checkbox">
-                              <input
-                                type="checkbox"
-                                checked={selectedItems.includes(item.id)}
-                                onChange={e => {
-                                  if (e.target.checked) {
-                                    setSelectedItems([...selectedItems, item.id]);
-                                  } else {
-                                    setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                  }
-                                }}
-                              />
-                            </div>
-
-                            <div className="item-image">
-                              {item.product?.photos && item.product.photos.length > 0 ? (
-                                <img
-                                  src={item.product.photos[0].photoUrl || item.product.photos[0]}
-                                  alt={item.product.productName}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    target.nextElementSibling!.setAttribute('style', 'display: flex');
-                                  }}
+                            <div key={item.id}
+                                 className={`cart-item ${selectedItems.includes(item.id) ? 'selected' : ''} ${isOutOfStock ? 'out-of-stock' : ''} ${isLowStock ? 'low-stock' : ''}`}>
+                              <div className="item-checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedItems.includes(item.id)}
+                                    onChange={e => {
+                                      if (e.target.checked) {
+                                        setSelectedItems([...selectedItems, item.id]);
+                                      } else {
+                                        setSelectedItems(selectedItems.filter(id => id !== item.id));
+                                      }
+                                    }}
                                 />
-                              ) : null}
-                              <div className="no-image" style={{ display: item.product?.photos && item.product.photos.length > 0 ? 'none' : 'flex' }}>
-                                <FaImage />
                               </div>
-                            </div>
 
-                            <div className="item-info">
-                              <h4 className="item-name">{item.product?.productName || 'Sản phẩm không xác định'}</h4>
-                              <div className="item-meta">
-                                {item.product?.author && (
-                                  <span className="meta-item">
-                                    <strong>Tác giả:</strong> {item.product.author}
-                                  </span>
-                                )}
-                                {item.product?.category?.categoryName && (
-                                  <span className="meta-item">
-                                    <strong>Thể loại:</strong> {item.product.category.categoryName}
-                                  </span>
-                                )}
+                              <div className="item-image">
+                                {item.product?.photos && item.product.photos.length > 0 ? (
+                                    <img
+                                        src={item.product.photos[0].photoUrl || item.product.photos[0]}
+                                        alt={item.product.productName}
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          target.nextElementSibling!.setAttribute('style', 'display: flex');
+                                        }}
+                                    />
+                                ) : null}
+                                <div className="no-image"
+                                     style={{display: item.product?.photos && item.product.photos.length > 0 ? 'none' : 'flex'}}>
+                                  <FaImage/>
+                                </div>
                               </div>
-                              <div className="item-price">
-                                <span className="price-label">Đơn giá:</span>
-                                <span className="price-value">
-                                  {item.product?.price?.toLocaleString('vi-VN')} ₫
-                                </span>
-                              </div>
-                            </div>
 
-                            <div className="item-controls">
-                              <div className="quantity-controls">
-                                <button
-                                  className="qty-btn decrease"
-                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                  disabled={item.quantity <= 1 || updatingItems.has(item.id)}
-                                >
-                                  <FaMinus />
-                                </button>
-                                <span className="quantity">
+                              <div className="item-info">
+                                <h4 className="item-name">{item.product?.productName || 'Unknown Product'}</h4>
+                                <div className="item-meta">
+                                  {item.product?.author && (
+                                      <span className="meta-item">
+                                          <strong>Author:</strong> {item.product.author}
+                                        </span>
+                                  )}
+                                  {item.product?.category?.categoryName && (
+                                      <span className="meta-item">
+                                          <strong>Category:</strong> {item.product.category.categoryName}
+                                        </span>
+                                  )}
+                                </div>
+                                <div className="item-price">
+                                  <span className="price-label">Unit Price:</span>
+                                  <span className="price-value">
+                                      {item.product?.price?.toLocaleString('vi-VN')} $
+                                    </span>
+                                </div>
+                              </div>
+                              <div className="item-controls">
+                                <div className="quantity-controls">
+                                  <button
+                                      className="qty-btn decrease"
+                                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                      disabled={item.quantity <= 1 || updatingItems.has(item.id)}
+                                  >
+                                    <FaMinus/>
+                                  </button>
+                                  <span className="quantity">
                                   {updatingItems.has(item.id) ? '...' : item.quantity}
                                 </span>
+                                  <button
+                                      className="qty-btn increase"
+                                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                      disabled={
+                                          updatingItems.has(item.id) ||
+                                          item.quantity >= (item.product?.stockQuantity || 0) ||
+                                          (item.product?.stockQuantity || 0) === 0
+                                      }
+                                      title={
+                                        item.quantity >= (item.product?.stockQuantity || 0)
+                                            ? `Reached stock limit (${item.product?.stockQuantity})`
+                                            : 'Increase quantity'
+                                      }
+                                  >
+                                    <FaPlus/>
+                                  </button>
+                                </div>
+
+                                {/* Stock Info */}
+                                <div className="stock-info">
+                                  <span
+                                      className={`stock-status ${(item.product?.stockQuantity || 0) <= 10 ? 'low-stock' : 'in-stock'}`}>
+                                    {(item.product?.stockQuantity || 0) === 0
+                                        ? 'Out of Stock'
+                                        : `Only ${item.product?.stockQuantity} left`
+                                    }
+                                  </span>
+                                </div>
+                                <div className="item-total">
+                                  <span className="total-label">Total:</span>
+                                  <span className="total-value">
+                                    {item.totalPrice?.toLocaleString('vi-VN')}$
+                                  </span>
+                                </div>
+
                                 <button
-                                  className="qty-btn increase"
-                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                  disabled={
-                                    updatingItems.has(item.id) ||
-                                    item.quantity >= (item.product?.stockQuantity || 0) ||
-                                    (item.product?.stockQuantity || 0) === 0
-                                  }
-                                  title={
-                                    item.quantity >= (item.product?.stockQuantity || 0)
-                                      ? `Đã đạt giới hạn tồn kho (${item.product?.stockQuantity})`
-                                      : 'Tăng số lượng'
-                                  }
+                                    className="remove-btn"
+                                    onClick={() => removeItem(item.product?.id || item.productId)}
+                                    title="Remove product"
                                 >
-                                  <FaPlus />
+                                  <FaTrash/>
                                 </button>
                               </div>
-
-                              {/* Stock Info */}
-                              <div className="stock-info">
-                                <span className={`stock-status ${(item.product?.stockQuantity || 0) <= 10 ? 'low-stock' : 'in-stock'}`}>
-                                  {(item.product?.stockQuantity || 0) === 0
-                                    ? 'Hết hàng'
-                                    : `Còn ${item.product?.stockQuantity} sản phẩm`
-                                  }
-                                </span>
-                              </div>
-
-                              <div className="item-total">
-                                <span className="total-label">Tổng:</span>
-                                <span className="total-value">
-                                  {item.totalPrice?.toLocaleString('vi-VN')} ₫
-                                </span>
-                              </div>
-
-                              <button
-                                className="remove-btn"
-                                onClick={() => removeItem(item.product?.id || item.productId)}
-                                title="Xóa sản phẩm"
-                              >
-                                <FaTrash />
-                              </button>
                             </div>
-                          </div>
                         );
                       })}
                     </div>
@@ -720,121 +705,121 @@ const CartPage = () => {
                   <div className="address-section">
                     <div className="section-header">
                       <h3>
-                        <FaMapMarkerAlt />
-                        Địa chỉ giao hàng
+                        <FaMapMarkerAlt/>
+                        Shipping Address
                       </h3>
                       <button
-                        className="add-address-btn primary"
-                        onClick={() => setShowAddAddress(true)}
+                          className="add-address-btn primary"
+                          onClick={() => setShowAddAddress(true)}
                       >
-                        <FaMapMarkerAlt />
-                        Thêm địa chỉ mới
+                        <FaMapMarkerAlt/>
+                        Add New Address
                       </button>
                     </div>
                     <div className="address-content">
                       {addresses.length === 0 ? (
-                        <div className="no-address">
-                          <div className="no-address-content">
-                            <FaMapMarkerAlt className="no-address-icon" />
-                            <h4>Chưa có địa chỉ giao hàng</h4>
-                            <p>Thêm địa chỉ để tiếp tục đặt hàng</p>
-                            <button
-                              className="add-address-btn primary"
-                              onClick={() => setShowAddAddress(true)}
-                            >
-                              <FaMapMarkerAlt />
-                              Thêm địa chỉ mới
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="address-selector">
-                          <div className="address-dropdown-container">
-                            <div className="address-dropdown">
-                              <select
-                                value={selectedAddressId ?? ''}
-                                onChange={e => setSelectedAddressId(Number(e.target.value))}
-                                className="address-select"
+                          <div className="no-address">
+                            <div className="no-address-content">
+                              <FaMapMarkerAlt className="no-address-icon"/>
+                              <h4>No Shipping Address</h4>
+                              <p>Add an address to continue with your order</p>
+                              <button
+                                  className="add-address-btn primary"
+                                  onClick={() => setShowAddAddress(true)}
                               >
-                                <option value="">-- Chọn địa chỉ giao hàng --</option>
-                                {addresses.map(addr => (
-                                  <option key={addr._idx} value={addr._idx}>
-                                    {addr.addressName} - {addr.fullAddress}
-                                    {addr.isDefault ? ' (Mặc định)' : ''}
-                                    {addr.displayShippingFee ? ` - ${addr.displayShippingFee}` : ''}
-                                  </option>
-                                ))}
-                              </select>
+                                <FaMapMarkerAlt/>
+                                Add New Address
+                              </button>
                             </div>
-
-                            {selectedAddressId !== null && addresses.find(addr => addr._idx === selectedAddressId) && (
-                              <div className="selected-address-preview">
-                                <div className="address-card selected">
-                                  <div className="address-info">
-                                    <div className="address-header">
-                                      <h4>
-                                        {addresses.find(addr => addr._idx === selectedAddressId)?.addressName}
-                                        {addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
-                                          <span className="default-badge">Mặc định</span>
-                                        )}
-                                      </h4>
-                                    </div>
-                                    <p>{addresses.find(addr => addr._idx === selectedAddressId)?.fullAddress}</p>
-                                    <div className="address-details">
-                                      <span className="user-info">
-                                        <FaUser className="user-icon" />
-                                        {addresses.find(addr => addr._idx === selectedAddressId)?.fullName}
-                                      </span>
-                                      <span className="phone">
-                                        <FaPhone className="phone-icon" />
-                                        {addresses.find(addr => addr._idx === selectedAddressId)?.phoneNumber}
-                                      </span>
-                                    </div>
-                                    <div className="address-extra-info">
-                                      {addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance && (
-                                        <div className="distance-info">
-                                          <FaMapMarkerAlt className="distance-icon" />
-                                          <span>{addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance}</span>
-                                        </div>
-                                      )}
-                                      {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee && (
-                                        <div className="shipping-info">
-                                          <FaShoppingBag className="shipping-icon" />
-                                          <span>Phí vận chuyển: {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="address-actions-buttons">
-                                    {!addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
-                                      <button
-                                        className="address-action-btn default-btn"
-                                        onClick={() => setDefaultAddress(selectedAddressId)}
-                                        title="Đặt làm địa chỉ mặc định"
-                                      >
-                                        <FaHome />
-                                      </button>
-                                    )}
-                                    <button
-                                      className="address-action-btn edit-btn"
-                                      onClick={() => editAddress(selectedAddressId)}
-                                      title="Chỉnh sửa địa chỉ"
-                                    >
-                                      <FaEdit />
-                                    </button>
-                                    <button
-                                      className="address-action-btn delete-btn"
-                                      onClick={() => deleteAddress(selectedAddressId)}
-                                      title="Xóa địa chỉ"
-                                    >
-                                      <FaTrash />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                           </div>
-                        </div>
+                      ) : (
+                          <div className="address-selector">
+                            <div className="address-dropdown-container">
+                              <div className="address-dropdown">
+                                <select
+                                    value={selectedAddressId ?? ''}
+                                    onChange={e => setSelectedAddressId(Number(e.target.value))}
+                                    className="address-select"
+                                >
+                                  <option value="">-- Select Shipping Address --</option>
+                                  {addresses.map(addr => (
+                                      <option key={addr._idx} value={addr._idx}>
+                                        {addr.addressName} - {addr.fullAddress}
+                                        {addr.isDefault ? ' (Default)' : ''}
+                                        {addr.displayShippingFee ? ` - ${addr.displayShippingFee}` : ''}
+                                      </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {selectedAddressId !== null && addresses.find(addr => addr._idx === selectedAddressId) && (
+                                  <div className="selected-address-preview">
+                                    <div className="address-card selected">
+                                      <div className="address-info">
+                                        <div className="address-header">
+                                          <h4>
+                                            {addresses.find(addr => addr._idx === selectedAddressId)?.addressName}
+                                            {addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
+                                                <span className="default-badge">Default</span>
+                                            )}
+                                          </h4>
+                                        </div>
+                                        <p>{addresses.find(addr => addr._idx === selectedAddressId)?.fullAddress}</p>
+                                        <div className="address-details">
+              <span className="user-info">
+                <FaUser className="user-icon"/>
+                {addresses.find(addr => addr._idx === selectedAddressId)?.fullName}
+              </span>
+                                          <span className="phone">
+                <FaPhone className="phone-icon"/>
+                                            {addresses.find(addr => addr._idx === selectedAddressId)?.phoneNumber}
+              </span>
+                                        </div>
+                                        <div className="address-extra-info">
+                                          {addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance && (
+                                              <div className="distance-info">
+                                                <FaMapMarkerAlt className="distance-icon"/>
+                                                <span>{addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance}</span>
+                                              </div>
+                                          )}
+                                          {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee && (
+                                              <div className="shipping-info">
+                                                <FaShoppingBag className="shipping-icon"/>
+                                                <span>Shipping Fee: {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee}</span>
+                                              </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="address-actions-buttons">
+                                        {!addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
+                                            <button
+                                                className="address-action-btn default-btn"
+                                                onClick={() => setDefaultAddress(selectedAddressId)}
+                                                title="Set as default address"
+                                            >
+                                              <FaHome/>
+                                            </button>
+                                        )}
+                                        <button
+                                            className="address-action-btn edit-btn"
+                                            onClick={() => editAddress(selectedAddressId)}
+                                            title="Edit address"
+                                        >
+                                          <FaEdit/>
+                                        </button>
+                                        <button
+                                            className="address-action-btn delete-btn"
+                                            onClick={() => deleteAddress(selectedAddressId)}
+                                            title="Delete address"
+                                        >
+                                          <FaTrash/>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                              )}
+                            </div>
+                          </div>
                       )}
                     </div>
                   </div>
@@ -843,221 +828,180 @@ const CartPage = () => {
                 {/* Right Column - Cart Summary */}
                 <div className="cart-summary-section">
                   <div className="summary-card">
-                    <h3 className="summary-title">Tổng kết đơn hàng</h3>
+                    <h3 className="summary-title">Order Summary</h3>
 
                     {/* Selected Items Info */}
                     {selectedItems.length > 0 && (
-                      <div className="selected-info">
-                        <span className="selected-count">
-                          Đã chọn {selectedItems.length}/{cartItems.length} sản phẩm
-                        </span>
-                      </div>
+                        <div className="selected-info">
+        <span className="selected-count">
+          Selected {selectedItems.length}/{cartItems.length} items
+        </span>
+                        </div>
                     )}
 
                     {/* Coupon Section */}
                     <div className="coupon-section">
-                      <h4>
-                        <FaTag />
-                        Mã giảm giá
-                        {selectedSubtotal > 0 && (
-                          <span className="coupon-hint">Áp dụng để tiết kiệm thêm!</span>
-                        )}
-                      </h4>
 
                       {!appliedCoupon ? (
-                        <div className="coupon-input-container">
-                          <div className="coupon-input-group">
-                            <input
-                              type="text"
-                              placeholder="Nhập mã giảm giá (VD: SAVE20, WELCOME10)"
-                              value={couponCode}
-                              onChange={(e) => {
-                                setCouponCode(e.target.value.toUpperCase());
-                                // Clear error when user starts typing
-                                if (couponError) {
-                                  setCouponError(null);
-                                }
-                              }}
-                              className={`coupon-input ${couponError ? 'error' : ''}`}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter' && couponCode.trim() && selectedSubtotal > 0 && !applyingCoupon) {
-                                  applyCoupon();
-                                }
-                              }}
-                            />
-                            <button
-                              className="apply-coupon-btn"
-                              onClick={applyCoupon}
-                              disabled={applyingCoupon || !couponCode.trim() || selectedSubtotal <= 0}
-                            >
-                              {applyingCoupon ? (
-                                <>
-                                  <div className="spinner-mini"></div>
-                                  Đang kiểm tra...
-                                </>
-                              ) : (
-                                <>
-                                  <FaTag />
-                                  Áp dụng mã
-                                </>
-                              )}
-                            </button>
-                          </div>
-                          
-                          {/* Error message */}
-                          {couponError && (
-                            <div className="coupon-error">
-                              <span>{couponError}</span>
+                          <div className="coupon-input-container">
+                            <div className="coupon-input-group">
+                              <input
+                                  type="text"
+                                  placeholder="Enter coupon code (e.g., SAVE20, WELCOME10)"
+                                  value={couponCode}
+                                  onChange={(e) => {
+                                    setCouponCode(e.target.value.toUpperCase());
+                                    if (couponError) {
+                                      setCouponError(null);
+                                    }
+                                  }}
+                                  className={`coupon-input ${couponError ? 'error' : ''}`}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && couponCode.trim() && selectedSubtotal > 0 && !applyingCoupon) {
+                                      applyCoupon();
+                                    }
+                                  }}
+                              />
+                              <button
+                                  className="apply-coupon-btn"
+                                  onClick={applyCoupon}
+                                  disabled={applyingCoupon || !couponCode.trim() || selectedSubtotal <= 0}
+                              >
+                                {applyingCoupon ? (
+                                    <>
+                                      <div className="spinner-mini"></div>
+                                      Checking...
+                                    </>
+                                ) : (
+                                    <>
+                                      <FaTag/>
+                                      Apply Coupon
+                                    </>
+                                )}
+                              </button>
                             </div>
-                          )}
-                          
-                          {selectedSubtotal <= 0 && !couponError && (
-                            <div className="coupon-warning">
-                              <span>⚠️ Vui lòng chọn sản phẩm trước khi áp dụng mã giảm giá</span>
-                            </div>
-                          )}
 
-                          {selectedSubtotal > 0 && !couponError && (
-                            <div className="coupon-suggestions">
-                              <span className="suggestions-label">💡 Gợi ý mã giảm giá:</span>
-                              <div className="suggestion-tags">
-                                <span 
-                                  className="suggestion-tag" 
-                                  onClick={() => {
-                                    setCouponCode('SAVE20');
-                                    setCouponError(null);
-                                  }}
-                                >
-                                  SAVE20 (-20%)
-                                </span>
-                                <span 
-                                  className="suggestion-tag" 
-                                  onClick={() => {
-                                    setCouponCode('WELCOME10');
-                                    setCouponError(null);
-                                  }}
-                                >
-                                  WELCOME10 (-10%)
-                                </span>
-                                <span 
-                                  className="suggestion-tag" 
-                                  onClick={() => {
-                                    setCouponCode('FREESHIP');
-                                    setCouponError(null);
-                                  }}
-                                >
-                                  FREESHIP (Miễn phí ship)
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="applied-coupon">
-                          <div className="coupon-success-card">
-                            <div className="coupon-info">
-                              <FaCheck className="coupon-check" />
-                              <div className="coupon-details">
-                                <span className="coupon-code">Mã "{appliedCoupon.code}" đã được áp dụng</span>
-                                <span className="coupon-savings">
-                                  Bạn tiết kiệm được {appliedCoupon.discountAmount.toLocaleString('vi-VN')} ₫
-                                </span>
-                              </div>
-                            </div>
-                            <button 
-                              className="remove-coupon-btn" 
-                              onClick={removeCoupon}
-                              title="Xóa mã giảm giá"
-                            >
-                              <FaTrash />
-                            </button>
+                            {/* Error message */}
+                            {couponError && (
+                                <div className="coupon-error">
+                                  <span>{couponError}</span>
+                                </div>
+                            )}
+
+                            {selectedSubtotal <= 0 && !couponError && (
+                                <div className="coupon-warning">
+                                  <span>⚠️ Please select products before applying a coupon</span>
+                                </div>
+                            )}
+
+
                           </div>
-                        </div>
+                      ) : (
+                          <div className="applied-coupon">
+                            <div className="coupon-success-card">
+                              <div className="coupon-info">
+                                <FaCheck className="coupon-check"/>
+                                <div className="coupon-details">
+                                  <span className="coupon-code">Coupon "{appliedCoupon.code}" applied</span>
+                                  <span className="coupon-savings">
+                  You saved {appliedCoupon.discountAmount.toLocaleString('vi-VN')}
+                </span>
+                                </div>
+                              </div>
+                              <button
+                                  className="remove-coupon-btn"
+                                  onClick={removeCoupon}
+                                  title="Remove coupon"
+                              >
+                                <FaTrash/>
+                              </button>
+                            </div>
+                          </div>
                       )}
                     </div>
 
                     {/* Order Note Section */}
                     <div className="order-note-section">
                       <h4>
-                        <FaStickyNote />
-                        Ghi chú đơn hàng
+                        <FaStickyNote/>
+                        Order Note
                       </h4>
                       <textarea
-                        className="order-note-input"
-                        placeholder="Nhập ghi chú cho đơn hàng (tuỳ chọn)..."
-                        value={orderNote}
-                        onChange={(e) => setOrderNote(e.target.value)}
-                        rows={3}
-                        maxLength={500}
+                          className="order-note-input"
+                          placeholder="Enter a note for your order (optional)..."
+                          value={orderNote}
+                          onChange={(e) => setOrderNote(e.target.value)}
+                          rows={3}
+                          maxLength={500}
                       />
                       <div className="note-char-count">
-                        {orderNote.length}/500 ký tự
+                        {orderNote.length}/500 characters
                       </div>
                     </div>
 
                     {/* Summary Details */}
                     <div className="summary-details">
                       <div className="summary-row">
-                        <span>Tạm tính ({selectedItems.length} sản phẩm):</span>
-                        <span>{selectedSubtotal.toLocaleString('vi-VN')} ₫</span>
+                        <span>Subtotal ({selectedItems.length} items):</span>
+                        <span>{selectedSubtotal.toLocaleString('vi-VN')} $</span>
                       </div>
                       <div className="summary-row">
-                        <span>Phí vận chuyển:</span>
-                        <span>{shipping.toLocaleString('vi-VN')} ₫</span>
+                        <span>Shipping Fee:</span>
+                        <span>{shipping.toLocaleString('vi-VN')} $</span>
                       </div>
                       {appliedCoupon && (
-                        <div className="summary-row discount">
-                          <span>Giảm giá {appliedCoupon.code}:</span>
-                          <span>-{discount.toLocaleString('vi-VN')} ₫</span>
-                        </div>
+                          <div className="summary-row discount">
+                            <span>Discount {appliedCoupon.code}:</span>
+                            <span>-{discount.toLocaleString('vi-VN')} $</span>
+                          </div>
                       )}
                       <div className="summary-row total">
-                        <span>Tổng thanh toán:</span>
-                        <span>{total.toLocaleString('vi-VN')} ₫</span>
+                        <span>Total Payment:</span>
+                        <span>{total.toLocaleString('vi-VN')} $</span>
                       </div>
                     </div>
 
                     <button
-                      className="checkout-btn"
-                      onClick={proceedToCheckout}
-                      disabled={
-                        selectedItems.length === 0 ||
-                        (addresses.length > 0 && selectedAddressId === null)
-                      }
-                      title={
-                        selectedItems.length === 0 
-                          ? 'Vui lòng chọn sản phẩm để thanh toán'
-                          : `Thanh toán ${selectedItems.length} sản phẩm đã chọn`
-                      }
+                        className="checkout-btn"
+                        onClick={proceedToCheckout}
+                        disabled={
+                            selectedItems.length === 0 ||
+                            (addresses.length > 0 && selectedAddressId === null)
+                        }
+                        title={
+                          selectedItems.length === 0
+                              ? 'Please select products to checkout'
+                              : `Checkout ${selectedItems.length} selected items`
+                        }
                     >
-                      <FaShoppingBag />
-                      {selectedItems.length > 0 
-                        ? `Thanh toán (${selectedItems.length} sản phẩm)`
-                        : 'Tiến hành thanh toán'
+                      <FaShoppingBag/>
+                      {selectedItems.length > 0
+                          ? `Checkout (${selectedItems.length} items)`
+                          : 'Proceed to Checkout'
                       }
                     </button>
                   </div>
-                </div>
+              </div>
               </div>
             </>
-          )}
+            )}
         </div>
       </div>
 
       {/* Add/Edit Address Modal */}
       {showAddAddress && (
-        <AddAddressForm
-          editingAddress={editingAddress}
-          onSuccess={() => {
-            setShowAddAddress(false);
-            setEditingAddress(null);
-            fetchAddresses();
-          }}
-          onClose={() => {
-            setShowAddAddress(false);
-            setEditingAddress(null);
-          }}
-        />
+          <AddAddressForm
+              editingAddress={editingAddress}
+              onSuccess={() => {
+                setShowAddAddress(false);
+                setEditingAddress(null);
+                fetchAddresses();
+              }}
+              onClose={() => {
+                setShowAddAddress(false);
+                setEditingAddress(null);
+              }}
+          />
       )}
     </div>
   );
