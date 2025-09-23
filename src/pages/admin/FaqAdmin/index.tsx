@@ -281,14 +281,14 @@ const FaqAdmin: React.FC = () => {
         );
       }
     },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 200,
-      render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '-',
-      sorter: (a, b) => new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()
-    },
+    // {
+    //   title: 'Created At',
+    //   dataIndex: 'createdAt',
+    //   key: 'createdAt',
+    //   width: 200,
+    //   render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : '-',
+    //   sorter: (a, b) => new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()
+    // },
     {
       title: 'Actions',
       key: 'actions',

@@ -1,0 +1,252 @@
+src/pages/admin/reviews/AdminReviews.css
+
+.admin-reviews-container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Page Header Styles */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1890ff;
+}
+
+.page-title .anticon {
+  font-size: 28px;
+}
+
+.pending-badge {
+  margin-left: 8px;
+}
+
+.pending-badge .ant-badge-count {
+  background-color: #faad14;
+}
+
+.page-subtitle {
+  font-size: 14px;
+}
+
+/* Filter Panel Styles */
+.filter-panel {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filter-select {
+  width: 100%;
+}
+
+.option-rating {
+  font-size: 12px;
+}
+
+.refresh-button,
+.export-button {
+  border-radius: 6px;
+}
+
+.refresh-button:hover {
+  background-color: #e6f7ff;
+  border-color: #40a9ff;
+}
+
+.export-button:hover {
+  background-color: #f6ffed;
+  border-color: #73d13d;
+}
+
+/* Table Styles */
+.reviews-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reviews-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.reviews-table .ant-table-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+/* Customer Info Styles */
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customer-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.customer-details {
+  min-width: 0;
+  flex: 1;
+}
+
+.customer-name {
+  font-weight: 500;
+  color: #262626;
+  margin-bottom: 2px;
+}
+
+.customer-email {
+  font-size: 12px;
+  color: #8c8c8c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Product Info Styles */
+.product-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #262626;
+}
+
+.order-info {
+  font-size: 12px !important;
+}
+
+/* Rating Styles */
+.rating-container {
+  text-align: center;
+}
+
+.rating-stars {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.rating-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #faad14;
+}
+
+/* Comment Styles */
+.comment-text {
+  margin: 0 !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Images Styles */
+.images-container {
+  text-align: center;
+}
+
+.images-icon {
+  font-size: 20px;
+  color: #1890ff;
+}
+
+/* Status Styles */
+.status-container {
+  text-align: center;
+}
+
+/* Date Styles */
+.date-container {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.date-icon {
+  color: #8c8c8c;
+}
+
+/* Replies Styles */
+.replies-container {
+  text-align: center;
+}
+
+.replies-icon {
+  font-size: 16px;
+  color: #1890ff;
+}
+
+/* Actions Styles */
+.actions-space {
+  justify-content: center;
+}
+
+.action-button {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.approve-button:hover {
+  color: #52c41a !important;
+  background-color: #f6ffed !important;
+}
+
+.reject-button:hover {
+  color: #ff4d4f !important;
+  background-color: #fff2f0 !important;
+}
+
+/* Modal Styles */
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #1890ff;
+}
+
+.modal-icon {
+  color: #faad14;
+}
+
+.review-detail-modal .ant-modal-body {
+  padding: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Review Header Styles */
+.review-header {
+  margin-bottom: 24px;
+}
+
+.customer-card,
+.rating-card {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
