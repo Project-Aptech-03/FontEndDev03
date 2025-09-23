@@ -30,7 +30,7 @@ const ContactPage: React.FC = () => {
       // ID từ EmailJS
       const serviceID = 'service_5jndhll';
       const adminTemplateID = 'template_5oga9gf';
-      const customerTemplateID = 'template_wc1gq0b'; // Template mới cho khách hàng
+      const customerTemplateID = 'template_wc1gq0b';
       const userID = 'BPSenmEqRQS7riyHF';
 
       const adminParams = {

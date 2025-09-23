@@ -16,6 +16,8 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from  '../routes/AuthContext'
 import apiClient from "../services/api";
+import {UsersResponseDto} from "../@type/UserResponseDto";
+import {getProfile} from "../api/profile.api";
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
@@ -24,7 +26,20 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { isLoggedIn, logout, user } = useAuth();
-
+    const [userProfile, setUserProfile] = useState<UsersResponseDto | null>(null);
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await getProfile();
+                if (res.success && res.data) {
+                    setUserProfile(res.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch profile", err);
+            }
+        };
+        fetchProfile();
+    }, []);
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -108,7 +123,8 @@ const Header: React.FC = () => {
     ];
     const userMenuItems: MenuProps['items'] = isLoggedIn
         ? [
-            ...(user?.role === 'Admin' ? [
+            // eslint-disable-next-line no-constant-condition
+            ...(user?.role === 'Admin' || 'Employee' ? [
                 {
                     key: 'dashboard',
                     label: 'Dashboard',
@@ -272,24 +288,25 @@ const Header: React.FC = () => {
             {/* Action Icons */}
             <div style={iconsContainerStyle}>
 
-                <Dropdown 
-                    menu={{ items: userMenuItems }} 
-                    placement="bottomRight" 
+                <Dropdown
+                    menu={{ items: userMenuItems }}
+                    placement="bottomRight"
                     trigger={['click']}
                     arrow={{ pointAtCenter: true }}
                 >
                     {isLoggedIn ? (
-                        <Avatar 
+                        <Avatar
                             size={36}
-                            icon={<UserOutlined />}
-                            style={{ 
+                            src={userProfile?.avatarUrl || undefined} // nếu có ảnh thì hiển thị
+                            icon={!userProfile?.avatarUrl && <UserOutlined />} // nếu chưa có ảnh thì hiển thị icon
+                            style={{
                                 cursor: 'pointer',
-                                backgroundColor: '#1890ff',
+                                backgroundColor: !userProfile?.avatarUrl ? '#1890ff' : undefined,
                                 border: '2px solid #f0f7ff',
                             }}
                         />
                     ) : (
-                        <UserOutlined 
+                        <UserOutlined
                             style={{
                                 ...iconStyle,
                                 fontSize: '18px',
@@ -305,6 +322,7 @@ const Header: React.FC = () => {
                         />
                     )}
                 </Dropdown>
+
 
                 {/* Wishlist Icon */}
                 <Badge count={wishlistCount} showZero={false}>

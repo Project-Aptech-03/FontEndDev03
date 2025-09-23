@@ -272,7 +272,7 @@ const BlogDetail: React.FC = () => {
 
   const handleFollowAuthor = async () => {
     if (!blog) return;
-    
+
     try {
       let success = false;
       if (isFollowing) {
@@ -280,18 +280,19 @@ const BlogDetail: React.FC = () => {
       } else {
         success = await followAuthor(blog.authorId);
       }
-      
+
       if (success) {
         setIsFollowing(!isFollowing);
-        message.success(isFollowing ? 'Đã bỏ theo dõi tác giả' : 'Đã theo dõi tác giả');
+        message.success(isFollowing ? 'Unfollowed the author' : 'Followed the author');
       } else {
-        message.error(followError || 'Có lỗi xảy ra khi thực hiện thao tác');
+        message.error(followError || 'An error occurred while performing the action');
       }
     } catch (error) {
       console.error('Follow author error:', error);
-      message.error('Có lỗi xảy ra khi thực hiện thao tác');
+      message.error('An error occurred while performing the action');
     }
   };
+
 
   const shareOnSocial = (platform: string) => {
     const url = window.location.href;

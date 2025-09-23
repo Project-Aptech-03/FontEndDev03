@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Layout, Menu, theme, Avatar, Dropdown, Space } from "antd";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -17,6 +17,8 @@ import {
 
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
+import {UsersResponseDto} from "../@type/UserResponseDto";
+import {getProfile} from "../api/profile.api";
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,10 +26,11 @@ const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+  const [userProfile, setUserProfile] = useState<UsersResponseDto | null>(null);
 
   // Lấy path hiện tại để highlight menu item
   const getSelectedKey = () => {
@@ -42,6 +45,20 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/blog")) return "8";
     return "1";
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getProfile();
+        if (res.success && res.data) {
+          setUserProfile(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const menuItems = [
     {
@@ -171,19 +188,24 @@ const AdminLayout: React.FC = () => {
               Admin
             </h2>
           </div>
-          
+
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: "pointer" }}>
-              <Avatar 
-                size="large" 
-                icon={<UserOutlined />} 
-                style={{ backgroundColor: "#1890ff" }}
+              <Avatar
+                  size="large"
+                  src={userProfile?.avatarUrl || undefined} // nếu avatarUrl undefined/null thì icon sẽ hiển thị
+                  icon={!userProfile?.avatarUrl && <UserOutlined />}
+                  style={{ backgroundColor: !userProfile?.avatarUrl ? "#1890ff" : undefined }}
               />
               {!collapsed && (
-                <span style={{ fontWeight: 500 }}>Admin User</span>
+                  <span style={{ fontWeight: 500 }}>
+        {userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : "Admin User"}
+      </span>
               )}
             </Space>
           </Dropdown>
+
+
         </Header>
         
         <Content

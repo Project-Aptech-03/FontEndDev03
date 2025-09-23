@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import {Card, Typography, Row, Col, Divider, Input, message, Button} from 'antd';
+import { Card, Typography, Row, Col, Divider, Input, message, Button, Tooltip } from 'antd';
 import { UserAddOutlined } from '@ant-design/icons';
 import UserTable from './UserTable';
 import UserForm from './UserForm';
-import {deleteUser, getAllUsers} from "../../../api/user.api";
+import { deleteUser, getAllUsers } from "../../../api/user.api";
 import { filterUsers } from "../../../utils/userFunciton";
 import { UsersResponseDto } from "../../../@type/UserResponseDto";
-
-import { showSuccessNotification} from "./userNotifications";
+import { showSuccessNotification } from "./userNotifications";
+import { useAuth } from "../../../routes/AuthContext";
 
 const { Title, Text } = Typography;
 
 const UserManagement: React.FC = () => {
+  const { user } = useAuth();
   const [users, setUsers] = useState<UsersResponseDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -20,6 +21,10 @@ const UserManagement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<UsersResponseDto | null>(null);
   const [search, setSearch] = useState("");
+  const currentUserRole = user?.role ? user.role.toLowerCase() : "user";
+  const canAddUser = currentUserRole === "admin";
+
+
 
   const fetchUsers = async (pageIndex = 1, pageSize = 10) => {
     setLoading(true);
@@ -29,7 +34,6 @@ const UserManagement: React.FC = () => {
       setTotal(res.data.totalCount);
     } catch (err: any) {
       const apiError = err.response?.data;
-
       if (apiError?.errors && typeof apiError.errors === "object") {
         const messages = Object.values(apiError.errors).flat() as string[];
         messages.forEach(msg => message.error(msg));
@@ -38,7 +42,7 @@ const UserManagement: React.FC = () => {
       } else if (err.message) {
         message.error(err.message);
       } else {
-        message.error("Lỗi hệ thống không xác định");
+        message.error("Unknown system error");
       }
     } finally {
       setLoading(false);
@@ -58,6 +62,10 @@ const UserManagement: React.FC = () => {
   }, [search]);
 
   const handleAdd = () => {
+    if (!canAddUser) {
+      message.warning("You do not have permission to add users");
+      return;
+    }
     setEditingUser(null);
     setModalVisible(true);
   };
@@ -66,15 +74,15 @@ const UserManagement: React.FC = () => {
     setEditingUser(record);
     setModalVisible(true);
   };
+
   const handleDelete = async (id: string) => {
     try {
       setLoading(true);
       await deleteUser(id);
-      showSuccessNotification("Đã xóa người dùng thành công!");
+      showSuccessNotification("User deleted successfully!");
       fetchUsers(page, pageSize);
-    }catch (err: any) {
+    } catch (err: any) {
       const apiError = err.response?.data;
-
       if (apiError?.errors && typeof apiError.errors === "object") {
         const messages = Object.values(apiError.errors).flat() as string[];
         messages.forEach(msg => message.error(msg));
@@ -83,7 +91,7 @@ const UserManagement: React.FC = () => {
       } else if (err.message) {
         message.error(err.message);
       } else {
-        message.error("Lỗi hệ thống không xác định");
+        message.error("Unknown system error");
       }
     } finally {
       setLoading(false);
@@ -102,14 +110,17 @@ const UserManagement: React.FC = () => {
               <Text type="secondary">Total: {users.length} users</Text>
             </Col>
             <Col>
-              <Button
-                  type="primary"
-                  icon={<UserAddOutlined />}
-                  size="large"
-                  onClick={handleAdd}
-              >
-                Add User
-              </Button>
+              <Tooltip title={!canAddUser ? "You do not have permission to add users" : ""}>
+                <Button
+                    type="primary"
+                    icon={<UserAddOutlined />}
+                    size="large"
+                    onClick={handleAdd}
+                    disabled={!canAddUser} // 👈 disable if no permission
+                >
+                  Add User
+                </Button>
+              </Tooltip>
             </Col>
           </Row>
 
@@ -140,6 +151,7 @@ const UserManagement: React.FC = () => {
                 setPage(p);
                 setPageSize(ps);
               }}
+              currentUserRole={currentUserRole}
           />
 
           <UserForm

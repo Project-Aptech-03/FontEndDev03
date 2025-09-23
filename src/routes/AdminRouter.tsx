@@ -8,6 +8,8 @@ const AdminRoute = () => {
     const [showModal, setShowModal] = useState(false);
     const [redirect, setRedirect] = useState(false);
 
+    const allowedRoles = ["Admin", "Employee"];
+
     useEffect(() => {
         if (!loading && (!isLoggedIn || !user)) {
             setShowModal(true);
@@ -23,10 +25,17 @@ const AdminRoute = () => {
         setShowModal(true);
     };
 
-    if (loading) return <div>Đang tải...</div>;
+    if (loading) return <div>Loading...</div>;
     if (redirect) return <Navigate to="/login" replace />;
-    if (isLoggedIn && user && user.role !== "Admin") return <Navigate to="/home" replace />;
-    if (isLoggedIn && user && user.role === "Admin") return <Outlet />;
+
+    if (isLoggedIn && user) {
+        // Nếu có quyền thì cho vào
+        if (allowedRoles.includes(user.role)) {
+            return <Outlet />;
+        }
+        // Nếu không có quyền thì quăng về home
+        return <Navigate to="/home" replace />;
+    }
 
     return (
         <>
@@ -41,7 +50,7 @@ const AdminRoute = () => {
                 okText="Login"
                 cancelText="Cancel"
             >
-                <p>You need to log in with Admin privileges to access this page!</p>
+                <p>You need to log in with Admin or Employee privileges to access this page!</p>
             </Modal>
         </>
     );

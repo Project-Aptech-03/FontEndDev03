@@ -86,7 +86,14 @@ const Login: React.FC = () => {
 
         setTimeout(() => {
           setIsModalVisible(false);
-          navigate(role === "Admin" ? "/admin/dashboard" : "/home");
+          const normalizedRole = role?.trim().toLowerCase();
+
+          navigate(
+              ["admin", "employee"].includes(normalizedRole)
+                  ? "/admin/dashboard"
+                  : "/home"
+          );
+
         }, 2000);
       } else {
         showModal(res.errors?.message || res.message || "Login failed!");

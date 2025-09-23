@@ -11,6 +11,7 @@ interface UserTableProps {
     onEdit: (record: UsersResponseDto) => void;
     onDelete: (id: string) => void;
     onPageChange: (page: number, pageSize: number) => void;
+    currentUserRole?: 'admin' | 'employee' | 'user';
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -21,10 +22,10 @@ const UserTable: React.FC<UserTableProps> = ({
                                                  pageSize,
                                                  onEdit,
                                                  onDelete,
-                                                 onPageChange
+                                                 onPageChange,
+                                                    currentUserRole = 'user'
                                              }) => {
-    const columns = userColumns(onEdit, onDelete);
-
+    const columns = userColumns(onEdit, onDelete, currentUserRole);
     return (
         <Table
             rowKey="id"

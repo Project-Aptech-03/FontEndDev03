@@ -99,17 +99,24 @@ const UserForm: React.FC<UserFormProps> = ({
                 });
             } else {
                 form.resetFields();
-                form.setFieldsValue({ role: 'user' }); // Default role
+                form.setFieldsValue({ role: 'employee' });
             }
         }
     }, [visible, editingUser]);
 
+
     const getRoleIcon = (role: string) => {
-        return role === 'admin' ? <CrownOutlined /> : <TeamOutlined />;
+        if (role === 'admin') return <CrownOutlined />;
+        if (role === 'employee') return <TeamOutlined />;
+        if (role === 'user') return <UserOutlined />;
+        return <UserOutlined />;
     };
 
     const getRoleColor = (role: string) => {
-        return role === 'admin' ? '#ff4d4f' : '#1890ff';
+        if (role === 'admin') return '#ff4d4f';
+        if (role === 'employee') return '#1890ff';
+        if (role === 'user') return '#52c41a';
+        return '#d9d9d9';
     };
 
     return (
@@ -334,7 +341,7 @@ const UserForm: React.FC<UserFormProps> = ({
                             <Col span={24}>
                                 <Form.Item
                                     name="role"
-                                    label={<Text strong>User Role</Text>}
+                                    label={<Text strong>employee Role</Text>}
                                     rules={[{ required: true, message: "Please choose a role!" }]}
                                 >
                                     <Select
@@ -358,10 +365,16 @@ const UserForm: React.FC<UserFormProps> = ({
                                                 style: { color: '#ff4d4f' }
                                             },
                                             {
-                                                label: "Regular User",
-                                                value: "user",
+                                                label: "Employee",
+                                                value: "employee",
                                                 style: { color: '#1890ff' }
                                             },
+                                            {
+                                                label: "User",
+                                                value: "user",
+                                                style: { color: '#52c41a' }
+                                            }
+
                                         ]}
                                     />
                                 </Form.Item>
