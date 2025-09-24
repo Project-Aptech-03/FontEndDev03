@@ -37,6 +37,7 @@ import ProductDetail from "../pages/ProductDetail";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRouter";
 import GlobalLoginModal from "./GlobalLoginModal";
+import AdminReviews from "../pages/admin/Reviews";
 
 export const AppRouter = () => (
     <>
@@ -89,6 +90,7 @@ export const AppRouter = () => (
                     <Route path="orders" element={<Orders />} />
                     <Route path="coupons" element={<Coupons />} />
                     <Route path="blog" element={<BlogAdmin />} />
+                    <Route path="reviews" element={<AdminReviews />} />
                 </Route>
             </Route>
 

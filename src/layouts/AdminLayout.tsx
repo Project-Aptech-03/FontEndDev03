@@ -43,6 +43,7 @@ const AdminLayout: React.FC = () => {
     if (path.includes("/admin/coupons")) return "6";
     if (path.includes("/admin/faqs")) return "7";
     if (path.includes("/admin/blog")) return "8";
+    if (path.includes("/admin/reviews")) return "9";
     return "1";
   };
 
@@ -100,6 +101,12 @@ const AdminLayout: React.FC = () => {
       key: "8",
       icon: <FileTextOutlined />,
       label: <Link to="/admin/blog">Manage Blog</Link>,
+    },
+
+    {
+      key: "9",
+      icon: <FileTextOutlined />,
+      label: <Link to="/admin/reviews">Manage Reviews</Link>,
     },
   ];
 
