@@ -105,27 +105,22 @@ const BookCard: React.FC<BookCardProps> = ({ book, isInWishlist, onWishlistToggl
             by {truncateText(book.manufacturer, 25)}
           </p>
 
-          <div className="bookRating" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '12px',
-            height: '20px'
-          }}>
-            <div className="stars" style={{ display: 'flex', gap: '2px' }}>
+          <div className="bookRating"
+               style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', height: '20px'}}>
+            <div className="stars" style={{display: 'flex', gap: '2px'}}>
               {[...Array(5)].map((_, i) => (
                   <FaStar
                       key={i}
                       className={i < Math.floor(book.rating || 0) ? 'star filled' : 'star'}
-                      style={{ fontSize: '12px' }}
+                      style={{fontSize: '12px', color: i < Math.floor(book.rating || 0) ? '#f1c40f' : '#ccc'}}
                   />
               ))}
             </div>
-            <span className="ratingText" style={{
-              fontSize: '12px',
-              color: '#666'
-            }}>({book.reviewCount || 0} reviews)</span>
+            <span className="ratingText" style={{fontSize: '12px', color: '#666'}}>
+    ({book.reviewCount || 0} reviews)
+  </span>
           </div>
+
 
           <div className="bookPrice" style={{
             marginBottom: '12px',

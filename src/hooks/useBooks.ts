@@ -65,6 +65,7 @@ export const useBooks = (
 
   return {
     books,
+    setBooks,
     loading,
     error,
     fetchBooks, // ✅ trả về để BookStore gọi lại khi search

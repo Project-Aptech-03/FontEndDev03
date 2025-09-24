@@ -22,25 +22,27 @@ const { Paragraph, Text, Title } = Typography;
 
 interface ProductDetailTabsProps {
   product: ProductsResponseDto;
+
 }
 
-// Interface cho Publisher để fix lỗi address
 interface Publisher {
   id?: number;
   publisherName?: string;
   address?: string;
   // Thêm các trường khác nếu cần
 }
-
-const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product }) => {
+interface ReviewsTabProps {
+    productId: number;
+    onReviewCountChange: (count: number) => void;
+}
+const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product   }) => {
   const [activeTab, setActiveTab] = useState('1');
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
   };
+    const [reviewCount, setReviewCount] = useState(0);
 
-  // Sửa lỗi: Kiểm tra productReviews một cách an toàn
-  const reviewCount = 0;
 
   return (
     <Tabs
@@ -83,7 +85,13 @@ const ProductDetailTabs: React.FC<ProductDetailTabsProps> = ({ product }) => {
               </Tag>
             </Space>
           ),
-          children: <ReviewsTab productId={product.id} />
+            children: (
+                <ReviewsTab
+                    productId={product.id}
+                    onReviewCountChange={(count) => setReviewCount(count)}
+                />
+            )
+
         }
       ]}
     />
@@ -476,8 +484,7 @@ const SpecificationsTab: React.FC<{ product: ProductsResponseDto }> = ({ product
 };
 
 // Reviews Tab Component
-const ReviewsTab: React.FC<{ productId: number }> = ({ productId }) => {
-  return <ProductReviews productId={productId} />;
+const ReviewsTab: React.FC<ReviewsTabProps> = ({ productId, onReviewCountChange }) => {
+    return <ProductReviews productId={productId} onReviewCountChange={onReviewCountChange} />;
 };
-
 export default ProductDetailTabs;

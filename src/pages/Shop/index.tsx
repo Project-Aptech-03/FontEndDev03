@@ -11,6 +11,7 @@ import { Category, Manufacturer } from "../../@type/products";
 import { getCategory } from "../../api/category.api";
 import { getManufacturers } from "../../api/manufacturer.api";
 import useQuery from "../../hooks/useShop";
+import {getProductReviews} from "../../api/reviews.api";
 const BookStore: React.FC = () => {
   const query = useQuery();
   const initialCategory = query.get("category") || "Books";
@@ -27,7 +28,7 @@ const BookStore: React.FC = () => {
 
   const { handleWishlistToggle, isInWishlist } = useWishlist();
 
-  const { books, loading, fetchBooks } = useBooks(filters.keyword);
+  const { books, loading, fetchBooks, setBooks } = useBooks(filters.keyword);
   const handleSearch = (keyword: string) => {
     setFilters(prev => ({ ...prev, keyword }));
     fetchBooks(keyword);
@@ -46,6 +47,38 @@ const BookStore: React.FC = () => {
     };
     fetchFilters();
   }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchBookReviews = async () => {
+      const updatedBooks = await Promise.all(
+          books.map(async (book) => {
+            try {
+              const reviewRes = await getProductReviews(book.id, { signal: controller.signal });
+              if (reviewRes.success && reviewRes.result?.data) {
+                const reviews = reviewRes.result.data;
+                const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+                return {
+                  ...book,
+                  rating: reviews.length ? total / reviews.length : 0,
+                  reviewCount: reviews.length,
+                };
+              }
+              return { ...book, rating: 0, reviewCount: 0 };
+            } catch (err: any) {
+              if (err.name === "AbortError") return book;
+              throw err;
+            }
+          })
+      );
+      setBooks(updatedBooks); // ✅ giờ dùng được
+    };
+
+    if (books.length > 0) fetchBookReviews();
+
+    return () => controller.abort();
+  }, [books, setBooks]);
+
 
   const initialSetDone = useRef(false);
   useEffect(() => {

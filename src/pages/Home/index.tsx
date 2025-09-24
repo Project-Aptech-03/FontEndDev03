@@ -15,6 +15,7 @@ import CDsDVDs from '../../../assets/image/CDsDVDs.jpg';
 import {message} from "antd";
 import {cartApi} from "../../api/cart.api";
 import {getTop} from "../../utils/bookUtils";
+import {getProductReviews} from "../../api/reviews.api";
 
 const HomePage = () => {
   const { handleWishlistToggle, isInWishlist } = useWishlist();
@@ -29,11 +30,12 @@ const HomePage = () => {
 
   const transformProduct = (product: any, totalQuantity: number = 0): Book => ({
     ...product,
-    rating: Math.random() * 1 + 4,
-    reviewCount: Math.floor(Math.random() * 200) + 50,
+    rating: 0,
+    reviewCount: 0,
     originalPrice: product.price * 1.2,
     totalQuantity
   });
+
 
   const categories = [
     { name: "BOOKS", image: book },
@@ -50,6 +52,7 @@ const HomePage = () => {
     try {
       setLoading(true);
       setError(null);
+
       const [productOrderStats, productsResponse] = await Promise.all([
         getTopProducts(),
         getProducts(1, 100),
@@ -59,8 +62,29 @@ const HomePage = () => {
         throw new Error("Failed to fetch products");
       }
 
-      const allProducts = productsResponse.data.items.map(product =>
+      let allProducts = productsResponse.data.items.map(product =>
           transformProduct(product, productOrderStats[product.id] || 0)
+      );
+
+      // ✅ gọi API reviews cho từng book
+      allProducts = await Promise.all(
+          allProducts.map(async (book) => {
+            try {
+              const reviewRes = await getProductReviews(book.id);
+              if (reviewRes.success && reviewRes.result?.data) {
+                const reviews = reviewRes.result.data;
+                const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+                return {
+                  ...book,
+                  rating: reviews.length ? total / reviews.length : 0,
+                  reviewCount: reviews.length
+                };
+              }
+            } catch (e) {
+              console.warn(`Failed to fetch reviews for book ${book.id}`, e);
+            }
+            return { ...book, rating: 0, reviewCount: 0 };
+          })
       );
 
       const newBooksData = getTop(
@@ -83,7 +107,7 @@ const HomePage = () => {
           () => Math.random() - 0.5
       );
 
-      // Set state
+      // ✅ Set state
       setNewBooks(newBooksData);
       setSaleBooks(saleBooksData);
       setHotBooks(hotBooksData);
@@ -96,6 +120,7 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchBooksData();

@@ -25,6 +25,8 @@ export interface Book {
   weight?: number | null;
   stockQuantity?: number;
   createdDate?: string;
+
+
 }
 
 

@@ -141,7 +141,6 @@ const ImageActionButtons: React.FC<{
     </div>
 );
 
-// Image Thumbnail Slider Component
 const ImageThumbnailSlider: React.FC<{
     images: string[];
     selectedImageIndex: number;
