@@ -293,13 +293,13 @@ const CartPage = () => {
   const applyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponError('Please enter a coupon code');
-      toast.error('Please enter a coupon code');
+      message.error('Please enter a coupon code');
       return;
     }
 
     if (selectedSubtotal <= 0) {
       setCouponError('Please select a product before applying the coupon');
-      toast.error('Your cart is empty');
+      message.error('Your cart is empty');
       return;
     }
 
