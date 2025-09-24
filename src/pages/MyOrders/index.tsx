@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {   Package, Eye, Truck, CheckCircle, XCircle, Clock,ShoppingBag,  RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, DollarSign, AlertCircle} from 'lucide-react';
 import { ApiOrder as Order, getProductImageUrl } from '../../@type/Orders';
 import { getMyOrders, cancelOrder } from '../../api/orders.api';
+import { cartApi } from '../../api/cart.api';
+import { message } from 'antd';
 import './MyOrder.css';
 
 const MyOrders = () => {
@@ -15,6 +17,7 @@ const MyOrders = () => {
   const [cancelReason, setCancelReason] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isReordering, setIsReordering] = useState<number | null>(null);
 
   // Gọi API thật để lấy dữ liệu đơn hàng
   useEffect(() => {
@@ -85,46 +88,51 @@ const MyOrders = () => {
     };
     return statusMap[status.toLowerCase()] || status;
   };
-  const getPaymentStatusText = (status: string) => {
+  const getPaymentStatusText = (status: string, paymentType?: string) => {
+    // Nếu payment type là COD và status là pending, hiển thị Cash on Delivery
+    if (paymentType?.toLowerCase() === 'cod' && status.toLowerCase() === 'pending') {
+      return 'Cash on Delivery';
+    }
+    
     const statusMap: { [key: string]: string } = {
-      pending: 'Payment Pending',
-      paid: 'Payment Complete',
-      unpaid: 'Payment Required',
-      refunded: 'Refunded',
-      failed: 'Payment Failed'
+      paid: 'Paid',
+      cod: 'Cash on Delivery',
+      refunded: 'Refunded'
     };
     return statusMap[status.toLowerCase()] || status;
   };
-  const getPaymentStatusIcon = (status: string) => {
+  const getPaymentStatusIcon = (status: string, paymentType?: string) => {
+    // Nếu payment type là COD và status là pending, hiển thị icon COD
+    if (paymentType?.toLowerCase() === 'cod' && status.toLowerCase() === 'pending') {
+      return <DollarSign size={12} />;
+    }
+    
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'paid':
         return <CheckCircle size={12} />;
-      case 'pending':
-        return <Clock size={12} />;
-      case 'unpaid':
-        return <AlertCircle size={12} />;
+      case 'cod':
+        return <DollarSign size={12} />;
       case 'refunded':
         return <RotateCcw size={12} />;
-      case 'failed':
-        return <XCircle size={12} />;
       default:
         return <CreditCard size={12} />;
     }
   };
-  const getPaymentStatusClass = (status: string) => {
+  const getPaymentStatusClass = (status: string, paymentType?: string) => {
+    // Nếu payment type là COD và status là pending, sử dụng class COD
+    if (paymentType?.toLowerCase() === 'cod' && status.toLowerCase() === 'pending') {
+      return 'payment-cod';
+    }
+    
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'paid':
         return 'payment-paid';
-      case 'pending':
-        return 'payment-pending';
-      case 'unpaid':
-        return 'payment-unpaid';
+      case 'cod':
+        return 'payment-cod';
       case 'refunded':
         return 'payment-refunded';
-      case 'failed':
-        return 'payment-failed';
       default:
         return 'payment-unknown';
     }
@@ -169,8 +177,66 @@ const MyOrders = () => {
     setIsDetailModalOpen(true);
   };
 
-  const handleReorder = (order: Order) => {
-    alert(`Added ${order.orderItems.length} items to cart!`);
+  const handleReorder = async (order: Order) => {
+    if (isReordering === order.id) return; // Prevent double click
+    
+    setIsReordering(order.id);
+    
+    try {
+      // Get available products from the order
+      const availableItems = order.orderItems.filter(item => 
+        item.product && item.product.id && item.quantity > 0
+      );
+      
+      if (availableItems.length === 0) {
+        message.error('No products available to reorder');
+        return;
+      }
+      
+      // Add each product to cart
+      const results = await Promise.allSettled(
+        availableItems.map(async (item) => {
+          try {
+            const response = await cartApi.addToCart(item.product.id, item.quantity);
+            
+            if (!response.success) {
+              throw new Error(`Failed to add ${item.product.productName}: ${response.message}`);
+            }
+            
+            return { success: true, productName: item.product.productName };
+          } catch (error) {
+            throw new Error(`Failed to add ${item.product.productName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        })
+      );
+      
+      // Count successful and failed additions
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected');
+      
+      if (successful === availableItems.length) {
+        message.success(`Successfully added all ${successful} items to cart!`);
+        // Dispatch cart updated event for header cart count
+        window.dispatchEvent(new Event('cartUpdated'));
+      } else if (successful > 0) {
+        message.warning(`Added ${successful} items to cart. ${failed.length} items could not be added.`);
+        // Show failed items
+        failed.forEach(result => {
+          if (result.status === 'rejected') {
+            console.error('Reorder error:', result.reason);
+          }
+        });
+        window.dispatchEvent(new Event('cartUpdated'));
+      } else {
+        message.error('Failed to add any items to cart. Please try again.');
+      }
+      
+    } catch (error) {
+      console.error('Reorder error:', error);
+      message.error('Failed to reorder items. Please try again.');
+    } finally {
+      setIsReordering(null);
+    }
   };
 
   const handleCancelOrder = (orderId: number) => {
@@ -216,7 +282,7 @@ const MyOrders = () => {
     setIsCanceling(true);
     try {
       console.log('Canceling order:', cancelOrderId, 'with reason:', reasonToSend);
-      const response = await cancelOrder(orderIdNumber, { cancellationReason: reasonToSend });
+      const response = await cancelOrder(orderIdNumber, { CancellationReason: reasonToSend });
       
       console.log('Cancel order response:', response);
       
@@ -315,9 +381,9 @@ const MyOrders = () => {
                       {getStatusIcon(order.orderStatus)}
                       <span>{getStatusText(order.orderStatus)}</span>
                     </div>
-                    <div className={`payment-status-compact ${getPaymentStatusClass(order.paymentStatus)}`}>
-                      {getPaymentStatusIcon(order.paymentStatus)}
-                      <span>{getPaymentStatusText(order.paymentStatus)}</span>
+                    <div className={`payment-status-compact ${getPaymentStatusClass(order.paymentStatus, order.paymentType)}`}>
+                      {getPaymentStatusIcon(order.paymentStatus, order.paymentType)}
+                      <span>{getPaymentStatusText(order.paymentStatus, order.paymentType)}</span>
                     </div>
                   </div>
                 </div>
@@ -362,9 +428,19 @@ const MyOrders = () => {
                     <button 
                       onClick={() => handleReorder(order)}
                       className="action-btn-compact btn-reorder"
+                      disabled={isReordering === order.id}
                     >
-                      <RotateCcw size={14} />
-                      Reorder
+                      {isReordering === order.id ? (
+                        <>
+                          <Clock size={14} />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw size={14} />
+                          Reorder
+                        </>
+                      )}
                     </button>
                   )}
                   
@@ -535,7 +611,7 @@ const MyOrders = () => {
                       </div>
                       <div className="info-pair">
                         <span className="info-label">Payment Status:</span>
-                        <span className="info-value">{selectedOrder.paymentStatus}</span>
+                        <span className="info-value">{getPaymentStatusText(selectedOrder.paymentStatus, selectedOrder.paymentType)}</span>
                       </div>
                     </div>
                     <div className="info-full">

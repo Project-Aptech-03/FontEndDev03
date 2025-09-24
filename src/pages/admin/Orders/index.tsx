@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,  Phone,  Mail,  DollarSign,  ShoppingBag, Clock, FileCheck, Truck, Home, RotateCcw, Ban} from 'lucide-react';
+import { Search, Eye, Edit, Package, CheckCircle, XCircle, User, MapPin, Phone, Mail, DollarSign, ShoppingBag, Clock, FileCheck, Truck, Home, RotateCcw, Ban } from 'lucide-react';
 import './Orders.css';
 import { ApiOrder, getProductImageUrl } from '../../../@type/Orders';
 import { getAllOrders, updateOrder } from '../../../api/orders.api';
@@ -56,7 +56,9 @@ const Orders = () => {
     }
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(order => order.orderStatus === statusFilter);
+      filtered = filtered.filter(order => 
+        order.orderStatus.toLowerCase() === statusFilter.toLowerCase()
+      );
     }
 
     if (dateFilter !== 'all') {
@@ -96,10 +98,9 @@ const Orders = () => {
       processing: 'bg-purple-100 text-purple-800',
       shipped: 'bg-indigo-100 text-indigo-800',
       delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-      returned: 'bg-gray-100 text-gray-800'
+      cancelled: 'bg-red-100 text-red-800'
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status.toLowerCase() as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const getPaymentStatusColor = (status: string) => {
@@ -109,13 +110,13 @@ const Orders = () => {
       failed: 'bg-red-100 text-red-800',
       refunded: 'bg-gray-100 text-gray-800'
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status.toLowerCase() as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'USD'
     }).format(amount);
   };
 
@@ -130,37 +131,7 @@ const Orders = () => {
     Processing: 2,
     Shipped: 3,
     Delivered: 4,
-    Cancelled: -1, // Can be set from any status except delivered
-    Returned: -2   // Can only be set from delivered
-  };
-
-  // Get allowed next statuses based on current status
-  const getAllowedNextStatuses = (currentStatus: string): string[] => {
-    const currentLevel = statusHierarchy[currentStatus as keyof typeof statusHierarchy];
-    const allowedStatuses: string[] = [];
-
-    // Always include current status
-    allowedStatuses.push(currentStatus);
-
-    // Allow progression to next levels only
-    Object.entries(statusHierarchy).forEach(([status, level]) => {
-      if (typeof level === 'number' && level >= 0) {
-        if (level > currentLevel) {
-          allowedStatuses.push(status);
-        }
-      }
-    });
-
-    // Special rules for cancellation and returns
-    if (currentStatus !== 'Delivered') {
-      allowedStatuses.push('Cancelled');
-    }
-    if (currentStatus === 'Delivered') {
-      allowedStatuses.push('Returned');
-    }
-
-    // Remove duplicates and return
-    return [...new Set(allowedStatuses)];
+    Cancelled: -1 // Can be set from any status except delivered
   };
 
   // Status progression component
@@ -174,8 +145,7 @@ const Orders = () => {
     ];
 
     const specialStatuses = [
-      { key: 'Cancelled', label: 'Cancelled', icon: Ban, color: 'red' },
-      { key: 'Returned', label: 'Returned', icon: RotateCcw, color: 'gray' }
+      { key: 'Cancelled', label: 'Cancelled', icon: Ban, color: 'red' }
     ];
 
     const getCurrentStatusIndex = () => {
@@ -185,51 +155,48 @@ const Orders = () => {
 
     const getStatusState = (statusKey: string, index: number) => {
       const currentIndex = getCurrentStatusIndex();
-      
+
       // Handle special statuses first
-      if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
+      if (currentStatus === 'Cancelled') {
         if (statusKey === currentStatus) return 'current';
         return 'disabled';
       }
-      
+
       if (statusKey === currentStatus) return 'current';
       if (currentIndex >= 0 && index < currentIndex) return 'completed';
       if (currentIndex >= 0 && index === currentIndex + 1) return 'next';
       if (currentIndex >= 0 && index > currentIndex) return 'future';
-      
+
       return 'disabled';
     };
 
     const isClickable = (statusKey: string, index: number) => {
-      // If current status is Cancelled or Returned, no progression allowed
-      if (currentStatus === 'Cancelled' || currentStatus === 'Returned') {
+      // If current status is Cancelled, no progression allowed
+      if (currentStatus === 'Cancelled') {
         return false;
       }
-      
+
       // Special status rules
-      if (statusKey === 'cancelled') {
+      if (statusKey === 'Cancelled') {
         return currentStatus !== 'Delivered'; // Can cancel unless delivered
       }
-      if (statusKey === 'Returned') {
-        return currentStatus === 'Delivered'; // Can only return if delivered
-      }
-      
+
       const currentIndex = getCurrentStatusIndex();
-      
+
       // Can stay in current status or move forward
       if (currentIndex >= 0) {
         return index >= currentIndex;
       }
-      
+
       return false;
     };
 
     const getStatusClasses = (statusKey: string, index: number) => {
       const state = getStatusState(statusKey, index);
       const clickable = isClickable(statusKey, index);
-      
+
       let classes = "status-item ";
-      
+
       if (!clickable) {
         classes += "disabled ";
       }
@@ -241,30 +208,30 @@ const Orders = () => {
     const getIconClasses = (statusKey: string, index: number) => {
       const state = getStatusState(statusKey, index);
       const clickable = isClickable(statusKey, index);
-      
+
       let classes = "status-icon ";
-      
+
       if (!clickable) {
         classes += "disabled";
       } else {
         classes += state;
       }
-      
+
       return classes;
     };
 
     const getLabelClasses = (statusKey: string, index: number) => {
       const state = getStatusState(statusKey, index);
       const clickable = isClickable(statusKey, index);
-      
+
       let classes = "status-label ";
-      
+
       if (!clickable) {
         classes += "disabled";
       } else {
         classes += state;
       }
-      
+
       return classes;
     };
 
@@ -273,11 +240,11 @@ const Orders = () => {
         <div className="status-progress-wrapper">
           {/* Progress Line */}
           <div className="status-progress-line">
-            <div 
+            <div
               className="status-progress-fill"
-              style={{ 
-                width: `${getCurrentStatusIndex() >= 0 ? 
-                  (getCurrentStatusIndex() / (statusFlow.length - 1)) * 100 : 0}%` 
+              style={{
+                width: `${getCurrentStatusIndex() >= 0 ?
+                  (getCurrentStatusIndex() / (statusFlow.length - 1)) * 100 : 0}%`
               }}
             ></div>
           </div>
@@ -287,7 +254,7 @@ const Orders = () => {
             {statusFlow.map((status, index) => {
               const IconComponent = status.icon;
               const clickable = isClickable(status.key, index);
-              
+
               return (
                 <div
                   key={status.key}
@@ -314,14 +281,14 @@ const Orders = () => {
             {specialStatuses.map((status) => {
               const IconComponent = status.icon;
               const clickable = isClickable(status.key, -1);
-              
+
               let specialClasses = "special-status-item ";
               if (currentStatus === status.key) {
                 specialClasses += "current ";
               } else if (!clickable) {
                 specialClasses += "disabled ";
               }
-              
+
               return (
                 <div
                   key={status.key}
@@ -345,33 +312,113 @@ const Orders = () => {
 
   const handleStatusUpdate = async (orderId: number, newStatus: string) => {
     try {
-      const result = await updateOrder(orderId, { orderStatus: newStatus });
+      const currentOrder = orders.find(order => order.id === orderId);
+
+      // Nếu cập nhật thành Delivered và là COD, cập nhật cả payment status
+      const updateData = newStatus === 'Delivered' && currentOrder?.paymentType?.toLowerCase() === 'cod'
+        ? { orderStatus: newStatus, paymentStatus: 'Paid' }
+        : { orderStatus: newStatus };
+
+      const result = await updateOrder(orderId, updateData);
+
       if (result.success) {
         setOrders(prev => prev.map(order =>
-          order.id === orderId ? { ...order, orderStatus: newStatus } : order
+          order.id === orderId ? { ...order, ...updateData } : order
         ));
-        loadOrders(); // Reload to get updated data
+        loadOrders();
       } else {
-        console.error('Error updating order status:', result.error);
+        console.error('Error updating order:', result.error);
       }
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('Error updating order:', error);
     }
   };
 
-  const handlePaymentStatusUpdate = async (orderId: number, newPaymentStatus: string) => {
+  const handleOrderSave = async () => {
+    if (!selectedOrder || !editingOrder) return;
+    
     try {
-      const result = await updateOrder(orderId, { paymentStatus: newPaymentStatus });
+      const finalPaymentStatus = editingOrder.orderStatus === 'Delivered' && 
+                               selectedOrder.paymentType?.toLowerCase() === 'cod' 
+                               ? 'Paid' 
+                               : editingOrder.paymentStatus;
+
+      const result = await updateOrder(selectedOrder.id, {
+        orderStatus: editingOrder.orderStatus,
+        paymentStatus: finalPaymentStatus
+      });
+
       if (result.success) {
         setOrders(prev => prev.map(order =>
-          order.id === orderId ? { ...order, paymentStatus: newPaymentStatus } : order
+          order.id === selectedOrder.id ? { ...order, ...editingOrder, paymentStatus: finalPaymentStatus } : order
         ));
-        loadOrders(); // Reload to get updated data
+        setFilteredOrders(prev => prev.map(order =>
+          order.id === selectedOrder.id ? { ...order, ...editingOrder, paymentStatus: finalPaymentStatus } : order
+        ));
+        
+        setSelectedOrder({ ...selectedOrder, ...editingOrder, paymentStatus: finalPaymentStatus });
+        setEditingOrder(null);
+        setIsEditModalOpen(false);
+        loadOrders();
       } else {
-        console.error('Error updating payment status:', result.error);
+        alert('Error updating order: ' + (result.error?.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error updating payment status:', error);
+      console.error('Error updating order:', error);
+      alert('Error updating order');
+    }
+  };
+
+  const handleRefund = async (orderId: number) => {
+    const order = selectedOrder || orders.find(o => o.id === orderId);
+    const isAlreadyCancelled = order?.orderStatus === 'Cancelled';
+    const isBankTransfer = order?.paymentType?.toLowerCase() === 'banktransfer';
+    
+    let confirmMessage = '';
+    if (isAlreadyCancelled) {
+      confirmMessage = isBankTransfer 
+        ? 'Are you sure you want to refund this cancelled bank transfer order?'
+        : 'Are you sure you want to refund this cancelled order?';
+    } else {
+      confirmMessage = isBankTransfer
+        ? 'Are you sure you want to cancel this order and process bank transfer refund?'
+        : 'Are you sure you want to cancel this order and process refund?';
+    }
+      
+    if (!confirm(confirmMessage)) return;
+    
+    try {
+      const result = await updateOrder(orderId, {
+        orderStatus: 'Cancelled',
+        paymentStatus: 'Refunded'
+      });
+
+      if (result.success) {
+        setOrders(prev => prev.map(order =>
+          order.id === orderId ? { ...order, orderStatus: 'Cancelled', paymentStatus: 'Refunded' } : order
+        ));
+        setFilteredOrders(prev => prev.map(order =>
+          order.id === orderId ? { ...order, orderStatus: 'Cancelled', paymentStatus: 'Refunded' } : order
+        ));
+        
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder({ ...selectedOrder, orderStatus: 'Cancelled', paymentStatus: 'Refunded' });
+        }
+        if (editingOrder && editingOrder.id === orderId) {
+          setEditingOrder({ ...editingOrder, orderStatus: 'Cancelled', paymentStatus: 'Refunded' });
+        }
+        
+        const successMessage = isAlreadyCancelled 
+          ? (isBankTransfer ? 'Bank transfer refund processed successfully!' : 'Refund processed successfully!')
+          : (isBankTransfer ? 'Order cancelled and bank transfer refund processed successfully!' : 'Order cancelled and refund processed successfully!');
+        alert(successMessage);
+        loadOrders();
+      } else {
+        alert('Refund failed: ' + (result.error?.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      alert('Refund failed. Please try again!');
     }
   };
 
@@ -398,86 +445,88 @@ const Orders = () => {
       <div className="orders-container">
         {/* Header */}
         <div className="page-header">
-          <h1 className="orders-title">Order Management</h1>
+          <h1 className="orders-title">
+            <Package className="w-6 h-6" />
+            Order Management
+          </h1>
         </div>
 
         {/* Stats */}
         <div className="orders-stats">
-            <div className="stat-card blue">
-              <div>
-                <p className="text-blue-600 text-sm font-medium">Total Orders</p>
-                <p className="text-2xl font-bold text-blue-900">{orders.length}</p>
-              </div>
-              <ShoppingBag className="text-blue-600" size={24} />
+          <div className="stat-card blue">
+            <div>
+              <p className="text-blue-600 text-sm font-medium">Total Orders</p>
+              <p className="text-2xl font-bold text-blue-900">{orders.length}</p>
             </div>
-            <div className="stat-card green">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Delivered</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {orders.filter(o => o.orderStatus === 'delivered').length}
-                </p>
-              </div>
-              <CheckCircle className="text-green-600" size={24} />
-            </div>
-            <div className="stat-card yellow">
-              <div>
-                <p className="text-yellow-600 text-sm font-medium">Processing</p>
-                <p className="text-2xl font-bold text-yellow-900">
-                  {orders.filter(o => ['pending', 'confirmed', 'processing'].includes(o.orderStatus)).length}
-                </p>
-              </div>
-              <Package className="text-yellow-600" size={24} />
-            </div>
-            <div className="stat-card purple">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Revenue</p>
-                <p className="text-lg font-bold text-purple-900">
-                  {formatCurrency(orders.reduce((sum, order) => sum + order.totalAmount, 0))}
-                </p>
-              </div>
-              <DollarSign className="text-purple-600" size={24} />
-            </div>
+            <ShoppingBag className="text-blue-600" size={24} />
           </div>
+          <div className="stat-card green">
+            <div>
+              <p className="text-green-600 text-sm font-medium">Delivered</p>
+              <p className="text-2xl font-bold text-green-900">
+                {orders.filter(o => o.orderStatus === 'delivered').length}
+              </p>
+            </div>
+            <CheckCircle className="text-green-600" size={24} />
+          </div>
+          <div className="stat-card yellow">
+            <div>
+              <p className="text-yellow-600 text-sm font-medium">Processing</p>
+              <p className="text-2xl font-bold text-yellow-900">
+                {orders.filter(o => ['pending', 'confirmed', 'processing'].includes(o.orderStatus)).length}
+              </p>
+            </div>
+            <Package className="text-yellow-600" size={24} />
+          </div>
+          <div className="stat-card purple">
+            <div>
+              <p className="text-purple-600 text-sm font-medium">Revenue</p>
+              <p className="text-lg font-bold text-purple-900">
+                {formatCurrency(orders.reduce((sum, order) => sum + order.totalAmount, 0))}
+              </p>
+            </div>
+            <DollarSign className="text-purple-600" size={24} />
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="orders-filters">
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="Search orders, customers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              <Search className="search-icon" size={20} />
-            </div>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="returned">Returned</option>
-            </select>
-
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="week">Last 7 days</option>
-              <option value="month">Last 30 days</option>
-            </select>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search orders, customers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <Search className="search-icon" size={20} />
           </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">Last 7 days</option>
+            <option value="month">Last 30 days</option>
+          </select>
+        </div>
 
         {/* Orders Table */}
         <div className="orders-table-container">
@@ -536,7 +585,7 @@ const Orders = () => {
                       <td>
                         <div className="flex items-center gap-1">
                           <span className="text-xs text-gray-600 capitalize font-medium">
-                            {order.paymentType.toUpperCase()}: {order.paymentStatus} 
+                            {order.paymentType.toUpperCase()}: {order.paymentStatus}
                           </span>
                         </div>
                       </td>
@@ -616,8 +665,8 @@ const Orders = () => {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={`px-3 py-2 border text-sm font-medium rounded-md ${currentPage === page
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                           }`}
                       >
                         {page}
@@ -862,8 +911,8 @@ const Orders = () => {
                       Order flows forward through the stages. Special statuses (Cancelled/Returned) are available based on current state.
                     </div>
                   </div>
-                  
-                  <StatusProgressBar 
+
+                  <StatusProgressBar
                     currentStatus={editingOrder.orderStatus}
                     onStatusChange={(newStatus) => {
                       setEditingOrder(prev => prev ? { ...prev, orderStatus: newStatus } : null);
@@ -871,7 +920,7 @@ const Orders = () => {
                   />
                 </div>
 
-                
+
 
                 {/* Action Buttons */}
                 <div className="modal-actions">
@@ -884,30 +933,41 @@ const Orders = () => {
                   >
                     Cancel
                   </button>
+                  
+                  {selectedOrder && 
+                   (selectedOrder.paymentStatus?.toLowerCase() === 'paid' || 
+                    (selectedOrder.paymentType?.toLowerCase() === 'banktransfer' && 
+                     ['confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(selectedOrder.orderStatus?.toLowerCase() || ''))) &&
+                   selectedOrder.paymentStatus?.toLowerCase() !== 'refunded' &&
+                   (selectedOrder.orderStatus === 'Cancelled' || 
+                    (selectedOrder.orderStatus !== 'Delivered' && selectedOrder.orderStatus !== 'Refunded')) && (
+                    <button
+                      onClick={() => handleRefund(selectedOrder.id)}
+                      className="btn-refund"
+                      style={{
+                        padding: '12px 24px',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      {selectedOrder.orderStatus === 'Cancelled' 
+                        ? (selectedOrder.paymentType?.toLowerCase() === 'banktransfer' ? 'Process Refund' : 'Process Refund')
+                        : (selectedOrder.paymentType?.toLowerCase() === 'banktransfer' ? 'Cancel & Refund' : 'Cancel & Refund')}
+                    </button>
+                  )}
+                  
                   <button
-                    onClick={async () => {
-                      try {
-                        const result = await updateOrder(selectedOrder.id, {
-                          orderStatus: editingOrder.orderStatus,
-                          paymentStatus: editingOrder.paymentStatus
-                        });
-
-                        if (result.success) {
-                          setOrders(prev => prev.map(order =>
-                            order.id === selectedOrder.id ? editingOrder : order
-                          ));
-                          setIsEditModalOpen(false);
-                          setEditingOrder(null);
-                          alert('Order updated successfully!');
-                          loadOrders(); // Reload data
-                        } else {
-                          alert('Error updating order: ' + (result.error?.message || 'Unknown error'));
-                        }
-                      } catch (error) {
-                        console.error('Error updating order:', error);
-                        alert('Error updating order');
-                      }
-                    }}
+                    onClick={handleOrderSave}
                     className="btn-save"
                   >
                     Save Changes

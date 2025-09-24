@@ -183,24 +183,14 @@
   color: #065f46;
 }
 
-.payment-pending {
-  background: #fef3c7;
+.payment-cod {
+  background: #fbbf24;
   color: #92400e;
-}
-
-.payment-unpaid {
-  background: #fee2e2;
-  color: #991b1b;
 }
 
 .payment-refunded {
   background: #e0e7ff;
   color: #3730a3;
-}
-
-.payment-failed {
-  background: #fecaca;
-  color: #7f1d1d;
 }
 
 .payment-unknown {

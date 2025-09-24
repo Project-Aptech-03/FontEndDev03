@@ -42,21 +42,21 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.addressName.trim()) {
-      newErrors.addressName = 'Vui lòng nhập tên địa chỉ';
+      newErrors.addressName = 'Please enter address name';
     }
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Vui lòng nhập họ tên';
+      newErrors.fullName = 'Please enter full name';
     }
 
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Vui lòng nhập số điện thoại';
+      newErrors.phoneNumber = 'Please enter phone number';
     } else if (!/^[0-9]{10,11}$/.test(formData.phoneNumber.replace(/\s+/g, ''))) {
-      newErrors.phoneNumber = 'Số điện thoại không hợp lệ';
+      newErrors.phoneNumber = 'Invalid phone number';
     }
 
     if (!formData.fullAddress.trim()) {
-      newErrors.fullAddress = 'Vui lòng nhập địa chỉ đầy đủ';
+      newErrors.fullAddress = 'Please enter full address';
     }
 
     setErrors(newErrors);
@@ -91,16 +91,16 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
       if (response.success) {
         toast.success(
           editingAddress 
-            ? 'Đã cập nhật địa chỉ thành công' 
-            : 'Đã thêm địa chỉ mới thành công'
+            ? 'Address updated successfully' 
+            : 'New address added successfully'
         );
         onSuccess();
       } else {
-        toast.error(response.message || 'Có lỗi xảy ra');
+        toast.error(response.message || 'An error occurred');
       }
     } catch (error: any) {
       console.error('Error saving address:', error);
-      toast.error('Không thể lưu địa chỉ. Vui lòng thử lại.');
+      toast.error('Unable to save address. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -131,7 +131,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
         <div className="address-form-header">
           <h3>
             <FaMapMarkerAlt />
-            {editingAddress ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}
+            {editingAddress ? 'Edit Address' : 'Add New Address'}
           </h3>
           <button className="close-btn" onClick={onClose}>
             <FaTimes />
@@ -142,7 +142,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
           <div className="form-group">
             <label htmlFor="addressName">
               <FaHome />
-              Tên địa chỉ *
+              Address Name *
             </label>
             <input
               type="text"
@@ -150,7 +150,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
               name="addressName"
               value={formData.addressName}
               onChange={handleInputChange}
-              placeholder="VD: Nhà riêng, Văn phòng, Nhà bạn..."
+              placeholder="E.g: Home, Office, Friend's house..."
               className={errors.addressName ? 'error' : ''}
             />
             {errors.addressName && (
@@ -162,7 +162,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
             <div className="form-group">
               <label htmlFor="fullName">
                 <FaUser />
-                Họ và tên *
+                Full Name *
               </label>
               <input
                 type="text"
@@ -170,7 +170,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
-                placeholder="Nhập họ và tên người nhận"
+                placeholder="Enter recipient's full name"
                 className={errors.fullName ? 'error' : ''}
               />
               {errors.fullName && (
@@ -181,7 +181,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
             <div className="form-group">
               <label htmlFor="phoneNumber">
                 <FaPhone />
-                Số điện thoại *
+                Phone Number *
               </label>
               <input
                 type="tel"
@@ -189,7 +189,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
-                placeholder="Nhập số điện thoại"
+                placeholder="Enter phone number"
                 className={errors.phoneNumber ? 'error' : ''}
               />
               {errors.phoneNumber && (
@@ -201,14 +201,14 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
           <div className="form-group">
             <label htmlFor="fullAddress">
               <FaMapMarkerAlt />
-              Địa chỉ đầy đủ *
+              Full Address *
             </label>
             <textarea
               id="fullAddress"
               name="fullAddress"
               value={formData.fullAddress}
               onChange={handleInputChange}
-              placeholder="Nhập địa chỉ đầy đủ (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+              placeholder="Enter full address (house number, street name, ward/commune, district, province/city)"
               rows={3}
               className={errors.fullAddress ? 'error' : ''}
             />
@@ -226,7 +226,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
                 onChange={handleInputChange}
               />
               <span className="checkmark"></span>
-              Đặt làm địa chỉ mặc định
+              Set as default address
             </label>
           </div>
 
@@ -237,7 +237,7 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
               onClick={onClose}
               disabled={loading}
             >
-              Hủy
+              Cancel
             </button>
             <button
               type="submit"
@@ -247,12 +247,12 @@ const AddAddressForm: React.FC<AddAddressFormProps> = ({
               {loading ? (
                 <>
                   <div className="spinner"></div>
-                  Đang lưu...
+                  Saving...
                 </>
               ) : (
                 <>
                   <FaSave />
-                  {editingAddress ? 'Cập nhật' : 'Thêm địa chỉ'}
+                  {editingAddress ? 'Update' : 'Add Address'}
                 </>
               )}
             </button>
