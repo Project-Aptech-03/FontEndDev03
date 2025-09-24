@@ -172,7 +172,7 @@ const Footer: React.FC = () => {
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                                 <MailOutlined style={{ color: "#1890ff" }} />
                                 <Text style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "13px" }}>
-                                    hello@shradha.com
+                                    shradha@gmail.com
                                 </Text>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>

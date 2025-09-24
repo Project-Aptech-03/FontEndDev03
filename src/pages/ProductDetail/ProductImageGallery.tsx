@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Card, Image, Badge, Button, Tooltip } from 'antd';
-import { HeartOutlined, ShareAltOutlined, EyeOutlined } from "@ant-design/icons";
+import { Card, Image, Badge, Button, Tooltip, Modal, message, Space, Typography } from 'antd';
+import { HeartOutlined, ShareAltOutlined, EyeOutlined, LinkOutlined, FacebookOutlined, QrcodeOutlined, CloseOutlined } from "@ant-design/icons";
 import Slider from 'react-slick';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ProductsResponseDto } from "../../@type/productsResponse";
 import { useWishlist } from "../../hooks/useWishlist"; // <-- import hook chung
+
+const { Title, Text } = Typography;
 
 interface ProductImageGalleryProps {
     product: ProductsResponseDto;
@@ -81,6 +83,8 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
                 </Badge.Ribbon>
 
                 <ImageActionButtons
+                    productId={product.id}
+                    productName={product.productName}
                     isWishlisted={isInWishlist(product.id)}
                     onToggleWishlist={() => handleWishlistToggle(product)}
                 />
@@ -102,44 +106,221 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ product }) =>
 const ImageActionButtons: React.FC<{
     isWishlisted: boolean;
     onToggleWishlist: () => void;
-}> = ({ isWishlisted, onToggleWishlist }) => (
-    <div
-        style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8
-        }}
-    >
-        <Tooltip title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}>
-            <Button
-                shape="circle"
-                icon={<HeartOutlined />}
-                onClick={onToggleWishlist}
+    productId: number;
+    productName: string;
+}> = ({ isWishlisted, onToggleWishlist, productId, productName }) => {
+    const [shareModalVisible, setShareModalVisible] = useState(false);
+    const currentUrl = `${window.location.origin}/product/${productId}`;
+
+    const copyLink = async () => {
+        try {
+            await navigator.clipboard.writeText(currentUrl);
+            message.success("Link đã được sao chép!");
+            setShareModalVisible(false);
+        } catch (err) {
+            message.error("Không thể sao chép link");
+        }
+    };
+
+    const shareOptions = [
+        {
+            key: 'copy',
+            icon: <LinkOutlined style={{ fontSize: 20, color: '#1890ff' }} />,
+            title: 'Sao chép liên kết',
+            description: 'Sao chép URL sản phẩm',
+            color: '#e6f7ff',
+            onClick: copyLink
+        },
+        {
+            key: 'facebook',
+            icon: <FacebookOutlined style={{ fontSize: 20, color: '#1877f2' }} />,
+            title: 'Chia sẻ Facebook',
+            description: 'Đăng lên Facebook',
+            color: '#e7f3ff',
+            onClick: () => {
+                window.open(
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`,
+                    "_blank",
+                    "width=600,height=400"
+                );
+                setShareModalVisible(false);
+            }
+        },
+        {
+            key: 'zalo',
+            icon: <QrcodeOutlined style={{ fontSize: 20, color: '#0068ff' }} />,
+            title: 'Chia sẻ Zalo',
+            description: 'Gửi qua Zalo',
+            color: '#f0f5ff',
+            onClick: () => {
+                window.open(
+                    `https://zalo.me/share?url=${encodeURIComponent(currentUrl)}`,
+                    "_blank",
+                    "width=600,height=400"
+                );
+                setShareModalVisible(false);
+            }
+        }
+    ];
+
+    return (
+        <>
+            <div
                 style={{
-                    background: isWishlisted ? '#ff4d4f' : 'white',
-                    color: isWishlisted ? 'white' : '#666',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8
                 }}
-            />
-        </Tooltip>
-        <Tooltip title="Share product">
-            <Button
-                shape="circle"
-                icon={<ShareAltOutlined />}
-                // onClick={handleShare}
-                style={{
-                    background: 'white',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+            >
+                <Tooltip title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}>
+                    <Button
+                        shape="circle"
+                        icon={<HeartOutlined />}
+                        onClick={onToggleWishlist}
+                        style={{
+                            background: isWishlisted ? '#ff4d4f' : 'white',
+                            color: isWishlisted ? 'white' : '#666',
+                            border: 'none',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}
+                    />
+                </Tooltip>
+
+                <Tooltip title="Share product">
+                    <Button
+                        shape="circle"
+                        icon={<ShareAltOutlined />}
+                        onClick={() => setShareModalVisible(true)}
+                        style={{
+                            background: 'white',
+                            border: 'none',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}
+                    />
+                </Tooltip>
+            </div>
+
+            <Modal
+                title={null}
+                open={shareModalVisible}
+                onCancel={() => setShareModalVisible(false)}
+                footer={null}
+                width={420}
+                centered
+                closeIcon={null}
+                styles={{
+                    content: {
+                        borderRadius: 16,
+                        padding: 0,
+                        overflow: 'hidden'
+                    }
                 }}
-            />
-        </Tooltip>
-    </div>
-);
+            >
+                <div style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '24px 24px 16px',
+                    position: 'relative'
+                }}>
+                    <Button
+                        type="text"
+                        icon={<CloseOutlined />}
+                        onClick={() => setShareModalVisible(false)}
+                        style={{
+                            position: 'absolute',
+                            top: 12,
+                            right: 12,
+                            color: 'white',
+                            border: 'none'
+                        }}
+                    />
+                    <Title level={4} style={{ color: 'white', margin: 0, textAlign: 'center' }}>
+                        Chia sẻ sản phẩm
+                    </Title>
+                    <Text style={{ color: 'rgba(255,255,255,0.8)', display: 'block', textAlign: 'center', marginTop: 4 }}>
+                        {productName}
+                    </Text>
+                </div>
+
+                <div style={{ padding: '24px' }}>
+                    <Space direction="vertical" style={{ width: '100%' }} size={12}>
+                        {shareOptions.map((option) => (
+                            <div
+                                key={option.key}
+                                onClick={option.onClick}
+                                style={{
+                                    padding: '16px',
+                                    borderRadius: 12,
+                                    background: option.color,
+                                    border: '1px solid rgba(0,0,0,0.06)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 16
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
+                            >
+                                <div style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 12,
+                                    background: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}>
+                                    {option.icon}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
+                                        {option.title}
+                                    </div>
+                                    <div style={{ color: '#666', fontSize: 13 }}>
+                                        {option.description}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </Space>
+
+                    <div style={{
+                        marginTop: 20,
+                        padding: 16,
+                        background: '#f8f9fa',
+                        borderRadius: 12,
+                        border: '1px dashed #d9d9d9'
+                    }}>
+                        <Text style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 8 }}>
+                            Link sản phẩm:
+                        </Text>
+                        <Text
+                            style={{
+                                fontSize: 13,
+                                color: '#1890ff',
+                                wordBreak: 'break-all',
+                                cursor: 'pointer'
+                            }}
+                            onClick={copyLink}
+                        >
+                            {currentUrl}
+                        </Text>
+                    </div>
+                </div>
+            </Modal>
+        </>
+    );
+};
 
 const ImageThumbnailSlider: React.FC<{
     images: string[];

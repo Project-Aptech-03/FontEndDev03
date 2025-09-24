@@ -1,6 +1,6 @@
 // ProfileHeader.tsx
 import { useState } from "react";
-import { message } from "antd";
+import { message, Modal } from "antd"; // thêm Modal
 import CelebrationIcon from "@mui/icons-material/Celebration";
 import dayjs from "dayjs";
 import { UsersResponseDto } from "../../@type/UserResponseDto";
@@ -14,36 +14,60 @@ const ProfileHeader: React.FC<{ user: UsersResponseDto }> = ({ user }) => {
     const [loading, setLoading] = useState(false);
 
     const handleUpload = async (file: File) => {
-        if (loading) return;
-        setLoading(true);
-        try {
-            const res = await uploadAvatar(file);
-            if (res?.url) {
-                setAvatarUrl(res.url);
-                await updateUser(user.id, { avatarUrl: res.url });
-                message.success("Avatar updated successfully!");
-            } else {
-                message.error("Upload failed, server did not return URL");
+        Modal.confirm({
+            title: "Confirm Upload",
+            content: "Are you sure you want to upload this avatar?",
+            okText: "Yes",
+            cancelText: "No",
+            onOk: async () => {
+                if (loading) return;
+                setLoading(true);
+                try {
+                    const res = await uploadAvatar(file);
+                    if (res?.url) {
+                        setAvatarUrl(res.url);
+                        await updateUser(user.id, { avatarUrl: res.url });
+                        message.success("Avatar updated successfully!");
+                    } else {
+                        message.error("Upload failed, server did not return URL");
+                    }
+                } catch (err: any) {
+                    const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
+                    if (apiError?.errors) {
+                        Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
+                    } else {
+                        message.error(apiError?.message || "Unidentified system error");
+                    }
+                } finally {
+                    setLoading(false);
+                }
             }
-        } catch (err: any) {
-            const apiError = err?.response?.data as ApiResponse<UsersResponseDto>;
-            if (apiError?.errors) {
-                Object.values(apiError.errors).flat().forEach((msg: string) => message.error(msg));
-            } else {
-                message.error(apiError?.message || "Unidentified system error");
-            }
-        } finally {
-            setLoading(false);
-        }
+        });
     };
 
     return (
         <div style={{ padding: "0 24px", marginTop: -50, textAlign: "center" }}>
             <AvatarUpload avatarUrl={avatarUrl} onUpload={handleUpload} loading={loading} />
 
-            <h2 style={{ marginTop: 12, display: "flex", alignItems: "baseline", justifyContent: "center", gap: 12 }}>
+            <h2
+                style={{
+                    marginTop: 12,
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "center",
+                    gap: 12
+                }}
+            >
                 <span style={{ fontSize: 22, fontWeight: 600 }}>{user.fullName}</span>
-                <span style={{ fontSize: 14, color: "#888", display: "flex", alignItems: "center", gap: 4 }}>
+                <span
+                    style={{
+                        fontSize: 14,
+                        color: "#888",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4
+                    }}
+                >
                     <CelebrationIcon style={{ color: "#ff4d4f", fontSize: 16 }} />
                     {dayjs().diff(dayjs(user.dateOfBirth), "year")} years old
                 </span>

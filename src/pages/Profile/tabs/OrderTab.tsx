@@ -185,14 +185,14 @@ const OrderTab: React.FC = () => {
                                 {order.paymentType}
                             </Descriptions.Item>
                             <Descriptions.Item label="Subtotal">
-                                {order.subtotal.toLocaleString()} VND
+                                {order.subtotal.toLocaleString()} $
                             </Descriptions.Item>
                             <Descriptions.Item label="Shipping Fee">
                                 {order.deliveryAddress?.displayShippingFee}
                             </Descriptions.Item>
                             <Descriptions.Item label="Total Amount" span={2}>
                                 <b style={{ color: "#d4380d" }}>
-                                    {order.totalAmount.toLocaleString()} VND
+                                    {order.totalAmount.toLocaleString()} $
                                 </b>
                             </Descriptions.Item>
                         </Descriptions>
@@ -260,7 +260,7 @@ const OrderTab: React.FC = () => {
                                         }
                                     />
                                     <div style={{ fontWeight: 600, color: "#d4380d" }}>
-                                        {item.totalPrice.toLocaleString()} VND
+                                        {item.totalPrice.toLocaleString()} $
                                     </div>
                                 </List.Item>
                             )}
@@ -330,7 +330,7 @@ const OrderTab: React.FC = () => {
                                 <p style={{ fontSize: 18, margin: "12px 0" }}>
                                     <b>Price:</b>{" "}
                                     <span style={{ color: "#d4380d", fontWeight: 600 }}>
-                                    {productDetail.price.toLocaleString()} VND
+                                    {productDetail.price.toLocaleString()} $
                                 </span>
                                 </p>
 

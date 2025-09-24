@@ -233,27 +233,6 @@ const BlogAdmin: React.FC = () => {
         : content;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "published":
-        return "green";
-      case "draft":
-        return "orange";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "published":
-        return "Published";
-      case "draft":
-        return "Draft";
-      default:
-        return status;
-    }
-  };
 
   const columns: ColumnsType<BlogListResponseDto> = [
     {
@@ -311,13 +290,6 @@ const BlogAdmin: React.FC = () => {
             {isPublished ? "Published" : "Draft"}
           </Tag>
       ),
-      filters: [
-        { text: "Published", value: true },
-        { text: "Draft", value: false },
-      ],
-      onFilter: (value, record) => {
-        return record.isPublished === value;
-      },
     },
     {
       title: "Published Date",
@@ -664,7 +636,7 @@ const BlogAdmin: React.FC = () => {
   });
 
   // Handle filter by status
-  const handleFilterByStatus = async (status: 'all' | 'published' | 'draft') => {
+  const handleFilterByStatus = async (status: 'all' | 'Published' | 'Draft') => {
     if (status === 'all') {
       // Fetch all blogs using fetchAllBlogs and handle pagination manually
       setIsShowingAllBlogs(true);
@@ -703,7 +675,7 @@ const BlogAdmin: React.FC = () => {
       const newQuery: BlogQueryDto = {
         ...blogQuery,
         page: 1, // Reset to first page
-        isPublished: status === 'published'
+        isPublished: status === 'Published'
       };
       setBlogQuery(newQuery);
       updateQuery(newQuery);

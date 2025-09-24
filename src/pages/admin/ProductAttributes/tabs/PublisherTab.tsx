@@ -469,17 +469,6 @@ const PublisherTab: React.FC = () => {
                             />
                         </Form.Item>
 
-                        <Form.Item
-                            label={<span style={{ fontWeight: 500 }}>Status</span>}
-                            name="isActive"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Active"
-                                unCheckedChildren="Inactive"
-                                style={{ borderRadius: 12 }}
-                            />
-                        </Form.Item>
                     </Form>
                 </div>
             </Modal>

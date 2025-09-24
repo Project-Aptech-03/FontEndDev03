@@ -11,7 +11,7 @@ import {
     InfoCircleOutlined,
     PhoneOutlined,
     ReadOutlined,
-    DashboardOutlined, SettingOutlined
+    DashboardOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from  '../routes/AuthContext'
@@ -30,7 +30,6 @@ const Header: React.FC = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             if (!isLoggedIn) {
-                // Nếu chưa login, fallback profile mặc định
                 setUserProfile({ FirstName: "", LastName: "", AvatarUrl: null });
                 return;
             }
@@ -40,7 +39,6 @@ const Header: React.FC = () => {
                 if (res.success && res.data) {
                     setUserProfile(res.data);
                 } else {
-                    // Nếu có lỗi khác hoặc user không tồn tại
                     setUserProfile({ FirstName: "", LastName: "", AvatarUrl: null });
                 }
             } catch (err) {
@@ -135,8 +133,7 @@ const Header: React.FC = () => {
     ];
     const userMenuItems: MenuProps['items'] = isLoggedIn
         ? [
-            // eslint-disable-next-line no-constant-condition
-            ...(user?.role === 'Admin' || 'Employee' ? [
+            ...(user?.role === 'Admin' || user?.role === 'Employee' ? [
                 {
                     key: 'dashboard',
                     label: 'Dashboard',

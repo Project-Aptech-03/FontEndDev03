@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Package, Eye, Truck, CheckCircle, XCircle, Clock, ShoppingBag,
-  ArrowRight, RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard,
-  DollarSign, AlertCircle, Star, Camera, X, Edit, Trash2
+  Package, Eye, Truck, CheckCircle, XCircle, Clock, ShoppingBag, RotateCcw, Calendar, ThumbsUp, ImageOff, CreditCard, AlertCircle, Star, Camera, X, Edit, Trash2
 } from 'lucide-react';
 import {
   ApiOrder,
-  CancelOrderRequest,
   CreateReviewRequest,
   UpdateReviewRequest,
   ReviewResponse
@@ -14,6 +11,7 @@ import {
 import { getMyOrders, cancelOrder } from '../../api/orders.api';
 import { createReview, updateReview, getOrderReviewInfo, getExistingReview, deleteReview } from '../../api/reviews.api';
 import './MyOrder.css';
+import {message} from "antd";
 
 // SINHND-REVIEW: Thêm interface cho review info response
 interface ReviewInfoResponse {
@@ -207,7 +205,7 @@ const MyOrders = () => {
   };
 
   const handleReorder = (order: ApiOrder) => {
-    alert(`Added ${order.orderItems.length} items to cart!`);
+    message.success(`Added ${order.orderItems.length} items to cart!`);
   };
 
   const handleCancelOrder = (orderId: number) => {
@@ -228,25 +226,25 @@ const MyOrders = () => {
     const reasonToSend = cancelReason === "Other" ? customReason : cancelReason;
     
     if (reasonToSend.trim() === '') {
-      alert('Please provide a reason for cancellation');
+      message.error('Please provide a reason for cancellation');
       return;
     }
 
     const orderIdNumber = parseInt(cancelOrderId);
     if (isNaN(orderIdNumber) || orderIdNumber <= 0) {
-      alert('Invalid order ID');
+      message.error('Invalid order ID');
       return;
     }
 
     // Find the order to double-check if it can be cancelled
     const orderToCancel = orders.find(order => order.id === orderIdNumber);
     if (!orderToCancel) {
-      alert('Order not found');
+      message.error('Order not found');
       return;
     }
 
     if (!canCancelOrder(orderToCancel.orderStatus)) {
-      alert('This order cannot be cancelled in its current status');
+      message.error('This order cannot be cancelled in its current status');
       return;
     }
 
@@ -263,16 +261,16 @@ const MyOrders = () => {
           order.id.toString() === cancelOrderId ? { ...order, orderStatus: 'Cancelled' } : order
         ));
         
-        alert('Order has been cancelled successfully!');
+        message.error('Order has been cancelled successfully!');
         closeCancelModal();
       } else {
         const errorMessage = response.error?.message || response.error?.errors || 'Failed to cancel order. Please try again.';
         console.error('Cancel order failed:', response.error);
-        alert(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+        message.error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
       }
     } catch (error) {
       console.error('Error canceling order:', error);
-      alert(`Failed to cancel order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      message.error(`Failed to cancel order: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsCanceling(false);
     }
@@ -283,7 +281,7 @@ const MyOrders = () => {
       setOrders(prev => prev.map(order => 
         order.id === orderId ? { ...order, orderStatus: 'Delivered' } : order
       ));
-      alert('Thank you! The order has been confirmed as delivered successfully.');
+      message.error('Thank you! The order has been confirmed as delivered successfully.');
     }
   };
 
@@ -326,7 +324,7 @@ const MyOrders = () => {
   // SINHND-REVIEW: Hàm submit review
   const handleSubmitReview = async () => {
     if (!selectedOrder || !selectedProduct || reviewComment.trim() === '') {
-      alert('Please provide a review comment');
+      message.error('Please provide a review comment');
       return;
     }
 
@@ -341,11 +339,11 @@ const MyOrders = () => {
 
         const response = await updateReview(existingReview.id, reviewData);
         if (response.success) {
-          alert('Review updated successfully!');
+          message.error('Review updated successfully!');
           setIsReviewModalOpen(false);
           refreshOrders();
         } else {
-          alert(response.error?.message || 'Failed to update review');
+          message.error(response.error?.message || 'Failed to update review');
         }
       } else {
         const reviewData: CreateReviewRequest = {
@@ -358,16 +356,16 @@ const MyOrders = () => {
 
         const response = await createReview(reviewData);
         if (response.success) {
-          alert('Review submitted successfully!');
+          message.error('Review submitted successfully!');
           setIsReviewModalOpen(false);
           refreshOrders();
         } else {
-          alert(response.error?.message || 'Failed to submit review');
+          message.error(response.error?.message || 'Failed to submit review');
         }
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review');
+      message.error('Failed to submit review');
     } finally {
       setIsSubmittingReview(false);
     }
@@ -381,15 +379,15 @@ const MyOrders = () => {
       try {
         const response = await deleteReview(existingReview.id);
         if (response.success) {
-          alert('Review deleted successfully!');
+          message.error('Review deleted successfully!');
           setIsReviewModalOpen(false);
           refreshOrders();
         } else {
-          alert(response.error?.message || 'Failed to delete review');
+          message.error(response.error?.message || 'Failed to delete review');
         }
       } catch (error) {
         console.error('Error deleting review:', error);
-        alert('Failed to delete review');
+        message.error('Failed to delete review');
       }
     }
   };

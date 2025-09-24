@@ -236,8 +236,16 @@ const Dashboard: React.FC = () => {
     });
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [userData]);
+  const COLORSS = [
+    "#00a3ff",
+    "#ff7f50",
+    "#ff4500",
+    "#1e90ff",
+    "#ff1493"
+  ];
 
-  const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#00a3ff"];
+
+  const COLORS = ["#1e90ff","#ffc658", "#ff7f50", "#00a3ff"];
 
   const productColumns: ColumnsType<ProductDto> = [
     {
@@ -529,7 +537,7 @@ const Dashboard: React.FC = () => {
                           {orderStatusData.map((entry, index) => (
                               <Cell
                                   key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
+                                  fill={COLORSS[index % COLORS.length]}
                               />
                           ))}
                         </Pie>

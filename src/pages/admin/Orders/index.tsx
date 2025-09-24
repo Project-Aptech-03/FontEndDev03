@@ -3,6 +3,7 @@ import {  Search,  Eye,  Edit,  Package,  CheckCircle,  XCircle,  User,  MapPin,
 import './Orders.css';
 import { ApiOrder, getProductImageUrl } from '../../../@type/Orders';
 import { getAllOrders, updateOrder } from '../../../api/orders.api';
+import {message} from "antd";
 
 const Orders = () => {
   const [orders, setOrders] = useState<ApiOrder[]>([]);
@@ -113,11 +114,12 @@ const Orders = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'USD'
     }).format(amount);
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('vi-VN');
@@ -898,14 +900,14 @@ const Orders = () => {
                           ));
                           setIsEditModalOpen(false);
                           setEditingOrder(null);
-                          alert('Order updated successfully!');
+                          message.success('Order updated successfully!');
                           loadOrders(); // Reload data
                         } else {
-                          alert('Error updating order: ' + (result.error?.message || 'Unknown error'));
+                          message.error('Error updating order: ' + (result.error?.message || 'Unknown error'));
                         }
                       } catch (error) {
                         console.error('Error updating order:', error);
-                        alert('Error updating order');
+                        message.error('Error updating order');
                       }
                     }}
                     className="btn-save"
