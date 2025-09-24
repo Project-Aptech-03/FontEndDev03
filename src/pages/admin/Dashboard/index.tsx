@@ -40,7 +40,7 @@ import {useNavigate} from "react-router-dom"; // Import orders API
 const { Title, Text } = Typography;
 
 const currency = (v?: number) =>
-    v !== undefined && v !== null ? `${v.toLocaleString('vi-VN')} VND` : "-";
+    v !== undefined && v !== null ? `$${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-";
 
 const shortDate = (s?: string) =>
     s ? format(new Date(s), "yyyy-MM-dd HH:mm") : "-";
@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -460,7 +460,7 @@ const Dashboard: React.FC = () => {
               </Card>
             </Col>
           </Row>
-        {/* Revenue Charts */}
+          {/* Revenue Charts */}
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
             <Col xs={24} lg={16}>
               <Card title="Revenue Chart (Last 30 Days)" style={{ height: 400 }}>

@@ -29,17 +29,29 @@ const Header: React.FC = () => {
     const [userProfile, setUserProfile] = useState<UsersResponseDto | null>(null);
     useEffect(() => {
         const fetchProfile = async () => {
+            if (!isLoggedIn) {
+                // Nếu chưa login, fallback profile mặc định
+                setUserProfile({ FirstName: "", LastName: "", AvatarUrl: null });
+                return;
+            }
+
             try {
                 const res = await getProfile();
                 if (res.success && res.data) {
                     setUserProfile(res.data);
+                } else {
+                    // Nếu có lỗi khác hoặc user không tồn tại
+                    setUserProfile({ FirstName: "", LastName: "", AvatarUrl: null });
                 }
             } catch (err) {
-                console.error("Failed to fetch profile", err);
+                console.log("Failed to fetch profile", err);
+                setUserProfile({ FirstName: "", LastName: "", AvatarUrl: null });
             }
         };
+
         fetchProfile();
-    }, []);
+    }, [isLoggedIn]);
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -144,12 +156,6 @@ const Header: React.FC = () => {
                 label: 'My Orders',
                 icon: <ShoppingCartOutlined />,
                 onClick: () => navigate('/myorders'),
-            },
-            {
-                key: 'settings',
-                label: 'Settings',
-                icon: <SettingOutlined/>,
-                onClick: () => navigate('/settings'),
             },
             { type: 'divider' as const, key: 'divider-1' },
             {

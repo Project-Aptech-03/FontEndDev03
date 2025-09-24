@@ -53,7 +53,7 @@ const DescriptionTab: React.FC<{ product: ProductsResponseDto }> = ({ product })
                     onClick={() => setExpanded(!expanded)}
                     style={{ color: '#1890ff', cursor: 'pointer', fontWeight: 500 }}
                 >
-                    {expanded ? "Thu gọn" : "Xem thêm"}
+                    {expanded ? "Hide" : "See more..."}
                 </span>
             )}
 

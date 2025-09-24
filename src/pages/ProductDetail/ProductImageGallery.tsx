@@ -130,6 +130,7 @@ const ImageActionButtons: React.FC<{
             <Button
                 shape="circle"
                 icon={<ShareAltOutlined />}
+                // onClick={handleShare}
                 style={{
                     background: 'white',
                     border: 'none',
