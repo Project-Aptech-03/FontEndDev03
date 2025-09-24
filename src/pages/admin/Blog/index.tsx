@@ -188,6 +188,7 @@ const BlogAdmin: React.FC = () => {
         if (uploadResponse && uploadResponse.url) {
           setPreviewImage(uploadResponse.url);
           form.setFieldsValue({ featuredImage: uploadResponse.url });
+          setHasChanges(true);
           message.success("Upload image successfully!");
         } else {
           message.error("Cannot save image to server!");
@@ -373,6 +374,7 @@ const BlogAdmin: React.FC = () => {
     form.setFieldsValue({
       isPublished: false,
       isFeatured: false,
+      featuredImage: "",
     });
     setIsModalVisible(true);
   };
@@ -415,6 +417,11 @@ const BlogAdmin: React.FC = () => {
         featuredImage: fullBlog.featuredImageUrl || "",
         tags: (fullBlog as any).tags ? (fullBlog as any).tags.join(", ") : "",
       });
+
+      // Set preview image for editing
+      if (fullBlog.featuredImageUrl) {
+        setPreviewImage(fullBlog.featuredImageUrl);
+      }
 
       setIsModalVisible(true);
     } catch (error) {
@@ -541,6 +548,8 @@ const BlogAdmin: React.FC = () => {
           setIsModalVisible(false);
           setHasChanges(false);
           form.resetFields();
+          setPreviewImage("");
+          setPreviewData(null);
           // Force refresh the blogs list with all blogs including drafts
           if (isShowingAllBlogs) {
             // Refresh all blogs data
@@ -582,6 +591,8 @@ const BlogAdmin: React.FC = () => {
           setIsModalVisible(false);
           setHasChanges(false);
           form.resetFields();
+          setPreviewImage("");
+          setPreviewData(null);
           if (isShowingAllBlogs) {
             // Refresh all blogs data
             const result = await blogApi.getAllBlogs();
@@ -624,8 +635,8 @@ const BlogAdmin: React.FC = () => {
   };
 
   // State for managing all blogs display
-  const [isShowingAllBlogs, setIsShowingAllBlogs] = useState(false);
-  const [allBlogsData, setAllBlogsData] = useState<BlogListResponseDto[]>([]);
+  const [isShowingAllBlogs, setIsShowingAllBlogs] = useState(false); // true when showing all blogs (published + draft)
+  const [allBlogsData, setAllBlogsData] = useState<BlogListResponseDto[]>([]); // All blogs data
   const [allBlogsPagination, setAllBlogsPagination] = useState({
     totalCount: 0,
     pageNumber: 1,
@@ -638,7 +649,7 @@ const BlogAdmin: React.FC = () => {
   // Handle filter by status
   const handleFilterByStatus = async (status: 'all' | 'Published' | 'Draft') => {
     if (status === 'all') {
-      // Fetch all blogs using fetchAllBlogs and handle pagination manually
+      // Fetch all blogs (both published and draft) using fetchAllBlogs and handle pagination manually
       setIsShowingAllBlogs(true);
       try {
         const result = await blogApi.getAllBlogs();
@@ -670,12 +681,12 @@ const BlogAdmin: React.FC = () => {
         message.error('Failed to fetch all blogs');
       }
     } else {
-      // Use regular query for published/draft
+      // Use regular query for published/draft - filter by specific status
       setIsShowingAllBlogs(false);
       const newQuery: BlogQueryDto = {
         ...blogQuery,
         page: 1, // Reset to first page
-        isPublished: status === 'Published'
+        isPublished: status === 'Published' // true for Published, false for Draft
       };
       setBlogQuery(newQuery);
       updateQuery(newQuery);
@@ -684,10 +695,10 @@ const BlogAdmin: React.FC = () => {
 
   // State for storing all blog statistics
   const [allBlogStats, setAllBlogStats] = useState({
-    totalBlogs: 0,
-    publishedBlogs: 0,
-    draftBlogs: 0,
-    totalViews: 0
+    totalBlogs: 0, // Total blogs (published + draft)
+    publishedBlogs: 0, // Only published blogs
+    draftBlogs: 0, // Only draft blogs
+    totalViews: 0 // Total views across all blogs
   });
 
   // Function to fetch all blog statistics
@@ -703,7 +714,7 @@ const BlogAdmin: React.FC = () => {
 
       const publishedCount = publishedResult.totalCount;
       const draftCount = draftResult.totalCount;
-      const totalCount = publishedCount + draftCount;
+      const totalCount = publishedCount + draftCount; // Total = Published + Draft
 
       // Calculate total views from all blogs
       const allPublishedBlogs = publishedResult.items || [];
@@ -712,9 +723,9 @@ const BlogAdmin: React.FC = () => {
           .reduce((total, blog) => total + blog.viewCount, 0);
 
       setAllBlogStats({
-        totalBlogs: totalCount,
-        publishedBlogs: publishedCount,
-        draftBlogs: draftCount,
+        totalBlogs: totalCount, // Total blogs (published + draft)
+        publishedBlogs: publishedCount, // Only published blogs
+        draftBlogs: draftCount, // Only draft blogs
         totalViews
       });
     } catch (error) {
@@ -735,9 +746,9 @@ const BlogAdmin: React.FC = () => {
     const totalCount = currentBlogs.length;
 
     return {
-      publishedCount,
-      draftCount,
-      totalCount
+      publishedCount, // Count of published blogs in current view
+      draftCount, // Count of draft blogs in current view
+      totalCount // Total blogs in current view
     };
   };
 
@@ -745,7 +756,7 @@ const BlogAdmin: React.FC = () => {
 
   // Get current pagination data
   const getCurrentPagination = () => {
-    return isShowingAllBlogs ? allBlogsPagination : pagination;
+    return isShowingAllBlogs ? allBlogsPagination : pagination; // Use appropriate pagination source
   };
 
   // Get current blogs data for table
@@ -756,7 +767,7 @@ const BlogAdmin: React.FC = () => {
       const endIndex = startIndex + allBlogsPagination.pageSize;
       return allBlogsData.slice(startIndex, endIndex);
     }
-    return blogs;
+    return blogs; // For filtered blogs (published or draft only)
   };
 
   const currentBlogs = getCurrentBlogs();
@@ -774,14 +785,14 @@ const BlogAdmin: React.FC = () => {
         backgroundColor: blogQuery.isPublished === undefined ? '#f6ffed' : 'white'
       },
       description: blogQuery.isPublished === undefined
-          ? `Showing all ${currentStats.totalCount} blogs (${allBlogStats.publishedBlogs} published, ${allBlogStats.draftBlogs} draft)`
+          ? `Showing all ${currentStats.totalCount} blogs (${allBlogStats.publishedBlogs} published + ${allBlogStats.draftBlogs} draft)`
           : `Click to show all ${allBlogStats.totalBlogs} blogs (${allBlogStats.publishedBlogs} published + ${allBlogStats.draftBlogs} draft)`
     },
     {
       title: "Published",
       value: allBlogStats.publishedBlogs,
       icon: <FileTextOutlined style={{ color: "#52c41a" }} />,
-      onClick: () => handleFilterByStatus('published'),
+      onClick: () => handleFilterByStatus('Published'),
       style: {
         cursor: 'pointer',
         border: blogQuery.isPublished === true ? '2px solid #52c41a' : '1px solid #d9d9d9',
@@ -795,7 +806,7 @@ const BlogAdmin: React.FC = () => {
       title: "Draft",
       value: allBlogStats.draftBlogs,
       icon: <FileTextOutlined style={{ color: "#faad14" }} />,
-      onClick: () => handleFilterByStatus('draft'),
+      onClick: () => handleFilterByStatus('Draft'),
       style: {
         cursor: 'pointer',
         border: blogQuery.isPublished === false ? '2px solid #faad14' : '1px solid #d9d9d9',
@@ -993,6 +1004,7 @@ const BlogAdmin: React.FC = () => {
                     setEditingBlog(null);
                     setHasChanges(false);
                     setPreviewImage("");
+                    setPreviewData(null);
                   },
                 });
               } else {
@@ -1001,6 +1013,7 @@ const BlogAdmin: React.FC = () => {
                 setEditingBlog(null);
                 setHasChanges(false);
                 setPreviewImage("");
+                setPreviewData(null);
               }
             }}
             footer={null}
@@ -1182,35 +1195,149 @@ const BlogAdmin: React.FC = () => {
                           <Form.Item label="Featured Image" name="featuredImage">
                             <Row gutter={16}>
                               <Col span={12}>
-                                <Upload
-                                    name="image"
-                                    listType="picture-card"
-                                    showUploadList={true}
-                                    customRequest={({ file, onSuccess, onError }) => {
-                                      // We handle the upload manually in handleImageUpload
-                                      if (onSuccess) onSuccess("ok");
-                                    }}
-                                    onChange={handleImageUpload}
-                                    accept="image/*"
-                                    maxCount={1}
-                                >
-                                  {!previewImage && (
+                                <div style={{
+                                  border: "2px dashed #d9d9d9",
+                                  borderRadius: 8,
+                                  padding: 16,
+                                  textAlign: "center",
+                                  backgroundColor: "#fafafa",
+                                  transition: "all 0.3s ease"
+                                }}>
+                                  <Upload
+                                      name="image"
+                                      listType="picture-card"
+                                      showUploadList={false}
+                                      customRequest={({ file, onSuccess, onError }) => {
+                                        // We handle the upload manually in handleImageUpload
+                                        if (onSuccess) onSuccess("ok");
+                                      }}
+                                      onChange={handleImageUpload}
+                                      accept="image/*"
+                                      maxCount={1}
+                                      style={{
+                                        width: "100%",
+                                        height: "auto",
+                                        border: "none",
+                                        backgroundColor: "transparent"
+                                      }}
+                                  >
+                                    {!previewImage && (
+                                        <div style={{
+                                          padding: "20px 0",
+                                          color: "#666"
+                                        }}>
+                                          {uploading ? (
+                                              <div>
+                                                <LoadingOutlined style={{ fontSize: 24, color: "#1890ff" }} />
+                                                <div style={{ marginTop: 8, fontSize: 14, fontWeight: 500 }}>
+                                                  Uploading...
+                                                </div>
+                                              </div>
+                                          ) : (
+                                              <div>
+                                                <PictureOutlined style={{ fontSize: 32, color: "#d9d9d9" }} />
+                                                <div style={{ marginTop: 8, fontSize: 14, fontWeight: 500 }}>
+                                                  Click to upload image
+                                                </div>
+                                                <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
+                                                  or drag and drop
+                                                </div>
+                                              </div>
+                                          )}
+                                        </div>
+                                    )}
+                                  </Upload>
+                                  {previewImage && (
                                       <div>
-                                        {uploading ? <LoadingOutlined /> : <PictureOutlined />}
-                                        <div style={{ marginTop: 8 }}>
-                                          {uploading ? "Uploading..." : "Upload image"}
+                                        <div style={{
+                                          position: "relative",
+                                          borderRadius: 8,
+                                          overflow: "hidden",
+                                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                                        }}>
+                                          <Image
+                                              src={previewImage}
+                                              alt="Featured"
+                                              style={{
+                                                width: "100%",
+                                                height: 160,
+                                                objectFit: "cover",
+                                                borderRadius: 8
+                                              }}
+                                          />
+                                          <div style={{
+                                            position: "absolute",
+                                            top: 8,
+                                            right: 8,
+                                            background: "rgba(0,0,0,0.6)",
+                                            borderRadius: "50%",
+                                            width: 24,
+                                            height: 24,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center"
+                                          }}>
+                                            <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<DeleteOutlined />}
+                                                onClick={() => {
+                                                  setPreviewImage("");
+                                                  form.setFieldsValue({ featuredImage: "" });
+                                                }}
+                                                style={{
+                                                  color: "white",
+                                                  padding: 0,
+                                                  width: 24,
+                                                  height: 24,
+                                                  minWidth: 24
+                                                }}
+                                            />
+                                          </div>
+                                        </div>
+                                        <div style={{ marginTop: 12, textAlign: "center" }}>
+                                          <Button
+                                              size="small"
+                                              onClick={() => {
+                                                setPreviewImage("");
+                                                form.setFieldsValue({ featuredImage: "" });
+                                              }}
+                                              danger
+                                              icon={<DeleteOutlined />}
+                                          >
+                                            Remove image
+                                          </Button>
                                         </div>
                                       </div>
                                   )}
-                                </Upload>
+                                </div>
                               </Col>
                               <Col span={12}>
-                                <div style={{ padding: 8, background: "#f5f5f5", borderRadius: 4 }}>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>
-                                    • Format: JPG, PNG, GIF, WEBP<br/>
-                                    • No file size limit<br/>
-                                    • No image size limit
-                                  </Text>
+                                <div style={{
+                                  padding: 16,
+                                  background: "linear-gradient(135deg, #f6f9fc 0%, #e9f4ff 100%)",
+                                  borderRadius: 8,
+                                  border: "1px solid #e6f7ff"
+                                }}>
+                                  <div style={{ marginBottom: 12 }}>
+                                    <Text strong style={{ color: "#1890ff", fontSize: 14 }}>
+                                      📸 Image Guidelines
+                                    </Text>
+                                  </div>
+                                  <div style={{ fontSize: 12, lineHeight: 1.6 }}>
+                                    <div style={{ marginBottom: 4 }}>
+                                      <Text type="secondary">• Supported formats: JPG, PNG, GIF, WEBP</Text>
+                                    </div>
+                                    <div style={{ marginBottom: 4 }}>
+                                      <Text type="secondary">• Recommended size: 1200x630px</Text>
+                                    </div>
+                                    <div style={{ marginBottom: 4 }}>
+                                      <Text type="secondary">• Max file size: 10MB</Text>
+                                    </div>
+                                    <div>
+                                      <Text type="secondary">• Aspect ratio: 16:9 for best results</Text>
+                                    </div>
+                                  </div>
                                 </div>
                               </Col>
                             </Row>
@@ -1218,7 +1345,14 @@ const BlogAdmin: React.FC = () => {
 
                           <Form.Item style={{ marginBottom: 0, textAlign: "right" }}>
                             <Space>
-                              <Button onClick={() => setIsModalVisible(false)}>
+                              <Button onClick={() => {
+                                setIsModalVisible(false);
+                                form.resetFields();
+                                setEditingBlog(null);
+                                setHasChanges(false);
+                                setPreviewImage("");
+                                setPreviewData(null);
+                              }}>
                                 <CloseOutlined /> Cancel
                               </Button>
                               <Button onClick={handleSaveDraft}>

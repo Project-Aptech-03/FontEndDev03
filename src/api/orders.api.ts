@@ -32,7 +32,7 @@ export const getAllOrders = async (): Promise<{ success: boolean; result?: ApiRe
 };
 export const getTopProducts = async (): Promise<{ success: boolean; result?: ApiResponse<TopProduct[]>; error?: any }> => {
     try {
-        const response = await apiClient.get<ApiResponse<TopProduct[]>>("/order/top-products");
+        const response = await apiClient.get<ApiResponse<TopProduct[]>>("/orders/top-products");
         return { success: true, result: response.data };
     } catch (error: any) {
         return {

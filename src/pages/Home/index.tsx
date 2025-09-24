@@ -66,7 +66,6 @@ const HomePage = () => {
           transformProduct(product, productOrderStats[product.id] || 0)
       );
 
-      // ✅ gọi API reviews cho từng book
       allProducts = await Promise.all(
           allProducts.map(async (book) => {
             try {
@@ -137,7 +136,6 @@ const HomePage = () => {
       }
     } catch (error) {
       message.error("Error adding to cart, please try again.");
-      console.error("Add to cart failed:", error);
     }
   };
 

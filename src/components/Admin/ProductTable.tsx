@@ -54,7 +54,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
 
     const getStockColor = (stock: number) => {
         if (stock > 10) return '#52c41a';
-        if (stock > 0) return '#faad14';
+        if (stock > 5) return '#FFBC4C';
         return '#ff4d4f';
     };
 
@@ -284,9 +284,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
         {
             title: "Manufacturer",
             key: "manufacturer",
-            width: 140,
+            width: 100,
             render: (_: any, record: Products) => (
-                <Tag color="#722ed1" style={{ borderRadius: 12, fontSize: 11 }}>
+                <Tag color="#0BA6DF" style={{ borderRadius: 12, fontSize: 11 }}>
                     {record.manufacturer?.manufacturerName || "N/A"}
                 </Tag>
             ),
@@ -294,9 +294,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
         {
             title: "Publisher",
             key: "publisher",
-            width: 130,
+            width: 100,
             render: (_: any, record: Products) => (
-                <Tag color="#fa8c16" style={{ borderRadius: 12, fontSize: 11 }}>
+                <Tag color="#E1AA36" style={{ borderRadius: 12, fontSize: 11 }}>
                     {record.publisher?.publisherName || "N/A"}
                 </Tag>
             ),
@@ -321,7 +321,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
             title: "Stock",
             dataIndex: "stockQuantity",
             key: "stockQuantity",
-            width: 80,
+            width: 100,
             align: 'center' as const,
             render: (stock: number) => (
                 <Tag
