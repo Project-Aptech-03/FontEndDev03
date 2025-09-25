@@ -1,4 +1,4 @@
-// src/pages/admin/reviews/index.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -25,7 +25,6 @@ import {
   Alert,
   List,
   Collapse,
-  Switch
 } from 'antd';
 import {
   UserOutlined,
@@ -93,119 +92,82 @@ const AdminReviews: React.FC<AdminReviewsProps> = () => {
 
   const baseUrl = 'https://localhost:7275';
 
-  // Initial data load when component mounts
   useEffect(() => {
     fetchInitialData();
   }, []);
 
-  // Fetch reviews when filters change (but skip on first mount since fetchInitialData already loads everything)
   useEffect(() => {
-    if (products.length > 0) {
-      fetchReviews();
-    }
-  }, [filters, products]);
+    fetchReviews();
+  }, [filters]);
 
   const fetchInitialData = async () => {
     try {
       setLoading(true);
 
-      // Fetch products for filter dropdown first
+      // Fetch products for filter dropdown - Fixed API call
       const productsResponse = await getProducts(1, 100); // Fetch first 100 products
       if (productsResponse.success && productsResponse.data) {
-        const productsList = productsResponse.data.items || productsResponse.data;
-        setProducts(productsList);
-
-        // After products are loaded, fetch all reviews
-        await fetchAllReviews(productsList);
+        setProducts(productsResponse.data.items || productsResponse.data);
       }
+
+      await fetchReviews();
     } catch (error) {
-      console.error('Error loading initial data:', error);
       message.error('Failed to load initial data');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAllReviews = async (productsList?: ProductsResponseDto[]) => {
+  const fetchReviews = async () => {
     try {
-      const productsToUse = productsList || products;
-
-      if (productsToUse.length === 0) {
-        setReviews([]);
-        return;
-      }
-
       let allReviews: ReviewResponse[] = [];
 
       if (filters.productId) {
+        // Fetch reviews for specific product
         const response = await getProductReviews(filters.productId);
         if (response.success && response.result?.data) {
           allReviews = response.result.data;
         }
       } else {
-        // Fetch reviews for all products
-        const responses = await Promise.all(
-            productsToUse.map(product => getProductReviews(product.id))
-        );
-
-        responses.forEach(res => {
-          if (res.success && res.result?.data) {
-            allReviews = [...allReviews, ...res.result.data];
+        // Fetch reviews from all products
+        for (const product of products) {
+          const response = await getProductReviews(product.id);
+          if (response.success && response.result?.data) {
+            allReviews = [...allReviews, ...response.result.data];
           }
-        });
+        }
       }
 
       // Apply filters
-      const filteredReviews = applyFilters(allReviews);
+      let filteredReviews = allReviews;
+
+      if (filters.status !== 'all') {
+        filteredReviews = filteredReviews.filter(review =>
+            filters.status === 'approved' ? review.isApproved : !review.isApproved
+        );
+      }
+
+      if (filters.rating) {
+        filteredReviews = filteredReviews.filter(review => review.rating === filters.rating);
+      }
+
+      if (filters.dateRange) {
+        const [start, end] = filters.dateRange;
+        filteredReviews = filteredReviews.filter(review => {
+          const reviewDate = new Date(review.reviewDate);
+          return reviewDate >= new Date(start) && reviewDate <= new Date(end);
+        });
+      }
+
+      // Sort by date (newest first)
+      filteredReviews.sort((a, b) =>
+          new Date(b.reviewDate).getTime() - new Date(a.reviewDate).getTime()
+      );
+
       setReviews(filteredReviews);
     } catch (error) {
-      console.error('Error fetching reviews:', error);
       message.error('Failed to fetch reviews');
     }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      setLoading(true);
-      await fetchAllReviews();
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      message.error('Failed to fetch reviews');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilters = (allReviews: ReviewResponse[]) => {
-    let filteredReviews = [...allReviews];
-
-    // Apply status filter
-    if (filters.status !== 'all') {
-      filteredReviews = filteredReviews.filter(review =>
-          filters.status === 'approved' ? review.isApproved : !review.isApproved
-      );
-    }
-
-    // Apply rating filter
-    if (filters.rating) {
-      filteredReviews = filteredReviews.filter(review => review.rating === filters.rating);
-    }
-
-    // Apply date range filter
-    if (filters.dateRange) {
-      const [start, end] = filters.dateRange;
-      filteredReviews = filteredReviews.filter(review => {
-        const reviewDate = new Date(review.reviewDate);
-        return reviewDate >= new Date(start) && reviewDate <= new Date(end);
-      });
-    }
-
-    // Sort by date (newest first)
-    filteredReviews.sort((a, b) =>
-        new Date(b.reviewDate).getTime() - new Date(a.reviewDate).getTime()
-    );
-
-    return filteredReviews;
   };
 
   const handleApproveReview = async (reviewId: number) => {
@@ -261,26 +223,17 @@ const AdminReviews: React.FC<AdminReviewsProps> = () => {
       const response = await addReply(selectedReview.id, replyData);
       if (response.success) {
         message.success('Reply added successfully');
-
-        // Clear the form
+        setReplyModalVisible(false);
         form.resetFields();
+        fetchReviews();
 
-        // Update the selected review immediately for better UX
-        if (response.result?.data) {
-          const updatedReview = {
-            ...selectedReview,
-            reviewReplies: [...(selectedReview.reviewReplies || []), response.result.data]
-          };
-          setSelectedReview(updatedReview);
-
-          // Update reviews list without triggering full refetch
-          const updatedReviews = reviews.map(review =>
-              review.id === selectedReview.id
-                  ? updatedReview
-                  : review
-          );
-          setReviews(updatedReviews);
-        }
+        // Update selected review with new reply
+        const updatedReviews = reviews.map(review =>
+            review.id === selectedReview.id
+                ? { ...review, reviewReplies: [...review.reviewReplies, response.result?.data] }
+                : review
+        );
+        setReviews(updatedReviews);
       } else {
         message.error(response.error?.message || 'Failed to add reply');
       }
@@ -441,7 +394,17 @@ const AdminReviews: React.FC<AdminReviewsProps> = () => {
               />
             </Tooltip>
 
-
+            <Tooltip title="Add Reply">
+              <Button
+                  type="text"
+                  icon={<SendOutlined />}
+                  onClick={() => {
+                    setSelectedReview(record);
+                    setReplyModalVisible(true);
+                  }}
+                  className="action-button"
+              />
+            </Tooltip>
 
             {!record.isApproved && (
                 <Tooltip title="Approve">
@@ -632,7 +595,7 @@ const AdminReviews: React.FC<AdminReviewsProps> = () => {
 
               {/* Replies */}
               <Card title={`Replies (${selectedReview.reviewReplies?.length || 0})`} className="replies-card">
-                {selectedReview.reviewReplies && selectedReview.reviewReplies.length > 0 && (
+                {selectedReview.reviewReplies && selectedReview.reviewReplies.length > 0 ? (
                     <List
                         dataSource={selectedReview.reviewReplies}
                         renderItem={(reply) => (
@@ -670,44 +633,9 @@ const AdminReviews: React.FC<AdminReviewsProps> = () => {
                             </List.Item>
                         )}
                     />
+                ) : (
+                    <Text type="secondary">No replies yet</Text>
                 )}
-
-                {/* Add Reply Form - Always show in detail modal */}
-                <div style={{ marginTop: 16, padding: 16, backgroundColor: '#fafafa', borderRadius: 8 }}>
-                  <Form
-                      form={form}
-                      onFinish={(values) => {
-                        handleAddReply(values);
-                        form.resetFields();
-                      }}
-                      layout="vertical"
-                  >
-                    <Form.Item
-                        label="Add Reply"
-                        name="comment"
-                        rules={[
-                          { required: true, message: 'Please enter your reply!' },
-                          { max: 2000, message: 'Reply cannot exceed 2000 characters!' }
-                        ]}
-                    >
-                      <TextArea
-                          rows={3}
-                          placeholder="Enter your reply to this review..."
-                          showCount
-                          maxLength={2000}
-                      />
-                    </Form.Item>
-                    <Form.Item style={{ marginBottom: 0 }}>
-                      <Button
-                          type="primary"
-                          htmlType="submit"
-                          icon={<SendOutlined />}
-                      >
-                        Send Reply
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </div>
               </Card>
             </div>
         )}

@@ -16,6 +16,7 @@ interface BooksGridProps {
     pageSize: number;
     currentPage: number;
     onPageChange: (page: number, pageSize?: number) => void;
+    bookReviews: { [key: number]: { rating: number; reviewCount: number } };
 }
 
 const BooksGrid: React.FC<BooksGridProps> = ({
@@ -26,7 +27,8 @@ const BooksGrid: React.FC<BooksGridProps> = ({
                                                  totalCount,
                                                  pageSize,
                                                  currentPage,
-                                                 onPageChange
+                                                 onPageChange,
+                                                 bookReviews
                                              }) => {
 
     return (
@@ -50,6 +52,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({
                             book={book}
                             isInWishlist={isInWishlist(book.id)}
                             onWishlistToggle={onWishlistToggle}
+                            reviews={bookReviews[book.id] || { rating: 0, reviewCount: 0 }}
                         />
                     ))
                 ) : (

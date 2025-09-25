@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { customerAddressApi } from '../../api/customerAddress.api';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaImage, FaShoppingBag, FaMapMarkerAlt, FaTag, FaCheck, FaPhone, FaEdit, FaStickyNote, FaHome, FaUser } from 'react-icons/fa';
-import { toast } from 'react-toastify';
 import { cartApi } from '../../api/cart.api';
 import { couponApi } from '../../api/coupon.api';
 import { getNextOrderCode } from '../../api/orders.api';
@@ -11,8 +10,7 @@ import { AppliedCoupon } from '../../@type/Orders';
 import { CustomerAddress } from '../../@type/customerAddress';
 import AddAddressForm from './AddAddressForm';
 import './CartPage.css';
-import './CartPage.css';
-import {message, Modal} from "antd";
+import { Modal, message } from "antd";
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -42,11 +40,11 @@ const CartPage = () => {
         setSelectedItems(response.data.map(item => item.id));
       } else {
         setError(response.message || 'Failed to fetch cart data');
-        toast.error(response.message || 'Failed to fetch cart data');
+        message.error(response.message || 'Failed to fetch cart data');
       }
     } catch (error: any) {
       setError('Failed to load cart. Please try again.');
-      toast.error('Failed to load cart. Please try again.');
+      message.error('Failed to load cart. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +68,7 @@ const CartPage = () => {
         }
       }
     } catch (err) {
-      toast.error('Failed to fetch addresses');
+      message.error('Failed to fetch addresses');
     }
   };
   const deleteAddress = async (addressId: number) => {
@@ -85,7 +83,7 @@ const CartPage = () => {
       // Use the actual ID from the address object
       const res = await customerAddressApi.deleteAddress(address.id);
       if (res.success) {
-        toast.success('Address deleted successfully');
+        message.success('Address deleted successfully');
         // If deleted address was selected, reset selection
         if (selectedAddressId === addressId) {
           setSelectedAddressId(null);
@@ -93,10 +91,10 @@ const CartPage = () => {
         // Refresh addresses list
         fetchAddresses();
       } else {
-        toast.error(res.message || 'Unable to delete address');
+        message.error(res.message || 'Unable to delete address');
       }
     } catch (error) {
-      toast.error('Unable to delete address. Please try again.');
+      message.error('Unable to delete address. Please try again.');
     }
   };
 
@@ -115,13 +113,13 @@ const CartPage = () => {
 
       const res = await customerAddressApi.setDefaultAddress(address.id);
       if (res.success) {
-        toast.success('Set as default address successfully');
+        message.success('Set as default address successfully');
         fetchAddresses();
       } else {
-        toast.error(res.message || 'Unable to set as default address');
+        message.error(res.message || 'Unable to set as default address');
       }
     } catch (error) {
-      toast.error('Unable to set as default address. Please try again.');
+      message.error('Unable to set as default address. Please try again.');
     }
   };
 
@@ -133,12 +131,12 @@ const CartPage = () => {
     const stockQuantity = cartItem.product?.stockQuantity || 0;
 
     if (newQuantity > stockQuantity) {
-      toast.error(`Exceeds available stock (remaining: ${stockQuantity})`);
+      message.error(`Exceeds available stock (remaining: ${stockQuantity})`);
       return;
     }
     if (stockQuantity === 0) {
       const confirmRemove = window.confirm(
-          'This product is out of stock. Do you want to remove it from the cart?'
+        'This product is out of stock. Do you want to remove it from the cart?'
       );
       if (confirmRemove) {
         await removeItem(cartItem.productId); // Changed to use productId
@@ -167,41 +165,41 @@ const CartPage = () => {
 
       if (response.success) {
         // Success: UI already updated, just show success message
-        toast.success('Quantity updated successfully');
+        message.success('Quantity updated successfully');
 
         // Optionally sync with server data if needed
         const serverItem = response.data;
         if (serverItem.quantity !== newQuantity || serverItem.totalPrice !== newTotalPrice) {
           // Server returned different values, update with server data
           setCartItems(prevItems =>
-              prevItems.map(item =>
-                  item.id === itemId
-                      ? { ...item, quantity: serverItem.quantity, totalPrice: serverItem.totalPrice }
-                      : item
-              )
+            prevItems.map(item =>
+              item.id === itemId
+                ? { ...item, quantity: serverItem.quantity, totalPrice: serverItem.totalPrice }
+                : item
+            )
           );
         }
       } else {
         // ROLLBACK: Revert to original values
         setCartItems(prevItems =>
-            prevItems.map(item =>
-                item.id === itemId
-                    ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
-                    : item
-            )
+          prevItems.map(item =>
+            item.id === itemId
+              ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
+              : item
+          )
         );
-        toast.error(response.message || 'Failed to update cart');
+        message.error(response.message || 'Failed to update cart');
       }
     } catch (error) {
       // ROLLBACK: Revert to original values
       setCartItems(prevItems =>
-          prevItems.map(item =>
-              item.id === itemId
-                  ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
-                  : item
-          )
+        prevItems.map(item =>
+          item.id === itemId
+            ? { ...item, quantity: originalQuantity, totalPrice: originalTotalPrice }
+            : item
+        )
       );
-      toast.error('Unable to update cart. Please try again.');
+      message.error('Unable to update cart. Please try again.');
     } finally {
       setUpdatingItems(prev => {
         const next = new Set(prev);
@@ -211,7 +209,7 @@ const CartPage = () => {
     }
   };
   const removeItem = async (productId: number) => {
-    if (!message.error('Are you sure you want to remove this item from the cart?')) {
+    if (!window.confirm('Are you sure you want to remove this item from the cart?')) {
       return;
     }
 
@@ -313,21 +311,28 @@ const CartPage = () => {
       });
 
       if (response.success) {
+        // Validate response data before setting
+        if (!response.data.couponInfo?.couponCode) {
+          setCouponError('Invalid coupon response from server');
+          message.error('Invalid coupon response from server');
+          return;
+        }
+        
         setAppliedCoupon({
-          code: response.data.couponCode,
+          code: response.data.couponInfo.couponCode,
           discountAmount: response.data.discountAmount,
-          discountType: response.data.discountType
+          discountType: response.data.couponInfo.discountType
         });
         setCouponCode('');
         setCouponError(null);
-        toast.success(
-            `Coupon "${response.data.couponCode}" applied successfully! You saved ${response.data.discountAmount.toLocaleString('en-US')} $`
+        message.success(
+          `Coupon "${response.data.couponInfo.couponCode}" applied successfully! You saved ${response.data.discountAmount.toLocaleString('en-US')} $`
         );
       } else {
         // Handle specific error messages
         const errorMessage = getSpecificErrorMessage(response.message, couponCode.trim());
         setCouponError(errorMessage);
-        toast.error(errorMessage);
+        message.error(errorMessage);
       }
     } catch (error: any) {
       let errorMessage = '';
@@ -344,7 +349,7 @@ const CartPage = () => {
       }
 
       setCouponError(errorMessage);
-      toast.error(errorMessage);
+      message.error(errorMessage);
     } finally {
       setApplyingCoupon(false);
     }
@@ -386,7 +391,7 @@ const CartPage = () => {
 
   const removeCoupon = () => {
     setAppliedCoupon(null);
-    toast.success('Coupon has been removed');
+    message.success('Coupon has been removed');
   };
 
   const proceedToCheckout = async () => {
@@ -402,24 +407,24 @@ const CartPage = () => {
     const selectedProducts = cartItems.filter(item => selectedItems.includes(item.id));
 
     const outOfStockItems = selectedProducts.filter(item =>
-        (item.product?.stockQuantity || 0) === 0
+      (item.product?.stockQuantity || 0) === 0
     );
 
     const insufficientStockItems = selectedProducts.filter(item =>
-        item.quantity > (item.product?.stockQuantity || 0)
+      item.quantity > (item.product?.stockQuantity || 0)
     );
 
     if (outOfStockItems.length > 0) {
       const itemNames = outOfStockItems.map(item => item.product?.productName).join(', ');
-      toast.error(`The following products are out of stock: ${itemNames}`);
+      message.error(`The following products are out of stock: ${itemNames}`);
       return;
     }
 
     if (insufficientStockItems.length > 0) {
       const itemNames = insufficientStockItems.map(item =>
-          `${item.product?.productName} (only ${item.product?.stockQuantity} left)`
+        `${item.product?.productName} (only ${item.product?.stockQuantity} left)`
       ).join(', ');
-      toast.error(`Quantity exceeds available stock: ${itemNames}`);
+      message.error(`Quantity exceeds available stock: ${itemNames}`);
       return;
     }
 
@@ -454,7 +459,7 @@ const CartPage = () => {
 
     } catch (error) {
       console.error('Error proceeding to checkout:', error);
-      toast.error('Unable to proceed to checkout. Please try again.');
+      message.error('Unable to proceed to checkout. Please try again.');
     }
   };
 
@@ -462,8 +467,6 @@ const CartPage = () => {
   const selectedSubtotal = cartItems
     .filter(item => selectedItems.includes(item.id))
     .reduce((sum, item) => sum + item.totalPrice, 0);
-
-  const totalSubtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
 
   // Get shipping fee from selected address
   const getShippingFee = () => {
@@ -474,42 +477,52 @@ const CartPage = () => {
     return selectedAddress?.shippingFee ?? 35000; // Use nullish coalescing for safer fallback
   };
 
+  // Helper function to format shipping fee as USD
+  const formatShippingFeeUSD = (vndAmount: number) => {
+    return `$${vndAmount.toLocaleString('en-US')}`;
+  };
+
   const shipping = getShippingFee();
   const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const total = selectedSubtotal + shipping - discount;
 
+  // Get selected address for optimization
+  const selectedAddress = selectedAddressId !== null
+    ? addresses.find(addr => addr._idx === selectedAddressId)
+    : null;
+
   if (loading) {
     return (
-        <div className="cart-loading">
-          <div className="loading-content">
-            <div className="loading-spinner"></div>
-            <h3>Loading cart...</h3>
-            <p>Please wait a moment</p>
-          </div>
+      <div className="cart-loading">
+        <div className="loading-content">
+          <div className="loading-spinner"></div>
+          <h3>Loading cart...</h3>
+          <p>Please wait a moment</p>
         </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-        <div className="cartPage">
-          <div className="error-page">
-            <div className="error-content">
-              <div className="error-icon">
-                <FaShoppingBag />
-              </div>
-              <h2>Unable to load cart</h2>
-              <p>{error}</p>
-              <button className="retry-button" onClick={fetchCartData}>
-                <FaShoppingBag />
-                Retry
-              </button>
-              <Link to="/shop" className="back-to-shop">
-                Continue Shopping
-              </Link>
+      <div className="cartPage">
+        <div className="error-page">
+          <div className="error-content">
+            <div className="error-icon">
+              <FaShoppingBag />
             </div>
+            <h2>Unable to load cart</h2>
+            <p>{error}</p>
+            <button className="retry-button" onClick={fetchCartData}>
+              <FaShoppingBag />
+              Retry
+            </button>
+            <Link to="/shop" className="back-to-shop">
+              Continue Shopping
+            </Link>
           </div>
         </div>
+      </div>
     );
   }
 
@@ -532,26 +545,26 @@ const CartPage = () => {
       <div className="container">
         <div className="cart-content">
           {cartItems.length === 0 ? (
-              <div className="empty-cart">
-                <div className="empty-cart-content">
-                  <div className="empty-icon">
-                    <FaShoppingBag/>
-                  </div>
-                  <h2>Empty Cart</h2>
-                  <p>You don’t have any products in your cart yet. Explore our amazing products!</p>
-                  <div className="empty-actions">
-                    <Link to="/shop" className="shop-now-btn">
-                      <FaShoppingBag/>
-                      Shop Now
-                    </Link>
-                    <Link to="/categories" className="browse-categories-btn">
-                      Browse Categories
-                    </Link>
-                  </div>
+            <div className="empty-cart">
+              <div className="empty-cart-content">
+                <div className="empty-icon">
+                  <FaShoppingBag />
+                </div>
+                <h2>Empty Cart</h2>
+                <p>You don’t have any products in your cart yet. Explore our amazing products!</p>
+                <div className="empty-actions">
+                  <Link to="/shop" className="shop-now-btn">
+                    <FaShoppingBag />
+                    Shop Now
+                  </Link>
+                  <Link to="/categories" className="browse-categories-btn">
+                    Browse Categories
+                  </Link>
                 </div>
               </div>
+            </div>
           ) : (
-              <>
+            <>
               <div className="cart-main">
                 <div className="cart-left-column">
                   <div className="cart-items-section">
@@ -559,20 +572,20 @@ const CartPage = () => {
                       <h3>Products ({cartItems.length})</h3>
                       <div className="header-actions">
                         <button
-                            className={`select-all-btn ${selectedItems.length === cartItems.length ? 'active' : ''}`}
-                            onClick={() => {
-                              if (selectedItems.length === cartItems.length) {
-                                setSelectedItems([]);
-                              } else {
-                                setSelectedItems(cartItems.map(item => item.id));
-                              }
-                            }}
+                          className={`select-all-btn ${selectedItems.length === cartItems.length ? 'active' : ''}`}
+                          onClick={() => {
+                            if (selectedItems.length === cartItems.length) {
+                              setSelectedItems([]);
+                            } else {
+                              setSelectedItems(cartItems.map(item => item.id));
+                            }
+                          }}
                         >
-                          <FaCheck/>
+                          <FaCheck />
                           {selectedItems.length === cartItems.length ? 'Deselect All' : 'Select All'}
                         </button>
                         <button className="clear-cart-btn" onClick={clearCart}>
-                          <FaTrash/>
+                          <FaTrash />
                           Clear All
                         </button>
                       </div>
@@ -585,117 +598,117 @@ const CartPage = () => {
                         const isLowStock = stockQuantity > 0 && stockQuantity <= 10;
 
                         return (
-                            <div key={item.id}
-                                 className={`cart-item ${selectedItems.includes(item.id) ? 'selected' : ''} ${isOutOfStock ? 'out-of-stock' : ''} ${isLowStock ? 'low-stock' : ''}`}>
-                              <div className="item-checkbox">
-                                <input
-                                    type="checkbox"
-                                    checked={selectedItems.includes(item.id)}
-                                    onChange={e => {
-                                      if (e.target.checked) {
-                                        setSelectedItems([...selectedItems, item.id]);
-                                      } else {
-                                        setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                      }
-                                    }}
+                          <div key={item.id}
+                            className={`cart-item ${selectedItems.includes(item.id) ? 'selected' : ''} ${isOutOfStock ? 'out-of-stock' : ''} ${isLowStock ? 'low-stock' : ''}`}>
+                            <div className="item-checkbox">
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.includes(item.id)}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setSelectedItems([...selectedItems, item.id]);
+                                  } else {
+                                    setSelectedItems(selectedItems.filter(id => id !== item.id));
+                                  }
+                                }}
+                              />
+                            </div>
+
+                            <div className="item-image">
+                              {item.product?.photos && item.product.photos.length > 0 ? (
+                                <img
+                                  src={item.product.photos[0].photoUrl || item.product.photos[0]}
+                                  alt={item.product.productName}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.nextElementSibling!.setAttribute('style', 'display: flex');
+                                  }}
                                 />
-                              </div>
-
-                              <div className="item-image">
-                                {item.product?.photos && item.product.photos.length > 0 ? (
-                                    <img
-                                        src={item.product.photos[0].photoUrl || item.product.photos[0]}
-                                        alt={item.product.productName}
-                                        onError={(e) => {
-                                          const target = e.target as HTMLImageElement;
-                                          target.style.display = 'none';
-                                          target.nextElementSibling!.setAttribute('style', 'display: flex');
-                                        }}
-                                    />
-                                ) : null}
-                                <div className="no-image"
-                                     style={{display: item.product?.photos && item.product.photos.length > 0 ? 'none' : 'flex'}}>
-                                  <FaImage/>
-                                </div>
-                              </div>
-
-                              <div className="item-info">
-                                <h4 className="item-name">{item.product?.productName || 'Unknown Product'}</h4>
-                                <div className="item-meta">
-                                  {item.product?.author && (
-                                      <span className="meta-item">
-                                          <strong>Author:</strong> {item.product.author}
-                                        </span>
-                                  )}
-                                  {item.product?.category?.categoryName && (
-                                      <span className="meta-item">
-                                          <strong>Category:</strong> {item.product.category.categoryName}
-                                        </span>
-                                  )}
-                                </div>
-                                <div className="item-price">
-                                  <span className="price-label">Unit Price:</span>
-                                  <span className="price-value">
-                                      {item.product?.price?.toLocaleString('vi-VN')} $
-                                    </span>
-                                </div>
-                              </div>
-                              <div className="item-controls">
-                                <div className="quantity-controls">
-                                  <button
-                                      className="qty-btn decrease"
-                                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                      disabled={item.quantity <= 1 || updatingItems.has(item.id)}
-                                  >
-                                    <FaMinus/>
-                                  </button>
-                                  <span className="quantity">
-                                  {updatingItems.has(item.id) ? '...' : item.quantity}
-                                </span>
-                                  <button
-                                      className="qty-btn increase"
-                                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                      disabled={
-                                          updatingItems.has(item.id) ||
-                                          item.quantity >= (item.product?.stockQuantity || 0) ||
-                                          (item.product?.stockQuantity || 0) === 0
-                                      }
-                                      title={
-                                        item.quantity >= (item.product?.stockQuantity || 0)
-                                            ? `Reached stock limit (${item.product?.stockQuantity})`
-                                            : 'Increase quantity'
-                                      }
-                                  >
-                                    <FaPlus/>
-                                  </button>
-                                </div>
-
-                                {/* Stock Info */}
-                                <div className="stock-info">
-                                  <span
-                                      className={`stock-status ${(item.product?.stockQuantity || 0) <= 10 ? 'low-stock' : 'in-stock'}`}>
-                                    {(item.product?.stockQuantity || 0) === 0
-                                        ? 'Out of Stock'
-                                        : `Only ${item.product?.stockQuantity} left`
-                                    }
-                                  </span>
-                                </div>
-                                <div className="item-total">
-                                  <span className="total-label">Total:</span>
-                                  <span className="total-value">
-                                    {item.totalPrice?.toLocaleString('vi-VN')}$
-                                  </span>
-                                </div>
-
-                                <button
-                                    className="remove-btn"
-                                    onClick={() => removeItem(item.product?.id || item.productId)}
-                                    title="Remove product"
-                                >
-                                  <FaTrash/>
-                                </button>
+                              ) : null}
+                              <div className="no-image"
+                                style={{ display: item.product?.photos && item.product.photos.length > 0 ? 'none' : 'flex' }}>
+                                <FaImage />
                               </div>
                             </div>
+
+                            <div className="item-info">
+                              <h4 className="item-name">{item.product?.productName || 'Unknown Product'}</h4>
+                              <div className="item-meta">
+                                {item.product?.author && (
+                                  <span className="meta-item">
+                                    <strong>Author:</strong> {item.product.author}
+                                  </span>
+                                )}
+                                {item.product?.category?.categoryName && (
+                                  <span className="meta-item">
+                                    <strong>Category:</strong> {item.product.category.categoryName}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="item-price">
+                                <span className="price-label">Unit Price:</span>
+                                <span className="price-value">
+                                  ${item.product?.price?.toLocaleString('en-US')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="item-controls">
+                              <div className="quantity-controls">
+                                <button
+                                  className="qty-btn decrease"
+                                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                  disabled={item.quantity <= 1 || updatingItems.has(item.id)}
+                                >
+                                  <FaMinus />
+                                </button>
+                                <span className="quantity">
+                                  {updatingItems.has(item.id) ? '...' : item.quantity}
+                                </span>
+                                <button
+                                  className="qty-btn increase"
+                                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  disabled={
+                                    updatingItems.has(item.id) ||
+                                    item.quantity >= (item.product?.stockQuantity || 0) ||
+                                    (item.product?.stockQuantity || 0) === 0
+                                  }
+                                  title={
+                                    item.quantity >= (item.product?.stockQuantity || 0)
+                                      ? `Reached stock limit (${item.product?.stockQuantity})`
+                                      : 'Increase quantity'
+                                  }
+                                >
+                                  <FaPlus />
+                                </button>
+                              </div>
+
+                              {/* Stock Info */}
+                              <div className="stock-info">
+                                <span
+                                  className={`stock-status ${(item.product?.stockQuantity || 0) <= 10 ? 'low-stock' : 'in-stock'}`}>
+                                  {(item.product?.stockQuantity || 0) === 0
+                                    ? 'Out of Stock'
+                                    : `Only ${item.product?.stockQuantity} left`
+                                  }
+                                </span>
+                              </div>
+                              <div className="item-total">
+                                <span className="total-label">Total:</span>
+                                <span className="total-value">
+                                  ${item.totalPrice?.toLocaleString('en-US')}
+                                </span>
+                              </div>
+
+                              <button
+                                className="remove-btn"
+                                onClick={() => removeItem(item.product?.id || item.productId)}
+                                title="Remove product"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
@@ -705,121 +718,121 @@ const CartPage = () => {
                   <div className="address-section">
                     <div className="section-header">
                       <h3>
-                        <FaMapMarkerAlt/>
+                        <FaMapMarkerAlt />
                         Shipping Address
                       </h3>
                       <button
-                          className="add-address-btn primary"
-                          onClick={() => setShowAddAddress(true)}
+                        className="add-address-btn primary"
+                        onClick={() => setShowAddAddress(true)}
                       >
-                        <FaMapMarkerAlt/>
+                        <FaMapMarkerAlt />
                         Add New Address
                       </button>
                     </div>
                     <div className="address-content">
                       {addresses.length === 0 ? (
-                          <div className="no-address">
-                            <div className="no-address-content">
-                              <FaMapMarkerAlt className="no-address-icon"/>
-                              <h4>No Shipping Address</h4>
-                              <p>Add an address to continue with your order</p>
-                              <button
-                                  className="add-address-btn primary"
-                                  onClick={() => setShowAddAddress(true)}
-                              >
-                                <FaMapMarkerAlt/>
-                                Add New Address
-                              </button>
-                            </div>
+                        <div className="no-address">
+                          <div className="no-address-content">
+                            <FaMapMarkerAlt className="no-address-icon" />
+                            <h4>No Shipping Address</h4>
+                            <p>Add an address to continue with your order</p>
+                            <button
+                              className="add-address-btn primary"
+                              onClick={() => setShowAddAddress(true)}
+                            >
+                              <FaMapMarkerAlt />
+                              Add New Address
+                            </button>
                           </div>
+                        </div>
                       ) : (
-                          <div className="address-selector">
-                            <div className="address-dropdown-container">
-                              <div className="address-dropdown">
-                                <select
-                                    value={selectedAddressId ?? ''}
-                                    onChange={e => setSelectedAddressId(Number(e.target.value))}
-                                    className="address-select"
-                                >
-                                  <option value="">-- Select Shipping Address --</option>
-                                  {addresses.map(addr => (
-                                      <option key={addr._idx} value={addr._idx}>
-                                        {addr.addressName} - {addr.fullAddress}
-                                        {addr.isDefault ? ' (Default)' : ''}
-                                        {addr.displayShippingFee ? ` - ${addr.displayShippingFee}` : ''}
-                                      </option>
-                                  ))}
-                                </select>
-                              </div>
+                        <div className="address-selector">
+                          <div className="address-dropdown-container">
+                            <div className="address-dropdown">
+                              <select
+                                value={selectedAddressId ?? ''}
+                                onChange={e => setSelectedAddressId(Number(e.target.value))}
+                                className="address-select"
+                              >
+                                <option value="">-- Select Shipping Address --</option>
+                                {addresses.map(addr => (
+                                  <option key={addr._idx} value={addr._idx}>
+                                    {addr.addressName} - {addr.fullAddress}
+                                    {addr.isDefault ? ' (Default)' : ''}
+                                    {addr.shippingFee ? ` - ${formatShippingFeeUSD(addr.shippingFee)}` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
 
-                              {selectedAddressId !== null && addresses.find(addr => addr._idx === selectedAddressId) && (
-                                  <div className="selected-address-preview">
-                                    <div className="address-card selected">
-                                      <div className="address-info">
-                                        <div className="address-header">
-                                          <h4>
-                                            {addresses.find(addr => addr._idx === selectedAddressId)?.addressName}
-                                            {addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
-                                                <span className="default-badge">Default</span>
-                                            )}
-                                          </h4>
-                                        </div>
-                                        <p>{addresses.find(addr => addr._idx === selectedAddressId)?.fullAddress}</p>
-                                        <div className="address-details">
-              <span className="user-info">
-                <FaUser className="user-icon"/>
-                {addresses.find(addr => addr._idx === selectedAddressId)?.fullName}
-              </span>
-                                          <span className="phone">
-                <FaPhone className="phone-icon"/>
-                                            {addresses.find(addr => addr._idx === selectedAddressId)?.phoneNumber}
-              </span>
-                                        </div>
-                                        <div className="address-extra-info">
-                                          {addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance && (
-                                              <div className="distance-info">
-                                                <FaMapMarkerAlt className="distance-icon"/>
-                                                <span>{addresses.find(addr => addr._idx === selectedAddressId)?.displayDistance}</span>
-                                              </div>
-                                          )}
-                                          {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee && (
-                                              <div className="shipping-info">
-                                                <FaShoppingBag className="shipping-icon"/>
-                                                <span>Shipping Fee: {addresses.find(addr => addr._idx === selectedAddressId)?.displayShippingFee}</span>
-                                              </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="address-actions-buttons">
-                                        {!addresses.find(addr => addr._idx === selectedAddressId)?.isDefault && (
-                                            <button
-                                                className="address-action-btn default-btn"
-                                                onClick={() => setDefaultAddress(selectedAddressId)}
-                                                title="Set as default address"
-                                            >
-                                              <FaHome/>
-                                            </button>
+                            {selectedAddressId !== null && selectedAddress && (
+                              <div className="selected-address-preview">
+                                <div className="address-card selected">
+                                  <div className="address-info">
+                                    <div className="address-header">
+                                      <h4>
+                                        {selectedAddress.addressName}
+                                        {selectedAddress.isDefault && (
+                                          <span className="default-badge">Default</span>
                                         )}
-                                        <button
-                                            className="address-action-btn edit-btn"
-                                            onClick={() => editAddress(selectedAddressId)}
-                                            title="Edit address"
-                                        >
-                                          <FaEdit/>
-                                        </button>
-                                        <button
-                                            className="address-action-btn delete-btn"
-                                            onClick={() => deleteAddress(selectedAddressId)}
-                                            title="Delete address"
-                                        >
-                                          <FaTrash/>
-                                        </button>
-                                      </div>
+                                      </h4>
+                                    </div>
+                                    <p>{selectedAddress.fullAddress}</p>
+                                    <div className="address-details">
+                                      <span className="user-info">
+                                        <FaUser className="user-icon" />
+                                        {selectedAddress.fullName}
+                                      </span>
+                                      <span className="phone">
+                                        <FaPhone className="phone-icon" />
+                                        {selectedAddress.phoneNumber}
+                                      </span>
+                                    </div>
+                                    <div className="address-extra-info">
+                                      {selectedAddress.displayDistance && (
+                                        <div className="distance-info">
+                                          <FaMapMarkerAlt className="distance-icon" />
+                                          <span>{selectedAddress.displayDistance}</span>
+                                        </div>
+                                      )}
+                                      {selectedAddress.shippingFee && (
+                                        <div className="shipping-info">
+                                          <FaShoppingBag className="shipping-icon" />
+                                          <span>Shipping Fee: {formatShippingFeeUSD(selectedAddress.shippingFee)}</span>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
-                              )}
-                            </div>
+                                  <div className="address-actions-buttons">
+                                    {!selectedAddress.isDefault && (
+                                      <button
+                                        className="address-action-btn default-btn"
+                                        onClick={() => setDefaultAddress(selectedAddressId)}
+                                        title="Set as default address"
+                                      >
+                                        <FaHome />
+                                      </button>
+                                    )}
+                                    <button
+                                      className="address-action-btn edit-btn"
+                                      onClick={() => editAddress(selectedAddressId)}
+                                      title="Edit address"
+                                    >
+                                      <FaEdit />
+                                    </button>
+                                    <button
+                                      className="address-action-btn delete-btn"
+                                      onClick={() => deleteAddress(selectedAddressId)}
+                                      title="Delete address"
+                                    >
+                                      <FaTrash />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -832,107 +845,107 @@ const CartPage = () => {
 
                     {/* Selected Items Info */}
                     {selectedItems.length > 0 && (
-                        <div className="selected-info">
-        <span className="selected-count">
-          Selected {selectedItems.length}/{cartItems.length} items
-        </span>
-                        </div>
+                      <div className="selected-info">
+                        <span className="selected-count">
+                          Selected {selectedItems.length}/{cartItems.length} items
+                        </span>
+                      </div>
                     )}
 
                     {/* Coupon Section */}
                     <div className="coupon-section">
 
                       {!appliedCoupon ? (
-                          <div className="coupon-input-container">
-                            <div className="coupon-input-group">
-                              <input
-                                  type="text"
-                                  placeholder="Enter coupon code (e.g., SAVE20, WELCOME10)"
-                                  value={couponCode}
-                                  onChange={(e) => {
-                                    setCouponCode(e.target.value.toUpperCase());
-                                    if (couponError) {
-                                      setCouponError(null);
-                                    }
-                                  }}
-                                  className={`coupon-input ${couponError ? 'error' : ''}`}
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter' && couponCode.trim() && selectedSubtotal > 0 && !applyingCoupon) {
-                                      applyCoupon();
-                                    }
-                                  }}
-                              />
-                              <button
-                                  className="apply-coupon-btn"
-                                  onClick={applyCoupon}
-                                  disabled={applyingCoupon || !couponCode.trim() || selectedSubtotal <= 0}
-                              >
-                                {applyingCoupon ? (
-                                    <>
-                                      <div className="spinner-mini"></div>
-                                      Checking...
-                                    </>
-                                ) : (
-                                    <>
-                                      <FaTag/>
-                                      Apply Coupon
-                                    </>
-                                )}
-                              </button>
-                            </div>
-
-                            {/* Error message */}
-                            {couponError && (
-                                <div className="coupon-error">
-                                  <span>{couponError}</span>
-                                </div>
-                            )}
-
-                            {selectedSubtotal <= 0 && !couponError && (
-                                <div className="coupon-warning">
-                                  <span>⚠️ Please select products before applying a coupon</span>
-                                </div>
-                            )}
-
-
+                        <div className="coupon-input-container">
+                          <div className="coupon-input-group">
+                            <input
+                              type="text"
+                              placeholder="Enter coupon code (e.g., SAVE20, WELCOME10)"
+                              value={couponCode}
+                              onChange={(e) => {
+                                setCouponCode(e.target.value.toUpperCase());
+                                if (couponError) {
+                                  setCouponError(null);
+                                }
+                              }}
+                              className={`coupon-input ${couponError ? 'error' : ''}`}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter' && couponCode.trim() && selectedSubtotal > 0 && !applyingCoupon) {
+                                  applyCoupon();
+                                }
+                              }}
+                            />
+                            <button
+                              className="apply-coupon-btn"
+                              onClick={applyCoupon}
+                              disabled={applyingCoupon || !couponCode.trim() || selectedSubtotal <= 0}
+                            >
+                              {applyingCoupon ? (
+                                <>
+                                  <div className="spinner-mini"></div>
+                                  Checking...
+                                </>
+                              ) : (
+                                <>
+                                  <FaTag />
+                                  Apply Coupon
+                                </>
+                              )}
+                            </button>
                           </div>
+
+                          {/* Error message */}
+                          {couponError && (
+                            <div className="coupon-error">
+                              <span>{couponError}</span>
+                            </div>
+                          )}
+
+                          {selectedSubtotal <= 0 && !couponError && (
+                            <div className="coupon-warning">
+                              <span>⚠️ Please select products before applying a coupon</span>
+                            </div>
+                          )}
+
+
+                        </div>
                       ) : (
-                          <div className="applied-coupon">
-                            <div className="coupon-success-card">
-                              <div className="coupon-info">
-                                <FaCheck className="coupon-check"/>
-                                <div className="coupon-details">
-                                  <span className="coupon-code">Coupon "{appliedCoupon.code}" applied</span>
-                                  <span className="coupon-savings">
-                  You saved {appliedCoupon.discountAmount.toLocaleString('vi-VN')}
-                </span>
-                                </div>
+                        <div className="applied-coupon">
+                          <div className="coupon-success-card">
+                            <div className="coupon-info">
+                              <FaCheck className="coupon-check" />
+                              <div className="coupon-details">
+                                <span className="coupon-code">Coupon "{appliedCoupon.code}" applied</span>
+                                <span className="coupon-savings">
+                                  You saved ${appliedCoupon.discountAmount.toLocaleString('en-US')}
+                                </span>
                               </div>
-                              <button
-                                  className="remove-coupon-btn"
-                                  onClick={removeCoupon}
-                                  title="Remove coupon"
-                              >
-                                <FaTrash/>
-                              </button>
                             </div>
+                            <button
+                              className="remove-coupon-btn"
+                              onClick={removeCoupon}
+                              title="Remove coupon"
+                            >
+                              <FaTrash />
+                            </button>
                           </div>
+                        </div>
                       )}
                     </div>
 
                     {/* Order Note Section */}
                     <div className="order-note-section">
                       <h4>
-                        <FaStickyNote/>
+                        <FaStickyNote />
                         Order Note
                       </h4>
                       <textarea
-                          className="order-note-input"
-                          placeholder="Enter a note for your order (optional)..."
-                          value={orderNote}
-                          onChange={(e) => setOrderNote(e.target.value)}
-                          rows={3}
-                          maxLength={500}
+                        className="order-note-input"
+                        placeholder="Enter a note for your order (optional)..."
+                        value={orderNote}
+                        onChange={(e) => setOrderNote(e.target.value)}
+                        rows={3}
+                        maxLength={500}
                       />
                       <div className="note-char-count">
                         {orderNote.length}/500 characters
@@ -943,65 +956,65 @@ const CartPage = () => {
                     <div className="summary-details">
                       <div className="summary-row">
                         <span>Subtotal ({selectedItems.length} items):</span>
-                        <span>{selectedSubtotal.toLocaleString('vi-VN')} $</span>
+                        <span>${selectedSubtotal.toLocaleString('en-US')}</span>
                       </div>
                       <div className="summary-row">
                         <span>Shipping Fee:</span>
-                        <span>{shipping.toLocaleString('vi-VN')} $</span>
+                        <span>${shipping.toLocaleString('en-US')}</span>
                       </div>
                       {appliedCoupon && (
-                          <div className="summary-row discount">
-                            <span>Discount {appliedCoupon.code}:</span>
-                            <span>-{discount.toLocaleString('vi-VN')} $</span>
-                          </div>
+                        <div className="summary-row discount">
+                          <span>Discount {appliedCoupon.code}:</span>
+                          <span>-${discount.toLocaleString('en-US')}</span>
+                        </div>
                       )}
                       <div className="summary-row total">
                         <span>Total Payment:</span>
-                        <span>{total.toLocaleString('vi-VN')} $</span>
+                        <span>${total.toLocaleString('en-US')}</span>
                       </div>
                     </div>
 
                     <button
-                        className="checkout-btn"
-                        onClick={proceedToCheckout}
-                        disabled={
-                            selectedItems.length === 0 ||
-                            (addresses.length > 0 && selectedAddressId === null)
-                        }
-                        title={
-                          selectedItems.length === 0
-                              ? 'Please select products to checkout'
-                              : `Checkout ${selectedItems.length} selected items`
-                        }
+                      className="checkout-btn"
+                      onClick={proceedToCheckout}
+                      disabled={
+                        selectedItems.length === 0 ||
+                        (addresses.length > 0 && selectedAddressId === null)
+                      }
+                      title={
+                        selectedItems.length === 0
+                          ? 'Please select products to checkout'
+                          : `Checkout ${selectedItems.length} selected items`
+                      }
                     >
-                      <FaShoppingBag/>
+                      <FaShoppingBag />
                       {selectedItems.length > 0
-                          ? `Checkout (${selectedItems.length} items)`
-                          : 'Proceed to Checkout'
+                        ? `Checkout (${selectedItems.length} items)`
+                        : 'Proceed to Checkout'
                       }
                     </button>
                   </div>
-              </div>
+                </div>
               </div>
             </>
-            )}
+          )}
         </div>
       </div>
 
       {/* Add/Edit Address Modal */}
       {showAddAddress && (
-          <AddAddressForm
-              editingAddress={editingAddress}
-              onSuccess={() => {
-                setShowAddAddress(false);
-                setEditingAddress(null);
-                fetchAddresses();
-              }}
-              onClose={() => {
-                setShowAddAddress(false);
-                setEditingAddress(null);
-              }}
-          />
+        <AddAddressForm
+          editingAddress={editingAddress}
+          onSuccess={() => {
+            setShowAddAddress(false);
+            setEditingAddress(null);
+            fetchAddresses();
+          }}
+          onClose={() => {
+            setShowAddAddress(false);
+            setEditingAddress(null);
+          }}
+        />
       )}
     </div>
   );

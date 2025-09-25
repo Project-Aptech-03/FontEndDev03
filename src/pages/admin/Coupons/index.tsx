@@ -140,23 +140,25 @@ const CouponsAdmin: React.FC = () => {
         if (coupon.discountType === 'percentage') {
             return `${coupon.discountValue}%`;
         } else {
-            return `${coupon.discountValue.toLocaleString('vi-VN')} VND`;
+            return `$ ${coupon.discountValue.toLocaleString('en-US')}`;
         }
     };
 
-    // Format min order amount
+// Format min order amount
     const formatMinOrderAmount = (amount: number) => {
         if (amount === 0) return 'No minimum';
-        return `${amount.toLocaleString('vi-VN')} VND`;
+        return `$ ${amount.toLocaleString('en-US')}`;
     };
+
 
     // Format max discount amount
     const formatMaxDiscountAmount = (coupon: Coupon) => {
         if (coupon.discountType === 'fixed' || coupon.maxDiscountAmount === 0) {
             return 'No limit';
         }
-        return `${coupon.maxDiscountAmount.toLocaleString('vi-VN')} VND`;
+        return `$ ${coupon.maxDiscountAmount.toLocaleString('en-US')}`;
     };
+
 
     if (loading) {
         return (

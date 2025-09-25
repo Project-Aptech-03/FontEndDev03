@@ -254,7 +254,7 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 <h3>📝 Basic Information</h3>
                 <p className="section-description">Enter basic coupon information</p>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="couponCode">
@@ -264,25 +264,25 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                   </label>
                   <div className="input-with-button">
                     <input
-                      type="text"
-                      id="couponCode"
-                      name="couponCode"
-                      value={formData.couponCode}
-                      onChange={handleChange}
-                      placeholder="e.g., SAVE20, NEWUSER50"
-                      className={errors.couponCode ? 'error' : ''}
-                      readOnly={!coupon} // Make readonly for new coupons to prevent manual editing
+                        type="text"
+                        id="couponCode"
+                        name="couponCode"
+                        value={formData.couponCode}
+                        onChange={handleChange}
+                        placeholder="e.g., SAVE20, NEWUSER50"
+                        className={errors.couponCode ? 'error' : ''}
+                        readOnly={!coupon} // Make readonly for new coupons to prevent manual editing
                     />
                     {!coupon && (
-                      <button
-                        type="button"
-                        onClick={generateNewCouponCode}
-                        disabled={generatingCode}
-                        className="refresh-code-btn"
-                        title="Generate new code"
-                      >
-                        <FaSyncAlt className={generatingCode ? 'spinning' : ''} />
-                      </button>
+                        <button
+                            type="button"
+                            onClick={generateNewCouponCode}
+                            disabled={generatingCode}
+                            className="refresh-code-btn"
+                            title="Generate new code"
+                        >
+                          <FaSyncAlt className={generatingCode ? 'spinning' : ''}/>
+                        </button>
                     )}
                   </div>
                   {errors.couponCode && <span className="error-message">{errors.couponCode}</span>}
@@ -295,13 +295,13 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="field-hint">Detailed description of the offer</span>
                   </label>
                   <input
-                    type="text"
-                    id="couponName"
-                    name="couponName"
-                    value={formData.couponName}
-                    onChange={handleChange}
-                    placeholder="e.g., 20% off orders over $100"
-                    className={errors.couponName ? 'error' : ''}
+                      type="text"
+                      id="couponName"
+                      name="couponName"
+                      value={formData.couponName}
+                      onChange={handleChange}
+                      placeholder="e.g., 20% off orders over $100"
+                      className={errors.couponName ? 'error' : ''}
                   />
                   {errors.couponName && <span className="error-message">{errors.couponName}</span>}
                 </div>
@@ -314,7 +314,7 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 <h3>💰 Discount Settings</h3>
                 <p className="section-description">Configure discount type and amount</p>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="discountType">
@@ -322,11 +322,11 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="field-hint">Choose how the discount is calculated</span>
                   </label>
                   <select
-                    id="discountType"
-                    name="discountType"
-                    value={formData.discountType}
-                    onChange={handleChange}
-                    className="select-field"
+                      id="discountType"
+                      name="discountType"
+                      value={formData.discountType}
+                      onChange={handleChange}
+                      className="select-field"
                   >
                     <option value="percentage">📊 Percentage (%)</option>
                     <option value="fixed">💵 Fixed Amount (VND)</option>
@@ -338,23 +338,23 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="required">*</span>
                     Discount Value
                     <span className="field-hint">
-                      {formData.discountType === 'percentage' 
-                        ? 'Enter percentage (1-100)' 
-                        : 'Enter fixed amount (VND)'
+                      {formData.discountType === 'percentage'
+                          ? 'Enter percentage (1-100)'
+                          : 'Enter fixed amount (VND)'
                       }
                     </span>
                   </label>
                   <div className="input-with-suffix">
                     <input
-                      type="number"
-                      id="discountValue"
-                      name="discountValue"
-                      value={formData.discountValue}
-                      onChange={handleChange}
-                      min="0"
-                      max={formData.discountType === 'percentage' ? 100 : undefined}
-                      placeholder={formData.discountType === 'percentage' ? '20' : '50000'}
-                      className={errors.discountValue ? 'error' : ''}
+                        type="number"
+                        id="discountValue"
+                        name="discountValue"
+                        value={formData.discountValue}
+                        onChange={handleChange}
+                        min="0"
+                        max={formData.discountType === 'percentage' ? 100 : undefined}
+                        placeholder={formData.discountType === 'percentage' ? '20' : '50000'}
+                        className={errors.discountValue ? 'error' : ''}
                     />
                     <span className="input-suffix">
                       {formData.discountType === 'percentage' ? '%' : 'VND'}
@@ -372,14 +372,14 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                   </label>
                   <div className="input-with-suffix">
                     <input
-                      type="number"
-                      id="minOrderAmount"
-                      name="minOrderAmount"
-                      value={formData.minOrderAmount}
-                      onChange={handleChange}
-                      min="0"
-                      placeholder="100000"
-                      className={errors.minOrderAmount ? 'error' : ''}
+                        type="number"
+                        id="minOrderAmount"
+                        name="minOrderAmount"
+                        value={formData.minOrderAmount}
+                        onChange={handleChange}
+                        min="0"
+                        placeholder="100000"
+                        className={errors.minOrderAmount ? 'error' : ''}
                     />
                     <span className="input-suffix">VND</span>
                   </div>
@@ -387,24 +387,24 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 </div>
 
                 {formData.discountType === 'percentage' && (
-                  <div className="form-group">
-                    <label htmlFor="maxDiscountAmount">
-                      Maximum Discount
-                      <span className="field-hint">Maximum discount amount for percentage type</span>
-                    </label>
-                    <div className="input-with-suffix">
-                      <input
-                        type="number"
-                        id="maxDiscountAmount"
-                        name="maxDiscountAmount"
-                        value={formData.maxDiscountAmount}
-                        onChange={handleChange}
-                        min="0"
-                        placeholder="50000"
-                      />
-                      <span className="input-suffix">VND</span>
+                    <div className="form-group">
+                      <label htmlFor="maxDiscountAmount">
+                        Maximum Discount
+                        <span className="field-hint">Maximum discount amount for percentage type</span>
+                      </label>
+                      <div className="input-with-suffix">
+                        <input
+                            type="number"
+                            id="maxDiscountAmount"
+                            name="maxDiscountAmount"
+                            value={formData.maxDiscountAmount}
+                            onChange={handleChange}
+                            min="0"
+                            placeholder="50000"
+                        />
+                        <span className="input-suffix">VND</span>
+                      </div>
                     </div>
-                  </div>
                 )}
               </div>
             </div>
@@ -415,7 +415,7 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                 <h3>📅 Quantity and Duration</h3>
                 <p className="section-description">Set usage quantity and validity period</p>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="quantity">
@@ -424,14 +424,14 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="field-hint">Number of times the coupon can be used</span>
                   </label>
                   <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleChange}
-                    min="1"
-                    placeholder="100"
-                    className={errors.quantity ? 'error' : ''}
+                      type="number"
+                      id="quantity"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleChange}
+                      min="1"
+                      placeholder="100"
+                      className={errors.quantity ? 'error' : ''}
                   />
                   {errors.quantity && <span className="error-message">{errors.quantity}</span>}
                 </div>
@@ -445,13 +445,13 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="field-hint">Coupon is valid from this date and time</span>
                   </label>
                   <input
-                    type="datetime-local"
-                    id="startDate"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    min={getCurrentDateTime()} // Prevent past dates
-                    className={errors.startDate ? 'error' : ''}
+                      type="datetime-local"
+                      id="startDate"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      min={getCurrentDateTime()} // Prevent past dates
+                      className={errors.startDate ? 'error' : ''}
                   />
                   {errors.startDate && <span className="error-message">{errors.startDate}</span>}
                 </div>
@@ -463,74 +463,73 @@ const CouponForm: React.FC<CouponFormProps> = ({ coupon, onClose, onSuccess }) =
                     <span className="field-hint">Coupon expires after this date and time</span>
                   </label>
                   <input
-                    type="datetime-local"
-                    id="endDate"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    min={formData.startDate || getCurrentDateTime()} // End date must be after start date
-                    className={errors.endDate ? 'error' : ''}
+                      type="datetime-local"
+                      id="endDate"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                      min={formData.startDate || getCurrentDateTime()} // End date must be after start date
+                      className={errors.endDate ? 'error' : ''}
                   />
                   {errors.endDate && <span className="error-message">{errors.endDate}</span>}
                 </div>
               </div>
             </div>
 
-            {/* Settings Section */}
-            <div className="form-section">
+            <div className="form-section" style={{display: 'none'}}>
               <div className="section-header">
                 <h3>⚙️ Advanced Settings</h3>
                 <p className="section-description">Configure additional options</p>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group checkbox-group">
                   <label className="checkbox-label">
                     <input
-                      type="checkbox"
-                      name="isAutoApply"
-                      checked={formData.isAutoApply}
-                      onChange={handleChange}
-                      className="checkbox-input"
+                        type="checkbox"
+                        name="isAutoApply"
+                        checked={formData.isAutoApply}
+                        onChange={handleChange}
+                        className="checkbox-input"
                     />
                     <span className="checkbox-text">
-                      <strong>Auto Apply</strong>
-                      <span className="checkbox-hint">Coupon will be applied automatically when conditions are met</span>
-                    </span>
+          <strong>Auto Apply</strong>
+          <span className="checkbox-hint">Coupon will be applied automatically when conditions are met</span>
+        </span>
                   </label>
                 </div>
 
                 <div className="form-group checkbox-group">
                   <label className="checkbox-label">
                     <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleChange}
-                      className="checkbox-input"
+                        type="checkbox"
+                        name="isActive"
+                        checked={formData.isActive}
+                        onChange={handleChange}
+                        className="checkbox-input"
                     />
                     <span className="checkbox-text">
-                      <strong>Active</strong>
-                      <span className="checkbox-hint">Coupon can be used immediately</span>
-                    </span>
+          <strong>Active</strong>
+          <span className="checkbox-hint">Coupon can be used immediately</span>
+        </span>
                   </label>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Processing...' : (coupon ? 'Update' : 'Create')}
-            </button>
-          </div>
+            <div className="form-actions">
+              <button type="button" className="btn-secondary" onClick={onClose}>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Processing...' : (coupon ? 'Update' : 'Create')}
+              </button>
+            </div>
         </form>
       </div>
     </div>
-  );
+);
 };
 
 export default CouponForm;

@@ -24,7 +24,8 @@ import {
   Image,
   Switch,
   Tooltip,
-  Alert,
+
+  Alert, Divider,
 } from "antd";
 import {
   PlusOutlined,
@@ -40,6 +41,10 @@ import {
   PictureOutlined,
   CopyOutlined,
   CheckOutlined,
+  BookOutlined,
+  LikeOutlined,
+  CommentOutlined,
+  CheckCircleOutlined,
   LoadingOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
@@ -432,44 +437,83 @@ const BlogAdmin: React.FC = () => {
 
   const handleView = (blog: BlogListResponseDto) => {
     Modal.info({
-      title: blog.title,
-      width: 800,
+      title: (
+          <Title level={3} style={{ marginBottom: 0 }}>
+            {blog.title}
+          </Title>
+      ),
+      width: 900,
+      centered: true,
       content: (
-          <div>
-            <Paragraph>
-              <Text strong>Author:</Text> {blog.authorName}
-            </Paragraph>
-            <Paragraph>
-              <Text strong>Category:</Text> {blog.categoryName}
-            </Paragraph>
-            <Paragraph>
-              <Text strong>Status:</Text>{" "}
-              <Tag color={blog.isPublished ? "green" : "orange"}>
-                {blog.isPublished ? "Published" : "Draft"}
-              </Tag>
-            </Paragraph>
-            <Paragraph>
-              <Text strong>View Count:</Text> {blog.viewCount}
-            </Paragraph>
-            <Paragraph>
-              <Text strong>Like Count:</Text> {blog.likeCount}
-            </Paragraph>
-            <Paragraph>
-              <Text strong>Comment Count:</Text> {blog.commentCount}
-            </Paragraph>
+          <div style={{ padding: "12px 4px" }}>
+            {/* Thông tin chung */}
+            <Row gutter={16}>
+              <Col span={14}>
+                <Card bordered={false}>
+                  <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                    <Paragraph>
+                      <UserOutlined /> <Text strong>Author:</Text> {blog.authorName}
+                    </Paragraph>
+                    <Paragraph>
+                      <BookOutlined /> <Text strong>Category:</Text> {blog.categoryName}
+                    </Paragraph>
+                    <Paragraph>
+                      <Text strong>Status:</Text>{" "}
+                      <Tag
+                          icon={blog.isPublished ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
+                          color={blog.isPublished ? "success" : "warning"}
+                      >
+                        {blog.isPublished ? "Published" : "Draft"}
+                      </Tag>
+                    </Paragraph>
+                    <Paragraph>
+                      <CalendarOutlined /> <Text strong>Created:</Text>{" "}
+                      {new Date(blog.createdDate).toLocaleDateString()}
+                    </Paragraph>
+                    {blog.publishedDate && (
+                        <Paragraph>
+                          <CalendarOutlined /> <Text strong>Published:</Text>{" "}
+                          {new Date(blog.publishedDate).toLocaleDateString()}
+                        </Paragraph>
+                    )}
+                  </Space>
+                </Card>
+              </Col>
+
+              {/* Thống kê */}
+              <Col span={10}>
+                <Card bordered style={{ textAlign: "center" }}>
+                  <Space size="large" align="center">
+                    <div>
+                      <EyeOutlined /> <br />
+                      <Text strong>{blog.viewCount}</Text> <br />
+                      <Text type="secondary">Views</Text>
+                    </div>
+                    <div>
+                      <LikeOutlined /> <br />
+                      <Text strong>{blog.likeCount}</Text> <br />
+                      <Text type="secondary">Likes</Text>
+                    </div>
+                    <div>
+                      <CommentOutlined /> <br />
+                      <Text strong>{blog.commentCount}</Text> <br />
+                      <Text type="secondary">Comments</Text>
+                    </div>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+
+            <Divider />
+
+            {/* Tóm tắt */}
             <Paragraph>
               <Text strong>Summary:</Text> {blog.summary}
             </Paragraph>
-            <Paragraph>
-              <Text strong>Created Date:</Text> {new Date(blog.createdDate).toLocaleDateString()}
-            </Paragraph>
-            {blog.publishedDate && (
-                <Paragraph>
-                  <Text strong>Published Date:</Text> {new Date(blog.publishedDate).toLocaleDateString()}
-                </Paragraph>
-            )}
           </div>
       ),
+      okText: "Close",
+      okButtonProps: { style: { borderRadius: 6 } },
     });
   };
 

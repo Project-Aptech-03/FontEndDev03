@@ -47,37 +47,43 @@ const BookStore: React.FC = () => {
     };
     fetchFilters();
   }, []);
+  const [bookReviews, setBookReviews] = useState<
+      Record<string, { rating: number; reviewCount: number }>
+  >({});
+
+
   useEffect(() => {
     const controller = new AbortController();
 
     const fetchBookReviews = async () => {
-      const updatedBooks = await Promise.all(
-          books.map(async (book) => {
-            try {
-              const reviewRes = await getProductReviews(book.id, { signal: controller.signal });
-              if (reviewRes.success && reviewRes.result?.data) {
-                const reviews = reviewRes.result.data;
-                const total = reviews.reduce((sum, r) => sum + r.rating, 0);
-                return {
-                  ...book,
-                  rating: reviews.length ? total / reviews.length : 0,
-                  reviewCount: reviews.length,
-                };
-              }
-              return { ...book, rating: 0, reviewCount: 0 };
-            } catch (err: any) {
-              if (err.name === "AbortError") return book;
-              throw err;
-            }
-          })
-      );
-      setBooks(updatedBooks); // ✅ giờ dùng được
+      const reviewsData: Record<string, { rating: number; reviewCount: number }> = {};
+
+      for (const book of books) {
+        try {
+          const reviewRes = await getProductReviews(book.id, { signal: controller.signal });
+          if (reviewRes.success && reviewRes.result?.data) {
+            const reviews = reviewRes.result.data;
+            const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+            reviewsData[book.id] = {
+              rating: reviews.length ? total / reviews.length : 0,
+              reviewCount: reviews.length,
+            };
+          } else {
+            reviewsData[book.id] = { rating: 0, reviewCount: 0 };
+          }
+        } catch (err: any) {
+          if (err.name === "AbortError") continue;
+        }
+      }
+
+      setBookReviews(reviewsData);
     };
 
     if (books.length > 0) fetchBookReviews();
 
     return () => controller.abort();
-  }, [books, setBooks]);
+  }, [books]);
+
 
 
   const initialSetDone = useRef(false);
@@ -209,6 +215,7 @@ const BookStore: React.FC = () => {
                   pageSize={pageSize}
                   currentPage={currentPage}
                   onPageChange={paginate}
+                    bookReviews={bookReviews}
               />
             </div>
           </div>

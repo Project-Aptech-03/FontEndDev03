@@ -29,6 +29,12 @@ const CheckoutPage = () => {
       return false;
     }
 
+    // Validate coupon if present
+    if (checkoutData.coupon && (!checkoutData.coupon.code || !checkoutData.coupon.code.trim())) {
+      console.warn('Invalid coupon detected:', checkoutData.coupon);
+      // Don't block the order, just log the warning
+    }
+
     // Bank transfer and COD don't need additional validation
     return true;
   };
@@ -39,9 +45,6 @@ const CheckoutPage = () => {
     if (isPlacingOrder) return; // Prevent double clicking
 
     setIsPlacingOrder(true);
-
-    // Test toast first
-    console.log('Starting order process...');
     
     try {
       // Map payment method to API format
@@ -54,7 +57,9 @@ const CheckoutPage = () => {
         paymentType: paymentType,
         deliveryCharges: checkoutData.shipping,
         deliveryNotes: checkoutData.orderNote || '',
-        couponCodes: checkoutData.coupon ? [checkoutData.coupon.code] : [],
+        couponCodes: checkoutData.coupon && checkoutData.coupon.code && checkoutData.coupon.code.trim() 
+          ? [checkoutData.coupon.code.trim()] 
+          : [],
         orderItems: checkoutData.products.map(item => ({
           productId: item.productId || item.product?.id || item.id,
           quantity: item.quantity
@@ -72,8 +77,6 @@ const CheckoutPage = () => {
         timeoutPromise
       ]) as any;
 
-      console.log('Checkout response:', response);
-
       if (response && response.success) {
         message.success('Order placed successfully!');
         window.dispatchEvent(new Event("cartUpdated"));
@@ -81,18 +84,14 @@ const CheckoutPage = () => {
       } else {
         // Handle failed response
         const errorMessage = response?.error?.message || response?.message || 'Payment failed. Please check your payment or contact the shop for support.';
-        console.log('Order failed:', errorMessage);
         message.error(errorMessage);
       }
     } catch (error: any) {
-      console.error('Error placing order:', error);
-      
       // Always show error message regardless of error type
       const errorMessage = error.message === 'Request timeout' 
         ? 'Request timeout. Please check your payment or contact the shop for support.'
         : 'Payment failed. Please check your payment or contact the shop for support.';
       
-      console.log('Showing error toast:', errorMessage);
       message.error(errorMessage);
     } finally {
       setIsPlacingOrder(false);
