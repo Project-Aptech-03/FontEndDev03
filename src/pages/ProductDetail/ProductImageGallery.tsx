@@ -115,27 +115,28 @@ const ImageActionButtons: React.FC<{
     const copyLink = async () => {
         try {
             await navigator.clipboard.writeText(currentUrl);
-            message.success("Link đã được sao chép!");
+            message.success("Link has been copied!");
             setShareModalVisible(false);
         } catch (err) {
-            message.error("Không thể sao chép link");
+            message.error("Unable to copy the link");
         }
     };
+
 
     const shareOptions = [
         {
             key: 'copy',
             icon: <LinkOutlined style={{ fontSize: 20, color: '#1890ff' }} />,
-            title: 'Sao chép liên kết',
-            description: 'Sao chép URL sản phẩm',
+            title: 'Copy Link',
+            description: 'Copy the product URL',
             color: '#e6f7ff',
             onClick: copyLink
         },
         {
             key: 'facebook',
             icon: <FacebookOutlined style={{ fontSize: 20, color: '#1877f2' }} />,
-            title: 'Chia sẻ Facebook',
-            description: 'Đăng lên Facebook',
+            title: 'Share on Facebook',
+            description: 'Post to Facebook',
             color: '#e7f3ff',
             onClick: () => {
                 window.open(
@@ -149,8 +150,8 @@ const ImageActionButtons: React.FC<{
         {
             key: 'zalo',
             icon: <QrcodeOutlined style={{ fontSize: 20, color: '#0068ff' }} />,
-            title: 'Chia sẻ Zalo',
-            description: 'Gửi qua Zalo',
+            title: 'Share on Zalo',
+            description: 'Send via Zalo',
             color: '#f0f5ff',
             onClick: () => {
                 window.open(
@@ -162,6 +163,7 @@ const ImageActionButtons: React.FC<{
             }
         }
     ];
+
 
     return (
         <>
@@ -237,7 +239,7 @@ const ImageActionButtons: React.FC<{
                         }}
                     />
                     <Title level={4} style={{ color: 'white', margin: 0, textAlign: 'center' }}>
-                        Chia sẻ sản phẩm
+                        Share Product
                     </Title>
                     <Text style={{ color: 'rgba(255,255,255,0.8)', display: 'block', textAlign: 'center', marginTop: 4 }}>
                         {productName}
@@ -302,7 +304,7 @@ const ImageActionButtons: React.FC<{
                         border: '1px dashed #d9d9d9'
                     }}>
                         <Text style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 8 }}>
-                            Link sản phẩm:
+                            Product Link:
                         </Text>
                         <Text
                             style={{

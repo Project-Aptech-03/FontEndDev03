@@ -272,6 +272,7 @@ const Register: React.FC = () => {
                                             required
                                             placeholder="First name..."
                                             className={isFieldValid("firstName") ? "error" : ""}
+                                            maxLength={50}
                                         />
                                     </div>
                                     {isFieldValid("firstName") && (
@@ -309,6 +310,7 @@ const Register: React.FC = () => {
                                             required
                                             placeholder="Last name..."
                                             className={isFieldValid("lastName") ? "error" : ""}
+                                            maxLength={50}
                                         />
                                     </div>
                                     {isFieldValid("lastName") && (
@@ -375,6 +377,8 @@ const Register: React.FC = () => {
                                         required
                                         placeholder="Enter email..."
                                         className={isFieldValid("email") ? "error" : ""}
+                                        maxLength={150}
+
                                     />
                                 </div>
                                 {isFieldValid("email") && (
@@ -411,6 +415,7 @@ const Register: React.FC = () => {
                                         required
                                         placeholder="Enter your address..."
                                         className={isFieldValid("address") ? "error" : ""}
+
                                     />
                                 </div>
                                 {isFieldValid("address") && (

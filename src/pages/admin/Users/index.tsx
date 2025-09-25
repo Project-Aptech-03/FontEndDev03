@@ -24,8 +24,6 @@ const UserManagement: React.FC = () => {
   const currentUserRole = user?.role ? user.role.toLowerCase() : "user";
   const canAddUser = currentUserRole === "admin";
 
-
-
   const fetchUsers = async (pageIndex = 1, pageSize = 10) => {
     setLoading(true);
     try {

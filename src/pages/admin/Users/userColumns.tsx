@@ -87,12 +87,6 @@ const userColumns = (
             render: (date) => date ? new Date(date).toLocaleDateString('vi-VN') : <Text type="secondary">Not updated</Text>,
         },
         {
-            title: 'Status',
-            key: 'status',
-            align: 'center',
-            render: () => <Tag color="green">Active</Tag>,
-        },
-        {
             title: 'Action',
             key: 'action',
             width: 150,

@@ -180,6 +180,7 @@ const Login: React.FC = () => {
                       onChange={handleInputChange}
                       className={errors.email ? "error" : ""}
                       placeholder="Enter your email..."
+                      maxLength={150}
                   />
                 </div>
                 {errors.email && (
